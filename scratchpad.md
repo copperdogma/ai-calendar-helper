@@ -1,92 +1,89 @@
-# Project Setup Phase Scratchpad Memory File
+# Scratchpad - Work Phase
 
-## Current Phase
+**NOTES:**
 
-**Phase**: Project Setup Phase
-**Status**: COMPLETED ✅
-**Ready for Work Phase**: Yes
+- All To Do items should be added as checklists.
+- Do not check something off unless you're confident it's complete.
+- Reorganize now and then, putting unfinished tasks at the top and finished ones at the bottom.
 
-## Project Overview
+## Current Story
 
-- **Project**: AI Calendar Helper
-- **Template**: NextAuth.js + PostgreSQL Template (fully integrated)
-- **Tech Stack**: Next.js 15+, NextAuth.js v5, PostgreSQL, Redis, Material UI, TypeScript, OpenAI GPT-4
+**Story 004**: Implement OpenAI text processing service  
+**Status**: To Do  
+**Link**: /docs/stories/story-004-openai-service.md
 
-## Completed Tasks ✅
+## Current Task
 
-### Template Integration
+Setting up OpenAI API integration and implementing the core text-to-calendar event extraction service using GPT-4
 
-- [x] Added template as git remote and merged successfully
-- [x] Resolved merge conflicts (preserved AI Calendar Helper README and .gitignore priorities)
-- [x] Updated setup-answers.json with AI Calendar Helper project details
-- [x] Integrated complete NextAuth.js + PostgreSQL + Material UI foundation
+## Plan Checklist
 
-### Dependencies & Configuration
+### Story 004 Tasks
 
-- [x] Installed dependencies with `npm install --legacy-peer-deps`
-- [x] Ran automated setup script with project configuration
-- [x] Fixed DATABASE_URL to match existing database (ai-calendar-helper-dev)
-- [x] Updated .env.local with correct AI Calendar Helper project information
+- [ ] Set up OpenAI API account and obtain API key
+- [ ] Configure `OPENAI_API_KEY` in environment variables
+- [ ] Install OpenAI SDK package (`npm install openai`)
+- [ ] Create `lib/ai.ts` service module
+- [ ] Define `ExtractedEventData` TypeScript interface with confidence scores
+- [ ] Implement `AIProcessingService` class with core methods
+- [ ] Design comprehensive system prompt for event extraction
+- [ ] Implement `extractEventDetails()` method with GPT-4 integration
+- [ ] Add timezone context to prompt generation
+- [ ] Implement field-level confidence scoring
+- [ ] Add validation and enhancement logic for extracted data
+- [ ] Create error handling for API failures and rate limits
+- [ ] Add input sanitization and safety checks
+- [ ] Implement retry logic with exponential backoff
+- [ ] Create unit tests for core processing functions
+- [ ] Test with various natural language inputs
+- [ ] Optimize prompt engineering for accuracy and consistency
+- [ ] User must sign off on functionality before story can be marked complete
 
-### Database Setup
+## Issues/Blockers
 
-- [x] Verified PostgreSQL is running (PostgreSQL 14 on port 5432)
-- [x] Confirmed databases exist: ai-calendar-helper-dev, ai-calendar-helper-test
-- [x] Successfully ran Prisma migration: `npx dotenv-cli -e .env.local npx prisma migrate dev`
-- [x] Database schema is in sync with no pending migrations
+- Need OpenAI API key to proceed
 
-### Application Testing
+## Recently Completed
 
-- [x] Started application with PM2 server management: `npm run ai:start`
-- [x] Verified health endpoint responding correctly on port 3001
-- [x] Ran comprehensive unit test suite: 543 tests passed, 88.62% coverage
-- [x] All authentication, database, and service tests passing
+### Story 003: Set up database schema for users ✅ COMPLETE
 
-### File Updates
+- [x] Database schema already complete from NextAuth.js template
+- [x] Users, Accounts, Sessions tables properly configured
+- [x] Indexes and relationships properly set up
 
-- [x] Created comprehensive .gitignore for Next.js/Node.js/TypeScript project
-- [x] Updated README.md with AI Calendar Helper project details
-- [x] Preserved essential template setup and usage information
-- [x] Documented all key commands and environment variables
+### Story 002: Configure Google OAuth & Calendar API ✅ COMPLETE
 
-## Next Steps (Ready for Work Phase)
+- [x] Google Cloud Console project configured
+- [x] Google Calendar API enabled
+- [x] OAuth 2.0 credentials configured
+- [x] NextAuth.js Google provider with Calendar scope
+- [x] OAuth flow tested and working
+- [x] User sign-off ✅ CONFIRMED WORKING
 
-1. Transition to Work Phase: `./bootstrapping/scripts/transition_to_execute.sh programming work`
-2. Begin Story 001: Set up basic project structure with Google Calendar API
-3. Implement Story 002: Configure Google OAuth for calendar access
-4. Start Story 004: Create OpenAI service for text-to-calendar conversion
+### Story 001: Set up project from template ✅ COMPLETE
+
+- [x] Complete template integration with NextAuth.js + PostgreSQL stack
+- [x] All dependencies installed and configured
+- [x] Database and Redis connections working
+- [x] Authentication UI functional
+- [x] User sign-off ✅ CONFIRMED WORKING
 
 ## Decisions Made
 
-- ✅ Template chosen: NextAuth.js + PostgreSQL template (10/10 compatibility)
-- ✅ Database naming: Using hyphenated names (ai-calendar-helper-dev) over underscores
-- ✅ Development approach: PM2 server management for AI-assisted development
-- ✅ Testing strategy: Comprehensive unit + E2E test coverage maintained
+- Using PM2 for local development server management
+- Database naming convention: ai-calendar-helper-dev (hyphenated format)
+- Template integration approach: git remote merge to preserve project identity
+- Redis enabled for rate limiting and caching
+- Google OAuth with Calendar API scope successfully configured
+- Database schema from template is sufficient for current needs
 
-## Recent Actions
+## Lessons Learned
 
-- Fixed database connection by updating DATABASE_URL format
-- Enhanced .gitignore with comprehensive Next.js/TypeScript exclusions
-- Created AI Calendar Helper specific README while preserving template essentials
-- Verified full application stack working with 88.62% test coverage
-- Successfully completed all SETUP.md checklist items
+- Template setup scripts require careful regex escaping for JSX placeholder replacement
+- Critical to maintain .gitignore integrity when merging templates
+- PM2 server management provides stable development environment for AI assistance
+- User confirmation via screenshot is valuable for verifying UI functionality
+- Google OAuth integration was already working from template
+- NextAuth.js template provides complete user management database schema
 
-## Issues or Blockers
-
-- None - All setup tasks completed successfully
-
-## Technical Notes
-
-- Template merge preserved project identity while gaining full auth + database stack
-- PostgreSQL 14 running on standard port 5432 with proper database access
-- NextAuth.js v5 fully configured with Google provider + credentials provider
-- Material UI theming system integrated and ready for customization
-- Test suite comprehensive with Jest (unit) + Playwright (E2E) frameworks
-
-## Guard Clause Status
-
-**PASSED** ✅ - All setup tasks completed. Ready to proceed to Work Phase implementation.
-
----
-
-_Last Updated_: Project Setup Phase Completion - All template integration and environment setup verified working.
+Keep this file concise (<300 lines): summarize or remove outdated info regularly to prevent overloading the context. Focus on the current phase and immediate next steps.

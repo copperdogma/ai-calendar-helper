@@ -17,9 +17,9 @@ AI Calendar Helper
 
 | Story ID | Title                                 | Priority | Status | Link                                       |
 | -------- | ------------------------------------- | -------- | ------ | ------------------------------------------ |
-| 001      | Set up project from template          | Critical | To Do  | /docs/stories/story-001-setup-project.md   |
-| 002      | Configure Google OAuth & Calendar API | Critical | To Do  | /docs/stories/story-002-configure-oauth.md |
-| 003      | Set up database schema for users      | Critical | To Do  | /docs/stories/story-003-setup-database.md  |
+| 001      | Set up project from template          | Critical | Done   | /docs/stories/story-001-setup-project.md   |
+| 002      | Configure Google OAuth & Calendar API | Critical | Done   | /docs/stories/story-002-configure-oauth.md |
+| 003      | Set up database schema for users      | Critical | Done   | /docs/stories/story-003-setup-database.md  |
 
 ### Phase 2: Text-to-Calendar Feature (Priority: High)
 
