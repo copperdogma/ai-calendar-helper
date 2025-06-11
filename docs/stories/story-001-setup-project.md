@@ -5,12 +5,15 @@
 ---
 
 ## Related Requirement
+
 [Technical Requirements](../requirements.md#technical-requirements) - Secure Google Calendar API integration, User authentication and authorization
 
 ## Alignment with Design
+
 [Template Integration](../design.md#template-integration) - NextAuth.js + PostgreSQL + Redis template foundation
 
 ## Acceptance Criteria
+
 - Project is successfully initialized from next-authjs-psql-base-template
 - All template dependencies are installed and working
 - Local development environment is configured
@@ -21,6 +24,7 @@
 - Project builds and starts without errors
 
 ## Tasks
+
 - [ ] Clone or initialize from next-authjs-psql-base-template
 - [ ] Install all project dependencies with `npm install`
 - [ ] Copy `.env.example` to `.env.local` and configure basic environment variables
@@ -36,8 +40,9 @@
 - [ ] User must sign off on functionality before story can be marked complete
 
 ## Notes
+
 - The template provides pre-configured NextAuth.js, Prisma, and Material UI setup
 - Database migrations will create the necessary tables for user sessions
 - Redis is optional but recommended for rate limiting and caching
 - This story is a critical dependency for all other development work
-- Follow the template's README.md for detailed setup instructions 
+- Follow the template's README.md for detailed setup instructions

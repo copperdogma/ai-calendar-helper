@@ -3,6 +3,7 @@
 **Current Phase**: MVP Requirements Gathering → Tech Stack Alignment
 
 **MVP Checklist**
+
 - [x] Define core problem and purpose:
   - [x] Who are the target users? Personal users wanting better calendar management
   - [x] What problem does this solve for them? Convert natural language to calendar events + get novel event summaries
@@ -20,6 +21,7 @@
   - [x] User stories for core flows ✓
 
 **CURRENT TASK: Tech Stack Alignment**
+
 - [x] User has chosen tech stack: Next.js + NextAuth.js + PostgreSQL template
 - [x] Review design.md for conflicts with chosen template:
   - [x] Authentication: Updated from Firebase to NextAuth.js ✓
@@ -30,11 +32,13 @@
 - [x] Confirm any other architectural decisions that need alignment
 
 **Project Type Selection**
+
 - [x] Determine appropriate project type: **Programming** (web application development)
 - [x] Rationale: Building a web app with AI integration, database, and background services
 - [ ] Get explicit confirmation of project type choice
 
 **Ready to Build?**
+
 - Tech stack chosen: Next.js + NextAuth.js + PostgreSQL template
 - Requirements: Complete ✓
 - Design: Needs alignment with chosen template

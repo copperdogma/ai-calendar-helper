@@ -418,7 +418,7 @@ function processFile(filePath, answers) {
     Object.entries(answers).forEach(([placeholder, value]) => {
       // Ensure value is a string for replacement; null/undefined can cause issues
       const replacementValue = value === null || value === undefined ? '' : String(value);
-      
+
       // Handle multiple placeholder formats:
       // 1. {{PLACEHOLDER}} - standard format
       // 2. {'{PLACEHOLDER}'} - React/JSX format
@@ -426,12 +426,12 @@ function processFile(filePath, answers) {
       // For React format: {'{PLACEHOLDER}'} - pattern: \{'{PLACEHOLDER}'\}
       const reactPattern = "\\{'{" + placeholder + "}'\\}";
       const reactRegex = new RegExp(reactPattern, 'g');
-      
+
       if (content.match(standardRegex)) {
         content = content.replace(standardRegex, replacementValue);
         modified = true;
       }
-      
+
       if (content.match(reactRegex)) {
         content = content.replace(reactRegex, replacementValue);
         modified = true;

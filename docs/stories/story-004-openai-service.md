@@ -5,12 +5,15 @@
 ---
 
 ## Related Requirement
+
 [Text-to-Calendar Feature](../requirements.md#1-text-to-calendar-primary-feature) - Parse text to extract event details, support common date/time formats, provide confidence scoring
 
 ## Alignment with Design
+
 [AI Processing Enhancement](../design.md#ai-processing-enhancement) - GPT-4 API for structured data extraction with prompt engineering
 
 ## Acceptance Criteria
+
 - OpenAI API integration is properly configured
 - Text processing service extracts structured event data from natural language
 - Confidence scoring provides field-level accuracy metrics
@@ -20,6 +23,7 @@
 - Service returns properly typed event data structure
 
 ## Tasks
+
 - [ ] Set up OpenAI API account and obtain API key
 - [ ] Configure `OPENAI_API_KEY` in environment variables
 - [ ] Install OpenAI SDK package (`npm install openai`)
@@ -40,9 +44,10 @@
 - [ ] User must sign off on functionality before story can be marked complete
 
 ## Notes
+
 - Use GPT-4 for highest accuracy in structured data extraction
 - Low temperature (0.1) for consistent JSON output
 - Single comprehensive prompt preferred over multiple API calls
 - Include current date/time context in prompts for relative date parsing
 - Handle ambiguous inputs gracefully with clear confidence scores
-- Consider implementing caching for similar inputs to reduce API costs 
+- Consider implementing caching for similar inputs to reduce API costs

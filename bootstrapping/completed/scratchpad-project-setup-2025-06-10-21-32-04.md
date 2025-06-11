@@ -5,6 +5,7 @@
 **Current Phase**: Planning
 
 **Planning Phase Tasks**
+
 - [x] Create design document:
   - [x] Use `/docs/templates/design-template.md` to create `/docs/design.md` ✓ (User restored comprehensive design)
   - [x] Discuss imagined workflow with user to get a sense of it ✓ (Already documented)
@@ -53,22 +54,26 @@
   - [ ] For each user story, validate the contents against the `docs/requirements.md`, `docs/design.md`, and `docs/architecture.md` documents to ensure all requirements are covered, the story isn't inventing requirements, and the story makes sense.
   - [ ] Check in what we have so far to github (if the project is using github).
 
-
 **Transition to Next Phase**
+
 - When all planning tasks are complete, ask the user: "Are you ready to move to the Project Setup phase?"
 - If yes, run: `./bootstrapping/scripts/transition_to_execute.sh programming project-setup`
   - This will copy all files to the correct places to start the Project Setup phase
 
-**User Input**  
+**User Input**
+
 - [Log key user decisions and feedback here]
 
-**Quick Start Assumptions**  
+**Quick Start Assumptions**
+
 - [If quick start is used, list assumptions made, e.g., "Assumed minimal UI based on requirements."]
 
-**Issues or Blockers**  
+**Issues or Blockers**
+
 - [Note anything preventing progress]
 
 **Decisions Made**
+
 - Chose NextAuth.js + PostgreSQL + Redis template as foundation
 - Updated design to align with template architecture (Firebase → NextAuth.js)
 - Created comprehensive architecture document with database schema

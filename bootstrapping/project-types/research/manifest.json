@@ -2,8 +2,8 @@
   "name": "Research",
   "description": "For research and analysis projects",
   "templates": [
-    {"source": "literature-review.md", "destination": "literature-review.md"},
-    {"source": "methodology.md", "destination": "methodology.md"}
+    { "source": "literature-review.md", "destination": "literature-review.md" },
+    { "source": "methodology.md", "destination": "methodology.md" }
   ],
   "setup_steps": [
     {
@@ -30,9 +30,7 @@
       "source": "templates/scratchpad-execute.md",
       "destination": "scratchpad.md"
     },
-    "additional_files": [
-      {"source": "templates/tasks.md", "destination": "docs/tasks.md"}
-    ]
+    "additional_files": [{ "source": "templates/tasks.md", "destination": "docs/tasks.md" }]
   },
   "task_management": {
     "method": "tasks",
