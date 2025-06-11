@@ -102,6 +102,7 @@ Birthday party Saturday at 6pm at Sarah's house`;
           variant="outlined"
           sx={{ mb: 2 }}
           disabled={isLoading}
+          aria-label="Enter your event text here to extract calendar events using AI"
         />
 
         {/* Action Buttons */}

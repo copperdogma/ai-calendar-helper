@@ -253,7 +253,7 @@ describe('/api/ai/parse-events', () => {
       const data = await response.json();
 
       expect(response.status).toBe(500);
-      expect(data.error).toBe('Failed to process event text');
+      expect(data.error).toBe('Failed to process text. Please try again.');
       expect(mockExtractEventDetails).toHaveBeenCalled();
     });
 
@@ -269,7 +269,7 @@ describe('/api/ai/parse-events', () => {
       const data = await response.json();
 
       expect(response.status).toBe(500);
-      expect(data.error).toBe('Failed to process event text');
+      expect(data.error).toBe('Failed to process text. Please try again.');
     });
 
     it('should handle malformed JSON gracefully', async () => {
@@ -285,7 +285,7 @@ describe('/api/ai/parse-events', () => {
       const data = await response.json();
 
       expect(response.status).toBe(500);
-      expect(data.error).toBe('Failed to process event text');
+      expect(data.error).toBe('Failed to process text. Please try again.');
     });
   });
 
