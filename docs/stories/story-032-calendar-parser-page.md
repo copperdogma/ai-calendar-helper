@@ -1,6 +1,6 @@
 # Story: Implement Calendar Parser Page & Default Routing
 
-**Status**: To Do
+**Status**: Done
 
 ---
 
@@ -24,7 +24,7 @@ Refer to [Design.md – Application Pages Structure](../design.md#application-pa
 - Unit tests cover routing changes and page render (≥90% coverage for modified files).
 - E2E tests updated to use `/calendar-parser` as the primary flow entry.
 - Application passes lint, type-check, and existing test suites after changes.
-- [ ] User must sign off on functionality before story can be marked complete.
+- [x] User must sign off on functionality before story can be marked complete.
 
 ## Tasks
 
