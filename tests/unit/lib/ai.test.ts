@@ -3,17 +3,17 @@ import { ExtractedEventData, AIProcessingService, OpenAIClient } from '../../../
 
 describe('AI Processing Service', () => {
   let aiService: AIProcessingService;
-  let mockOpenAIClient: OpenAIClient;
+  let mockOpenAIClient: jest.Mocked<OpenAIClient>;
 
   beforeEach(() => {
-    // Create a mock OpenAI client
+    // Create a properly mocked OpenAI client
     mockOpenAIClient = {
       chat: {
         completions: {
           create: jest.fn(),
         },
       },
-    };
+    } as jest.Mocked<OpenAIClient>;
 
     // Create service with injected mock
     aiService = new AIProcessingService(mockOpenAIClient);
@@ -28,6 +28,7 @@ describe('AI Processing Service', () => {
         endDate: new Date('2024-01-15T15:00:00Z'),
         location: 'Conference Room A',
         timezone: 'America/New_York',
+        summary: 'Weekly team sync meeting',
         confidence: {
           title: 0.95,
           description: 0.8,
@@ -59,6 +60,7 @@ describe('AI Processing Service', () => {
                 endDate: '2024-01-15T11:00:00Z',
                 location: 'Medical Center',
                 timezone: 'America/New_York',
+                summary: 'Annual medical checkup',
                 confidence: {
                   title: 0.95,
                   description: 0.8,
@@ -85,7 +87,7 @@ describe('AI Processing Service', () => {
       expect(result.confidence.overall).toBe(0.81);
       expect(mockOpenAIClient.chat.completions.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          model: 'gpt-4',
+          model: 'gpt-4o-mini',
           temperature: 0.1,
         })
       );
@@ -103,6 +105,7 @@ describe('AI Processing Service', () => {
                 endDate: '2024-01-15T15:00:00Z',
                 location: 'Virtual',
                 timezone: 'America/Los_Angeles',
+                summary: 'Virtual client meeting',
                 confidence: {
                   title: 0.9,
                   description: 0.8,
@@ -172,6 +175,7 @@ describe('AI Processing Service', () => {
                 endDate: '2024-01-15T11:00:00Z',
                 location: '',
                 timezone: 'UTC',
+                summary: 'Meeting tomorrow',
                 confidence: {
                   title: 0.8,
                   description: 0.5,
@@ -215,6 +219,7 @@ describe('AI Processing Service', () => {
                   endDate: '2024-01-15T11:00:00Z',
                   location: '',
                   timezone: 'UTC',
+                  summary: 'Meeting after retry',
                   confidence: {
                     title: 0.9,
                     description: 0.5,
@@ -266,6 +271,7 @@ describe('AI Processing Service', () => {
                 endDate: '2024-01-15T10:00:00Z',
                 location: '',
                 timezone: 'UTC',
+                summary: 'Meeting with bad dates',
                 confidence: {
                   title: 0.9,
                   description: 0.5,
@@ -302,6 +308,7 @@ describe('AI Processing Service', () => {
                 endDate: '2024-01-15T11:00:00Z',
                 location: '',
                 timezone: 'UTC',
+                summary: 'Meeting with bad confidence',
                 confidence: {
                   title: 1.5, // Invalid confidence score
                   description: 0.5,

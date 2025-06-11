@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
       id: '1', // For now, single event extraction
       title: result.title,
       description: result.description,
+      summary: result.summary,
       startDate: result.startDate.toISOString(),
       endDate: result.endDate.toISOString(),
       location: result.location,

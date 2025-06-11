@@ -1,7 +1,17 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Box, TextField, Button, Typography, Paper, Alert, CircularProgress } from '@mui/material';
+import {
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Paper,
+  Alert,
+  CircularProgress,
+  Tooltip,
+} from '@mui/material';
+import EventPreviewList from './EventPreviewList';
 
 interface ParsedEvent {
   id: string;
@@ -11,6 +21,7 @@ interface ParsedEvent {
   duration?: string;
   location?: string;
   description?: string;
+  summary?: string;
   confidence?: number;
   rawResponse?: unknown;
 }
@@ -24,6 +35,7 @@ const TextInputForm: React.FC<TextInputFormProps> = ({ onParseEvents }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<ParsedEvent[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [debugData, setDebugData] = useState<unknown>(null);
 
   const exampleText = `Team meeting tomorrow at 2pm in the conference room
 Doctor appointment Friday at 10am
@@ -43,6 +55,7 @@ Birthday party Saturday at 6pm at Sarah's house`;
       if (onParseEvents) {
         const parsedEvents = await onParseEvents(inputText.trim());
         setResults(parsedEvents);
+        setDebugData(parsedEvents);
       } else {
         // Mock response for testing UI without AI integration
         setTimeout(() => {
@@ -64,7 +77,7 @@ Birthday party Saturday at 6pm at Sarah's house`;
             },
           ];
           setResults(mockEvents);
-          setIsLoading(false);
+          setDebugData(mockEvents);
         }, 1500);
         return;
       }
@@ -98,6 +111,12 @@ Birthday party Saturday at 6pm at Sarah's house`;
           fullWidth
           value={inputText}
           onChange={e => setInputText(e.target.value)}
+          onKeyDown={e => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+              e.preventDefault();
+              handleParseEvents();
+            }
+          }}
           placeholder={`Enter your event text here, for example:\n\n${exampleText}`}
           variant="outlined"
           sx={{ mb: 2 }}
@@ -107,15 +126,19 @@ Birthday party Saturday at 6pm at Sarah's house`;
 
         {/* Action Buttons */}
         <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-          <Button
-            variant="contained"
-            onClick={handleParseEvents}
-            disabled={isLoading || !inputText.trim()}
-            startIcon={isLoading ? <CircularProgress size={20} /> : null}
-            sx={{ minWidth: 140 }}
-          >
-            {isLoading ? 'Parsing...' : 'Parse Events'}
-          </Button>
+          <Tooltip title="Parse (⌘/Ctrl + Enter)">
+            <span>
+              <Button
+                variant="contained"
+                onClick={handleParseEvents}
+                disabled={isLoading || !inputText.trim()}
+                startIcon={isLoading ? <CircularProgress size={20} /> : null}
+                sx={{ minWidth: 160 }}
+              >
+                {isLoading ? 'Parsing...' : 'Parse Events ⌘↵'}
+              </Button>
+            </span>
+          </Tooltip>
           <Button variant="outlined" onClick={handleClear} disabled={isLoading}>
             Clear
           </Button>
@@ -135,29 +158,15 @@ Birthday party Saturday at 6pm at Sarah's house`;
               Found {results.length} event{results.length !== 1 ? 's' : ''}
             </Typography>
 
-            {/* Simple results display - will be enhanced in Story 006 */}
-            {results.map(event => (
-              <Paper
-                key={event.id}
-                variant="outlined"
-                sx={{ p: 2, mb: 2, backgroundColor: 'action.hover' }}
-              >
-                <Typography variant="h6">{event.title}</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  📅 {event.date} {event.time && `at ${event.time}`}
-                </Typography>
-                {event.location && (
-                  <Typography variant="body2" color="text.secondary">
-                    📍 {event.location}
-                  </Typography>
-                )}
-                {event.confidence && (
-                  <Typography variant="body2" color="text.secondary">
-                    ⚡ Confidence: {event.confidence}%
-                  </Typography>
-                )}
-              </Paper>
-            ))}
+            {/* Enhanced Event Preview List */}
+            <EventPreviewList
+              events={results}
+              onUpdate={updated => {
+                setResults(prev =>
+                  prev ? prev.map(e => (e.id === updated.id ? { ...e, ...updated } : e)) : prev
+                );
+              }}
+            />
 
             {/* Raw JSON display for debugging */}
             <Box sx={{ mt: 3 }}>
@@ -167,14 +176,14 @@ Birthday party Saturday at 6pm at Sarah's house`;
               <TextField
                 multiline
                 fullWidth
-                value={JSON.stringify(results[0]?.rawResponse || results, null, 2)}
+                value={JSON.stringify(debugData || results, null, 2)}
                 variant="outlined"
                 size="small"
                 InputProps={{
                   readOnly: true,
                   sx: { fontSize: '0.8rem', fontFamily: 'monospace' },
                 }}
-                sx={{ backgroundColor: 'grey.50' }}
+                sx={{ backgroundColor: 'background.default', color: 'text.primary' }}
               />
             </Box>
           </Box>

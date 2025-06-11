@@ -1,101 +1,80 @@
 # AI Calendar Helper - Work Phase Scratchpad
 
+## NEXT:
+
+- Review and prioritize newly created Story 032 (Calendar Parser page) and Story 033 (About page update).
+
 ## Current Phase: Building
 
-## Current Story: **COMPLETED** Story 004: OpenAI Text Processing Service Integration
+## Build Event Preview & Editing Component Research & Planning Checklist
 
-**Status**: ✅ **DONE** - Testing completed successfully
+- [x] Initial research questions identified
+- [ ] Web research completed
+- [ ] Codebase analysis completed
+- [ ] Best practices identified
+- [ ] Implementation strategy developed
+- [ ] Detailed implementation checklist created
+- [x] User preference questions identified and asked
+- [ ] Plan reviewed and approved by user
 
-## Current Task: **IN PROGRESS** Code Review & Optimization
+### User Preferences (Captured 2025-06-11)
 
-**Status**: 🔍 **REVIEWING** - Following cnew-task-review-optimize-diff protocol
+- Layout: keep current layout (input top, results list below)
+- Editing style: quick-edit inline for Title, Date/Time, Location, Confidence
+- Fields visible: Title, Date/Time, Location, Confidence, plus one-line summary of remaining details (invitees count, description)
+- UI Library: Material UI only
+- Event list ordering: sequential list of parsed events as they appear
+- Dark mode: yes, full support
 
-### Code Review Checklist (cnew-task-review-optimize-diff)
+## Current Story: Story 006 - Build Event Preview & Editing Component
 
-#### 1. VERIFY REQUIREMENTS ⏳
+**Status**: 🚧 **IN PROGRESS** - Research & Planning phase initiated for Story 006
 
-- [ ] Code fulfills original purpose and requirements
-- [ ] All acceptance criteria and user stories are satisfied
+### Best Practices (Material UI & Inline Editing)
 
-#### 2. CODE QUALITY ASSESSMENT ⏳
+- Leverage MUI `Card` or `Paper` with `sx` prop and theme palette (`backgroundColor: 'background.paper'`, `action.hover` for hover) to ensure automatic dark-mode friendliness.
+- Avoid DataGrid for simple lists; custom card list is lighter and avoids pro tier dependency.
+- Use `TextField` with `variant="standard"` or `filled` inside edit state for minimal height.
+- `DateTimePicker` from `@mui/x-date-pickers` provides native dark-mode styling; wrap within `LocalizationProvider` at app root.
+- Keep state local in the card for immediate UX; propagate via `onUpdate` callback to parent list.
+- Use `IconButton` with `Edit`, `Save`, `Cancel` icons for quick-edit toggling.
+- Maintain accessibility: aria-labels on edit buttons, form elements.
+- Responsive Stack/Grid layout: stack vertically on xs, inline on sm+.
 
-- [ ] SOLID principles adherence
-- [ ] DRY principles followed
-- [ ] Proper Dependency Injection
-- [ ] TDD principles reflected in test coverage
-- [ ] YAGNI applied to remove unnecessary code
+### Implementation Strategy
 
-#### 3. IMPLEMENTATION AUDIT ⏳
+1. **Component Hierarchy**
+   - `EventPreviewList` (receives `events`, renders multiple `EventPreviewCard`).
+   - `EventPreviewCard` (displays preview, quick-edit toggle).
+2. **State Flow**
+   - Parent (`TextInputForm`) holds `events` array.
+   - Child card emits `onUpdate(updatedEvent)`; parent merges state.
+3. **Styling**
+   - Use theme spacing; avoid hard-coded colors.
+   - Dark-mode compatibility via theme palette.
+4. **Testing**
+   - Unit tests for render & edit interactions;
+   - E2E adjustment to validate editing flow.
+5. **Incremental Integration**
+   - Build components in isolation (Storybook style tests) then replace current simple results display.
 
-- [ ] Remove abandoned/commented code
-- [ ] No debugging artifacts remain
-- [ ] Proper error handling and edge cases
-- [ ] Security vulnerabilities check
-- [ ] Performance bottlenecks review
+### Detailed Implementation Checklist
 
-#### 4. CODE EFFICIENCY ⏳
-
-- [ ] Performance optimization (avoiding premature)
-- [ ] Minimal and elegant code
-- [ ] Simplified complex logic
-- [ ] Appropriate data structures and algorithms
-
-#### 5. FINAL VERIFICATION ⏳
-
-- [ ] Test coverage for critical functionality
-- [ ] Documentation accuracy
-- [ ] Alignment with project patterns and conventions
-
----
-
-### Recently Completed ✅
-
-- [x] Added comprehensive unit tests for AI parse events API route (`tests/unit/api/ai/parse-events.test.ts`)
-- [x] Created E2E tests for full AI calendar workflow (`tests/e2e/authenticated/ai-calendar-workflow.spec.ts`)
-- [x] **Successfully implemented OpenAI API mocking in E2E tests to avoid API costs**
-- [x] All 7 E2E tests now passing - tests the complete workflow without real OpenAI calls
-- [x] E2E tests cover:
-  - Basic event parsing and display
-  - Complex events with multiple fields
-  - Error handling and edge cases
-  - Form state management during processing
-  - Raw JSON debugging functionality
-- [x] Fixed timezone handling issues reported by user
-- [x] Enhanced debugging capabilities with raw AI response display
-- [x] Updated middleware to properly route AI API calls
-- [x] Added comprehensive input sanitization and validation
-- [x] Implemented retry logic with exponential backoff for API reliability
-
-### Issues/Blockers 🚨
-
-- **BLOCKER**: Linting errors preventing commit:
-  - TypeScript `any` types in multiple files need proper typing
-  - 10+ linting errors across AI service files
-
-### Decisions Made 📝
-
-- Chose to mock OpenAI in E2E tests to avoid API costs during testing
-- Used Playwright network interception for reliable test mocking
-- Implemented comprehensive error handling with user-friendly messages
-- Added debug mode for developers with raw AI response data
-- Used typed interfaces throughout for better type safety
-
-### Lessons Learned 💡
-
-- E2E test mocking requires precise response format matching
-- Timezone handling needs careful coordination between AI service and frontend
-- Test artifacts (screenshots, results) should be in .gitignore from start
-- TypeScript strict mode helps catch potential runtime errors early
-
-## Next Steps
-
-1. Move to next story from `/docs/stories.md` or address any priority items
-2. Consider fixing minor unit test failures if needed (not blocking main functionality)
-
-## Issues/Blockers: None
-
-## Lessons Learned
-
-- E2E testing with mocked external APIs is highly effective for testing workflows without costs
-- Playwright network interception works well for mocking API responses
-- Comprehensive testing strategy: API unit tests + E2E workflow tests provides excellent coverage
+- [x] Create `components/calendar/EventPreviewCard.tsx` (view & edit modes).
+- [x] Create `components/calendar/EventPreviewList.tsx` that maps over events.
+- [x] Update `components/calendar/TextInputForm.tsx` to import and use list component.
+- [ ] Add `onUpdateEvent` handler in `TextInputForm` to update state.
+- [x] Implement quick-edit fields: Title (TextField), Date/Time (DateTimePicker), Location (TextField).
+- [x] Add ESC key to cancel edit.
+- [x] Adjust save icon and cancel button position.
+- [ ] Show confidence badge (Typography variant="caption").
+- [ ] Render one-line summary (description + invitees count) truncated to 80 chars.
+- [ ] Theme-aware styling & dark mode tests.
+- [ ] Unit tests with React Testing Library (render, edit, save, cancel).
+- [ ] Update E2E test to parse sample text, edit title, verify change.
+- [ ] Documentation update in Story 006 notes.
+- [ ] Peer review / lint / type-check.
+- [ ] User approval and mark Story complete.
+- [x] Write unit tests with React Testing Library & Jest.
+- [ ] Add Enter key to save and tweak AM/PM picker.
+- [ ] Cmd/Ctrl+Enter triggers Parse Events; caret at end when editing title; revert AM/PM view.

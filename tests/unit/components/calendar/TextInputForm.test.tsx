@@ -3,8 +3,8 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { render, screen, waitFor } from '@testing-library/react';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { createAppTheme } from '@/lib/theme';
@@ -167,9 +167,9 @@ describe('TextInputForm', () => {
           'Team meeting tomorrow at 2pm in Conference Room A'
         );
         expect(screen.getByText(/Found 1 event/i)).toBeInTheDocument();
-        expect(screen.getAllByText(/Team Meeting/i)).toHaveLength(2); // input + display (rawResponse has different case)
+        expect(screen.getAllByText(/Team Meeting/i)).toHaveLength(3); // input + display + raw JSON
         expect(screen.getByText(/Thursday, June 12, 2025 at 2:00 PM/i)).toBeInTheDocument();
-        expect(screen.getAllByText(/Conference Room A/i)).toHaveLength(2); // input + display
+        expect(screen.getAllByText(/Conference Room A/i)).toHaveLength(3); // input + display + raw JSON
         expect(screen.getByText(/Confidence: 95%/i)).toBeInTheDocument();
       });
 

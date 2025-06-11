@@ -23,6 +23,7 @@ export interface ExtractedEventData {
   endDate: Date;
   location: string;
   timezone: string;
+  summary: string;
   confidence: ConfidenceScore;
   isAllDay: boolean;
   recurrence: string | null;
@@ -38,7 +39,58 @@ export interface AIProcessingOptions {
     defaultDuration?: number; // in minutes
     workingHours?: { start: string; end: string };
   };
+  model?: string; // Allow model override for testing
 }
+
+/**
+ * Available AI models for calendar parsing
+ */
+export enum AIModel {
+  GPT_4 = 'gpt-4',
+  GPT_4O_MINI = 'gpt-4o-mini',
+  GPT_4_1_MINI = 'gpt-4.1-mini',
+}
+
+/**
+ * Model configuration with pricing and characteristics
+ */
+export interface ModelConfig {
+  name: string;
+  pricing: {
+    inputPerMillion: number; // USD per million tokens
+    outputPerMillion: number;
+  };
+  maxTokens: number;
+  contextWindow: number;
+  description: string;
+}
+
+/**
+ * Model configurations for cost comparison
+ */
+export const MODEL_CONFIGS: Record<AIModel, ModelConfig> = {
+  [AIModel.GPT_4]: {
+    name: 'GPT-4',
+    pricing: { inputPerMillion: 30.0, outputPerMillion: 60.0 },
+    maxTokens: 8192,
+    contextWindow: 8192,
+    description: 'High accuracy, most expensive',
+  },
+  [AIModel.GPT_4O_MINI]: {
+    name: 'GPT-4o Mini',
+    pricing: { inputPerMillion: 0.15, outputPerMillion: 0.6 },
+    maxTokens: 16384,
+    contextWindow: 128000,
+    description: 'Good balance of accuracy and cost',
+  },
+  [AIModel.GPT_4_1_MINI]: {
+    name: 'GPT-4.1 Mini',
+    pricing: { inputPerMillion: 0.4, outputPerMillion: 1.6 },
+    maxTokens: 32768,
+    contextWindow: 1000000,
+    description: 'Better accuracy than 4o-mini, still cost-effective',
+  },
+};
 
 /**
  * Interface for OpenAI client (for testing)
@@ -59,8 +111,11 @@ export class AIProcessingService {
   private openai: OpenAIClient;
   private readonly maxRetries = 3;
   private readonly baseDelay = 1000; // 1 second
+  private defaultModel: AIModel;
 
-  constructor(openaiClient?: OpenAIClient) {
+  constructor(openaiClient?: OpenAIClient, defaultModel: AIModel = AIModel.GPT_4O_MINI) {
+    this.defaultModel = defaultModel;
+
     if (openaiClient) {
       this.openai = openaiClient;
     } else {
@@ -85,11 +140,14 @@ export class AIProcessingService {
       // Sanitize input
       const sanitizedText = this.sanitizeInput(text);
 
-      // Build the system prompt
+      // Determine model to use
+      const model = options.model || this.defaultModel;
+
+      // Build the system prompt (simplified for JSON-only output)
       const systemPrompt = this.buildSystemPrompt(options);
 
       // Process with retry logic
-      const response = await this.processWithRetry(systemPrompt, sanitizedText);
+      const response = await this.processWithRetry(systemPrompt, sanitizedText, model);
 
       // Parse and validate response
       const eventData = this.parseResponse(response);
@@ -102,6 +160,20 @@ export class AIProcessingService {
       }
       throw new Error('AI processing failed: Unknown error');
     }
+  }
+
+  /**
+   * Get cost estimate for a request
+   */
+  estimateCost(
+    inputTokens: number,
+    outputTokens: number,
+    model: AIModel = this.defaultModel
+  ): number {
+    const config = MODEL_CONFIGS[model];
+    const inputCost = (inputTokens / 1000000) * config.pricing.inputPerMillion;
+    const outputCost = (outputTokens / 1000000) * config.pricing.outputPerMillion;
+    return inputCost + outputCost;
   }
 
   /**
@@ -119,30 +191,30 @@ export class AIProcessingService {
   }
 
   /**
-   * Build comprehensive system prompt for event extraction
+   * Build simplified system prompt optimized for JSON-only output
    */
   private buildSystemPrompt(options: AIProcessingOptions): string {
     const currentDate = options.currentDate || new Date();
     const userTimezone = options.timezone || 'UTC';
     const defaultDuration = options.userPreferences?.defaultDuration || 60;
 
-    return `You are an expert calendar event extraction AI. Your task is to analyze natural language text and extract structured event information.
+    return `You are an expert calendar event extraction AI. Extract structured event information from natural language text and return it as JSON.
 
 Current context:
 - Current date/time: ${currentDate.toISOString()}
 - User timezone: ${userTimezone}
 - Default meeting duration: ${defaultDuration} minutes
 
-Extract the following information and provide confidence scores (0.0 to 1.0) for each field:
+Return JSON with event data and confidence scores (0.0 to 1.0 for each field):
 
-Required output format (JSON only, no markdown):
 {
   "title": "Event title",
   "description": "Event description or empty string",
-  "startDate": "ISO 8601 date string with timezone offset for ${userTimezone}",
-  "endDate": "ISO 8601 date string with timezone offset for ${userTimezone}", 
+  "startDate": "ISO 8601 date with timezone offset for ${userTimezone}",
+  "endDate": "ISO 8601 date with timezone offset for ${userTimezone}", 
   "location": "Location or empty string",
   "timezone": "IANA timezone identifier",
+  "summary": "Succinct summary <= 20 words",
   "confidence": {
     "title": 0.0-1.0,
     "description": 0.0-1.0,
@@ -156,36 +228,33 @@ Required output format (JSON only, no markdown):
   "recurrence": "recurrence pattern or null"
 }
 
-Guidelines:
-- CRITICAL: Return all dates with proper timezone offset, not as UTC
+Rules:
+- Return dates with proper timezone offset for ${userTimezone}, NOT UTC
 - Parse "4pm" as 16:00 in ${userTimezone}
-- For ${userTimezone}, use the appropriate offset (e.g., -04:00 for Eastern Daylight Time)
-- Example format: "2025-06-12T16:00:00-04:00" (for Eastern) NOT "2025-06-12T20:00:00Z" (UTC)
-- If no end time specified, add ${defaultDuration} minutes to start time
-- Use the user's timezone (${userTimezone}) unless another is explicitly mentioned  
-- Confidence scores should reflect certainty of extraction
-- Overall confidence is weighted average of all fields
-- For relative dates (tomorrow, next week), calculate absolute dates from current time in ${userTimezone}
-- Be conservative with confidence scores for ambiguous information
-- Return null for recurrence if no pattern is mentioned
-- If location unclear, use empty string with low confidence
-- Examples: 
-  * "tomorrow at 4pm" → "2025-06-12T16:00:00-04:00" (for Eastern Daylight Time)
-  * "meeting at 2pm" → "2025-06-11T14:00:00-04:00" (for Eastern Daylight Time)`;
+- Add ${defaultDuration} minutes if no end time specified
+- Use conservative confidence scores for ambiguous data
+- Return null for recurrence if no pattern mentioned
+- summary must be ≤20 words, descriptive but concise
+- Calculate relative dates from current time in ${userTimezone}`;
   }
 
   /**
-   * Process OpenAI request with retry logic and exponential backoff
+   * Process OpenAI request with retry logic and JSON response format enforcement
    */
-  private async processWithRetry(systemPrompt: string, userText: string): Promise<string> {
+  private async processWithRetry(
+    systemPrompt: string,
+    userText: string,
+    model: string
+  ): Promise<string> {
     let lastError: Error | null = null;
 
     for (let attempt = 0; attempt < this.maxRetries; attempt++) {
       try {
         const response = await this.openai.chat.completions.create({
-          model: 'gpt-4',
+          model,
           temperature: 0.1,
           max_tokens: 1000,
+          response_format: { type: 'json_object' }, // Enforce JSON output
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userText },
@@ -235,14 +304,11 @@ Guidelines:
   }
 
   /**
-   * Parse and validate OpenAI response
+   * Parse and validate OpenAI response (simplified for JSON-only)
    */
   private parseResponse(response: string): unknown {
     try {
-      // Remove potential markdown formatting
-      const cleanedResponse = response.replace(/```json\n?|\n?```/g, '').trim();
-
-      const parsed = JSON.parse(cleanedResponse);
+      const parsed = JSON.parse(response);
 
       // Basic validation
       if (!parsed.title || !parsed.startDate || !parsed.confidence) {
@@ -294,6 +360,7 @@ Guidelines:
       endDate,
       location: (eventData.location as string) || '',
       timezone: (eventData.timezone as string) || 'UTC',
+      summary: (eventData.summary as string) || '',
       confidence,
       isAllDay: Boolean(eventData.isAllDay),
       recurrence: (eventData.recurrence as string) || null,
@@ -301,7 +368,9 @@ Guidelines:
   }
 }
 
-// Factory function for creating service instances
-export function createAIProcessingService(): AIProcessingService {
-  return new AIProcessingService();
+// Factory function for creating service instances with configurable model
+export function createAIProcessingService(
+  model: AIModel = AIModel.GPT_4O_MINI
+): AIProcessingService {
+  return new AIProcessingService(undefined, model);
 }

@@ -53,7 +53,9 @@
     "ai:port": "node scripts/get-port.js",
     "ai:health": "node scripts/check-health.js",
     "dev:simple": "next dev -p 3336",
-    "dev:background": "npm run dev &"
+    "dev:background": "npm run dev &",
+    "model:compare": "tsx scripts/model-comparison-test.ts",
+    "model:test": "npm run model:compare"
   },
   "dependencies": {
     "@auth/core": "^0.39.1",
