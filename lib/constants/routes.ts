@@ -32,6 +32,7 @@ export const PUBLIC_ROUTES = [
   ROUTES.API_HEALTH,
   ROUTES.API_LOG_CLIENT,
   ROUTES.MANIFEST,
+  '/test-component', // Test page for TextInputForm component
 ] as const;
 
 export const AUTH_ROUTES = [ROUTES.LOGIN, ROUTES.REGISTER] as const;

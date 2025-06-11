@@ -14,6 +14,7 @@ import {
 // import { useSession } from 'next-auth/react'; // No longer needed here
 import { useUserStore } from '@/lib/store/userStore'; // Import Zustand store
 import PageLayout from '@/components/layouts/PageLayout';
+import TextInputForm from '@/components/calendar/TextInputForm';
 
 // --- Content Sections for Dashboard ---
 
@@ -34,14 +35,10 @@ const OverviewSection = () => {
   );
 };
 
-const RecentActivitySection = () => (
+const CalendarHelperSection = () => (
   <Card sx={{ border: 'none', boxShadow: 'none', backgroundImage: 'none' }}>
-    <CardHeader title="Recent Activity" />
     <CardContent>
-      <Typography variant="body2" color="text.secondary">
-        No recent activity to show.
-      </Typography>
-      {/* TODO: Add logic to display actual activity */}
+      <TextInputForm />
     </CardContent>
   </Card>
 );
@@ -93,7 +90,7 @@ export default function DashboardPage() {
     <PageLayout title="Dashboard" subtitle="Overview of your account and quick actions">
       <Stack spacing={3}>
         <OverviewSection />
-        <RecentActivitySection />
+        <CalendarHelperSection />
         <QuickActionsSection />
       </Stack>
     </PageLayout>

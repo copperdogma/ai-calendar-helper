@@ -8,82 +8,79 @@
 
 ## Current Story
 
-**Story 004**: Implement OpenAI text processing service  
-**Status**: To Do  
-**Link**: /docs/stories/story-004-openai-service.md
+**Story 005**: Create text input UI component  
+**Status**: ✅ **COMPLETE**  
+**Link**: /docs/stories/story-005-text-input-ui.md
 
 ## Current Task
 
-Setting up OpenAI API integration and implementing the core text-to-calendar event extraction service using GPT-4
+Story 005 MVP is complete! TextInputForm component is fully functional with:
+
+- ✅ Large text area with examples
+- ✅ Parse Events button with loading states
+- ✅ Clear button functionality
+- ✅ Mock event results display
+- ✅ Error handling ready
+- ✅ Material UI styling
+- ✅ Responsive design
+
+Ready to move to **Story 004: Implement OpenAI text processing service** to hook up real AI processing.
 
 ## Plan Checklist
 
-### Story 004 Tasks
+### Story 005 Tasks - ✅ ALL COMPLETE
+
+- [x] Create story file with detailed requirements
+- [x] Design component structure and props interface
+- [x] Create `TextInputForm` component with large text area
+- [x] Add "Parse Events" button with loading states
+- [x] Implement basic form validation (non-empty text)
+- [x] Add placeholder text with usage examples
+- [x] Create processing/loading state UI
+- [x] Add error handling for failed parsing
+- [x] Style component with Material UI theme
+- [x] Make component responsive
+- [x] Integrate into test page (/test-component)
+- [x] Test component functionality end-to-end
+- [x] User sign-off on MVP functionality ✅
+
+### Next: Story 004 - OpenAI AI Processing Service
 
 - [ ] Set up OpenAI API account and obtain API key
 - [ ] Configure `OPENAI_API_KEY` in environment variables
 - [ ] Install OpenAI SDK package (`npm install openai`)
 - [ ] Create `lib/ai.ts` service module
-- [ ] Define `ExtractedEventData` TypeScript interface with confidence scores
-- [ ] Implement `AIProcessingService` class with core methods
-- [ ] Design comprehensive system prompt for event extraction
-- [ ] Implement `extractEventDetails()` method with GPT-4 integration
-- [ ] Add timezone context to prompt generation
-- [ ] Implement field-level confidence scoring
-- [ ] Add validation and enhancement logic for extracted data
-- [ ] Create error handling for API failures and rate limits
-- [ ] Add input sanitization and safety checks
-- [ ] Implement retry logic with exponential backoff
-- [ ] Create unit tests for core processing functions
-- [ ] Test with various natural language inputs
-- [ ] Optimize prompt engineering for accuracy and consistency
-- [ ] User must sign off on functionality before story can be marked complete
+- [ ] Define `ExtractedEventData` TypeScript interfaces
+- [ ] Build AI text processing function
+- [ ] Hook TextInputForm to real AI processing
+- [ ] Test end-to-end AI integration
+- [ ] User sign-off on AI functionality
 
 ## Issues/Blockers
 
-- Need OpenAI API key to proceed
+None! Ready to proceed to AI integration.
 
-## Recently Completed
+## Recently Completed ✅
 
-### Story 003: Set up database schema for users ✅ COMPLETE
-
-- [x] Database schema already complete from NextAuth.js template
-- [x] Users, Accounts, Sessions tables properly configured
-- [x] Indexes and relationships properly set up
-
-### Story 002: Configure Google OAuth & Calendar API ✅ COMPLETE
-
-- [x] Google Cloud Console project configured
-- [x] Google Calendar API enabled
-- [x] OAuth 2.0 credentials configured
-- [x] NextAuth.js Google provider with Calendar scope
-- [x] OAuth flow tested and working
-- [x] User sign-off ✅ CONFIRMED WORKING
-
-### Story 001: Set up project from template ✅ COMPLETE
-
-- [x] Complete template integration with NextAuth.js + PostgreSQL stack
-- [x] All dependencies installed and configured
-- [x] Database and Redis connections working
-- [x] Authentication UI functional
-- [x] User sign-off ✅ CONFIRMED WORKING
+- Successfully created MVP TextInputForm component
+- Added component to test page at /test-component
+- Made /test-component publicly accessible
+- Tested all component functionality (input, parse, clear, results display)
+- Component ready for AI integration hook-up
 
 ## Decisions Made
 
-- Using PM2 for local development server management
-- Database naming convention: ai-calendar-helper-dev (hyphenated format)
-- Template integration approach: git remote merge to preserve project identity
-- Redis enabled for rate limiting and caching
-- Google OAuth with Calendar API scope successfully configured
-- Database schema from template is sufficient for current needs
+- Used MVP approach - build basic UI first, then add AI processing
+- Created mock data system for testing UI before AI integration
+- Used Material UI for consistent styling with rest of app
+- Added developer JSON output for debugging
+- Made component flexible with onParseEvents prop for easy AI integration
 
 ## Lessons Learned
 
-- Template setup scripts require careful regex escaping for JSX placeholder replacement
-- Critical to maintain .gitignore integrity when merging templates
-- PM2 server management provides stable development environment for AI assistance
-- User confirmation via screenshot is valuable for verifying UI functionality
-- Google OAuth integration was already working from template
-- NextAuth.js template provides complete user management database schema
+- Testing UI components in isolation (without auth) speeds up development
+- Mock data helps validate UI behavior before complex integrations
+- MaterialUI + NextJS integration works smoothly
+- Component-first approach makes testing easier
 
 Keep this file concise (<300 lines): summarize or remove outdated info regularly to prevent overloading the context. Focus on the current phase and immediate next steps.
