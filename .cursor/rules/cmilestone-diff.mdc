@@ -1,0 +1,14 @@
+---
+description: For creating a milestone when wrapping up a large amount of work
+globs: 
+alwaysApply: false
+---
+# Creating a Milestone
+
+NOTE: If you need to review changes, use `gh` CLI commands to get the diff (e.g., `git diff`, `gh pr diff`, or `gh repo view --json`).
+
+1. Check the @Diff to get a sense of what was done.
+2. Add a new milestone to the top of [log.md](mdc:docs/log.md) with the changes
+3. Check all changes into main using: git add .
+4. Commit, adding an appropriate commit message based on the @Diff
+5. Push to main

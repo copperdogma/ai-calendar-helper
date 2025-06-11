@@ -1,0 +1,121 @@
+/* 
+ * Material UI Global CSS
+ * This file contains minimal global styles, as CssBaseline handles most defaults
+ */
+
+/* Define global CSS variables and base styles */
+:root {
+  --transition-fast: 150ms;
+  --transition-normal: 300ms;
+  --transition-slow: 500ms;
+}
+
+/* Initially hide content until theme is applied to prevent flash */
+html.light:not(.prevent-transition) *,
+html.dark:not(.prevent-transition) * {
+  transition-delay: 0s !important;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* Color scheme support is now handled by MUI ThemeProvider and CssBaseline */
+
+/* Removed MUI component-specific overrides now handled in the theme:
+   - html.dark .MuiPaper-root
+   - html.dark .MuiCard-root
+   - html.dark .MuiAlert-root
+   - html.dark .MuiDialog-paper
+   - html.dark .MuiBox-root
+*/
+
+/* Prevent transitions during theme change to avoid flashing */
+.prevent-transition *,
+.prevent-transition *:before,
+.prevent-transition *:after,
+html.prevent-transition *,
+html.prevent-transition *:before,
+html.prevent-transition *:after {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Hide next-themes SSR flash with opacity 0 while loading */
+:root:not(.light):not(.dark) *,
+html:not(.light):not(.dark) * {
+  transition: none !important;
+}
+
+#root,
+.root,
+#__next {
+  isolation: isolate;
+  height: 100%;
+}
+
+/* Focus outline styles for accessibility */
+:focus-visible {
+  outline: 2px solid var(--mui-palette-primary-main);
+  outline-offset: 2px;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+* {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Base styles to ensure smooth animations when not in prevent-transition mode */
+a,
+button,
+[role='button'],
+input,
+textarea,
+select {
+  transition:
+    background-color var(--transition-normal) ease,
+    border-color var(--transition-normal) ease,
+    color var(--transition-normal) ease,
+    fill var(--transition-normal) ease,
+    stroke var(--transition-normal) ease,
+    box-shadow var(--transition-normal) ease;
+}
+
+/* Container utility */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (min-width: 600px) {
+  .container {
+    padding: 0 1.5rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .container {
+    padding: 0 2rem;
+  }
+}

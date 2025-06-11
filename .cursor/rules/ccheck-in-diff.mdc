@@ -1,0 +1,13 @@
+---
+description: For checking in after completing a set of work
+globs: 
+alwaysApply: false
+---
+NOTE: If you need to review changes, use `gh` CLI commands to get the diff (e.g., `git diff`, `gh pr diff`, or `gh repo view --json`).
+
+1. Check all changes into main using: git add .
+2. Check what was added, verifying that all of those files should be committed (no temp testing files/screenshots) and that no secrets or things that should be in .gitignore got in. If they did, fix it.
+3. Commit, adding an appropriate commit message based on the @Diff. Use the -m flag to add multiple lines as newlines will be rejected.
+4. Push to main
+
+If any of the CI/triggered tests fail (except linting, it's okay if some of those fail) do NOT attempt to bypass them and check in. Halt.
