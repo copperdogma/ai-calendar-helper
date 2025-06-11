@@ -79,9 +79,9 @@ async function setupAuthViaUiLogin(page: Page): Promise<boolean> {
     await submitButton.click();
     console.log('Clicked Sign In button');
 
-    // 4. Wait for successful redirect to Dashboard
-    await page.waitForURL('**/dashboard', { timeout: 15000, waitUntil: 'networkidle' });
-    console.log('Redirected to /dashboard after login attempt');
+    // 4. Wait for successful redirect to Calendar Parser page
+    await page.waitForURL('**/calendar-parser', { timeout: 15000, waitUntil: 'networkidle' });
+    console.log('Redirected to /calendar-parser after login attempt');
 
     // 5. Verify and Save State
     console.log('🔍 Verifying authentication and session state after UI login...');
@@ -144,7 +144,7 @@ async function verifyAuthentication(page: Page): Promise<boolean> {
     }
 
     // 2. Wait for a primary dashboard element to appear
-    const dashboardHeadingSelector = 'h1:has-text("Dashboard")'; // More specific selector
+    const dashboardHeadingSelector = 'h1:has-text("Calendar Parser")'; // Updated selector
     try {
       await page
         .locator(dashboardHeadingSelector)

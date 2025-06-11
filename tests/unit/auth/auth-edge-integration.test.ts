@@ -52,8 +52,8 @@ describe('Auth Edge Integration with Centralized Routes', () => {
     });
 
     it('should use centralized DEFAULT_LOGIN_REDIRECT', () => {
-      const DEFAULT_LOGIN_REDIRECT = ROUTES.DASHBOARD;
-      expect(DEFAULT_LOGIN_REDIRECT).toBe('/dashboard');
+      const DEFAULT_LOGIN_REDIRECT = ROUTES.CALENDAR_PARSER;
+      expect(DEFAULT_LOGIN_REDIRECT).toBe('/calendar-parser');
     });
   });
 

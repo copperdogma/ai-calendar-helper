@@ -17,8 +17,8 @@ test.describe('Auth Redirection', () => {
     // Set longer timeout for this test
     test.setTimeout(45000); // Increased timeout
 
-    console.log('Auth Redirection Test: Attempting to access /dashboard (unauthenticated)');
-    await page.goto('/dashboard');
+    console.log('Auth Redirection Test: Attempting to access /calendar-parser (unauthenticated)');
+    await page.goto('/calendar-parser');
 
     // Explicitly wait for the URL to change to the login page
     try {
@@ -34,7 +34,7 @@ test.describe('Auth Redirection', () => {
 
     expect(url).toContain('/login'); // Ensure we are on the login page
     expect(url).toContain('callbackUrl=');
-    expect(url).toContain(encodeURIComponent('/dashboard')); // Check for encoded dashboard
+    expect(url).toContain(encodeURIComponent('/calendar-parser')); // Check for encoded
 
     // Take a screenshot of the login page after redirection
     await page.screenshot({ path: 'tests/e2e/screenshots/login-after-redirect.png' });
@@ -59,9 +59,9 @@ test.describe('Auth Redirection', () => {
     test.setTimeout(45000); // Increased timeout
 
     console.log(
-      'Auth Redirection Encoding Test: Attempting to access /dashboard (unauthenticated)'
+      'Auth Redirection Encoding Test: Attempting to access /calendar-parser (unauthenticated)'
     );
-    await page.goto('/dashboard');
+    await page.goto('/calendar-parser');
 
     // Explicitly wait for the URL to change to the login page
     try {
@@ -82,7 +82,7 @@ test.describe('Auth Redirection', () => {
     const callbackUrl = callbackUrlMatch ? callbackUrlMatch[1] : '';
 
     console.log(`Auth Redirection Encoding Test: Extracted callback URL: ${callbackUrl}`);
-    expect(callbackUrl).toBe(encodeURIComponent('/dashboard')); // Expect exact encoded match
+    expect(callbackUrl).toBe(encodeURIComponent('/calendar-parser')); // Expect exact encoded match
 
     await page.screenshot({ path: 'tests/e2e/screenshots/callback-url-encoding.png' });
   });

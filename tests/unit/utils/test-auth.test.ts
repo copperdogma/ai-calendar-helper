@@ -66,26 +66,29 @@ describe('test-auth.ts utilities', () => {
   describe('navigateWithTestAuth', () => {
     it('should navigate to a URL with test session ID', async () => {
       const testSessionId = 'test-session-123';
-      const url = '/dashboard';
+      const url = '/calendar-parser';
 
       await navigateWithTestAuth(mockPage as any, url, testSessionId);
 
       // Check that page.goto was called with the correct URL and testSessionId
-      expect(mockPage.goto).toHaveBeenCalledWith('/dashboard?testSessionId=test-session-123', {
-        waitUntil: 'networkidle',
-        timeout: 10000,
-      });
+      expect(mockPage.goto).toHaveBeenCalledWith(
+        '/calendar-parser?testSessionId=test-session-123',
+        {
+          waitUntil: 'networkidle',
+          timeout: 10000,
+        }
+      );
     });
 
     it('should append testSessionId to URLs that already have query params', async () => {
       const testSessionId = 'test-session-123';
-      const url = '/dashboard?param=value';
+      const url = '/calendar-parser?param=value';
 
       await navigateWithTestAuth(mockPage as any, url, testSessionId);
 
       // Check that page.goto was called with the correct URL and testSessionId appended
       expect(mockPage.goto).toHaveBeenCalledWith(
-        '/dashboard?param=value&testSessionId=test-session-123',
+        '/calendar-parser?param=value&testSessionId=test-session-123',
         {
           waitUntil: 'networkidle',
           timeout: 10000,
@@ -97,11 +100,11 @@ describe('test-auth.ts utilities', () => {
   describe('isRedirectedToLogin', () => {
     it('should return true if URL contains /login', () => {
       expect(isRedirectedToLogin('http://localhost:3000/login')).toBe(true);
-      expect(isRedirectedToLogin('/login?callbackUrl=%2Fdashboard')).toBe(true);
+      expect(isRedirectedToLogin('/login?callbackUrl=%2Fcalendar-parser')).toBe(true);
     });
 
     it('should return false if URL does not contain /login', () => {
-      expect(isRedirectedToLogin('http://localhost:3000/dashboard')).toBe(false);
+      expect(isRedirectedToLogin('http://localhost:3000/calendar-parser')).toBe(false);
       expect(isRedirectedToLogin('/profile')).toBe(false);
     });
   });

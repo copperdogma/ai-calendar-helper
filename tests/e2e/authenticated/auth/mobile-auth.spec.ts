@@ -85,7 +85,7 @@ test.describe('Mobile Authentication', () => {
       await page.waitForURL(`${baseUrl}${ROUTES.DASHBOARD}`, { timeout: 20000 });
 
       // Verify login was successful
-      await expect(page.locator('body')).toContainText('Dashboard', { timeout: 10000 });
+      await expect(page.locator('body')).toContainText('Calendar Parser', { timeout: 10000 });
 
       // Save auth state for future tests
       await context.storageState({ path: 'tests/.auth/mobile-user.json' });

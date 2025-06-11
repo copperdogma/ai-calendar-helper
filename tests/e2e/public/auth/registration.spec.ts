@@ -132,8 +132,8 @@ test.describe('User Registration', () => {
       throw error; // Re-throw the original error if we can't determine what happened
     });
 
-    // At this point, we should be on the dashboard
-    await expect(page.locator('h1:has-text("Dashboard")')).toBeVisible();
+    // At this point, we should be on the calendar parser page
+    await expect(page.locator('h1:has-text("Calendar Parser")')).toBeVisible();
 
     // Verify user is actually logged in by checking for user-specific elements
     await expect(

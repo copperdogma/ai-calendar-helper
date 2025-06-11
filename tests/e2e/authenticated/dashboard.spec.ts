@@ -1,31 +1,31 @@
 import { test, expect } from '../utils/test-base';
 
 /**
- * Dashboard tests with diagnostic logging
+ * Calendar Parser page tests with diagnostic logging
  *
  * These tests assume authentication is handled via the auth.setup.ts file
  */
 
-test('authenticated user can access dashboard', async ({ page }) => {
-  console.log('🧪 Starting dashboard test...');
+test('authenticated user can access Calendar Parser page', async ({ page }) => {
+  console.log('🧪 Starting Calendar Parser page test...');
 
   try {
-    // Go to dashboard with extended timeout
-    console.log('📄 Navigating to dashboard...');
-    await page.goto('/dashboard', { timeout: 30000 });
+    // Go to Calendar Parser page with extended timeout
+    console.log('📄 Navigating to Calendar Parser page...');
+    await page.goto('/calendar-parser', { timeout: 30000 });
 
     // Take screenshot for debugging
-    await page.screenshot({ path: 'tests/e2e/screenshots/dashboard.png' });
+    await page.screenshot({ path: 'tests/e2e/screenshots/calendar-parser.png' });
 
     // Log the current state
     const url = page.url();
     console.log(`📊 Current URL: ${url}`);
 
-    // Check if we're actually on the dashboard (not redirected to login)
+    // Check if we're actually on the Calendar Parser page (not redirected to login)
     if (url.includes('/login')) {
       console.log('⚠️ Redirected to login - authentication may have failed');
       // Take detailed info to diagnose what went wrong
-      await page.screenshot({ path: 'tests/e2e/screenshots/dashboard-auth-failed.png' });
+      await page.screenshot({ path: 'tests/e2e/screenshots/calendar-parser-auth-failed.png' });
 
       // Show auth-related localStorage items
       const storage = await page.evaluate(() => {
@@ -49,7 +49,7 @@ test('authenticated user can access dashboard', async ({ page }) => {
     const content = await page.content();
     console.log(`📊 Page content length: ${content.length} characters`);
 
-    // Basic visual check - find any header that might indicate we're on dashboard
+    // Basic visual check - find any header that might indicate we're on Calendar Parser page
     const dashboardHeader = page.locator('h1,h2,h3,h4').first();
     if (await dashboardHeader.isVisible()) {
       const headerText = await dashboardHeader.textContent();
@@ -62,10 +62,10 @@ test('authenticated user can access dashboard', async ({ page }) => {
     const body = page.locator('body');
     expect(await body.isVisible()).toBeTruthy();
 
-    console.log('✅ Dashboard test completed successfully');
+    console.log('✅ Calendar Parser page test completed successfully');
   } catch (error) {
-    console.error('❌ Dashboard test failed:', error);
-    await page.screenshot({ path: 'tests/e2e/screenshots/dashboard-error.png' });
+    console.error('❌ Calendar Parser page test failed:', error);
+    await page.screenshot({ path: 'tests/e2e/screenshots/calendar-parser-error.png' });
     throw error;
   }
 });

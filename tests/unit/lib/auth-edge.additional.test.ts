@@ -142,7 +142,7 @@ describe('authConfigEdge', () => {
       expect(result).toBeInstanceOf(Response);
       const response = result as Response;
       expect(response.status).toBe(302); // Redirect status
-      expect(response.headers.get('Location')).toBe('http://localhost:3000/dashboard');
+      expect(response.headers.get('Location')).toBe('http://localhost:3000/calendar-parser');
     });
 
     it('should allow unauthenticated users to access auth routes', async () => {
@@ -164,8 +164,8 @@ describe('authConfigEdge', () => {
 
     it('should redirect unauthenticated users from protected routes', async () => {
       const request = {
-        nextUrl: new URL('http://localhost:3000/dashboard'),
-        url: 'http://localhost:3000/dashboard',
+        nextUrl: new URL('http://localhost:3000/calendar-parser'),
+        url: 'http://localhost:3000/calendar-parser',
         headers: new Headers({
           'X-Correlation-ID': 'test-correlation-id',
         }),
@@ -181,14 +181,14 @@ describe('authConfigEdge', () => {
       const response = result as Response;
       expect(response.status).toBe(302); // Redirect status
       expect(response.headers.get('Location')).toBe(
-        'http://localhost:3000/login?callbackUrl=%2Fdashboard'
+        'http://localhost:3000/login?callbackUrl=%2Fcalendar-parser'
       );
     });
 
     it('should allow authenticated users to access protected routes', async () => {
       const request = {
-        nextUrl: new URL('http://localhost:3000/dashboard'),
-        url: 'http://localhost:3000/dashboard',
+        nextUrl: new URL('http://localhost:3000/calendar-parser'),
+        url: 'http://localhost:3000/calendar-parser',
         headers: new Headers({
           'X-Correlation-ID': 'test-correlation-id',
         }),

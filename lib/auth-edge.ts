@@ -85,7 +85,7 @@ interface LogContext {
 // =============================================================================
 // Constants for Edge Runtime (Keep specific to Edge)
 // =============================================================================
-const DEFAULT_LOGIN_REDIRECT = ROUTES.DASHBOARD;
+const DEFAULT_LOGIN_REDIRECT = ROUTES.CALENDAR_PARSER;
 
 // --- Route Type Checkers (Keep specific to Edge) ---
 const isPublicRoute = (pathname: string): boolean =>
@@ -226,7 +226,7 @@ export const authConfigEdge: NextAuthConfig = {
       // Check if authenticated user is on root path and redirect to dashboard
       if (isLoggedIn && pathname === '/') {
         logger.debug(
-          '[Auth Edge] Authenticated user on root, redirecting to dashboard',
+          '[Auth Edge] Authenticated user on root, redirecting to calendar parser page',
           logContext
         );
         response = Response.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl.origin));

@@ -6,7 +6,8 @@ export const ROUTES = {
   HOME: '/',
   LOGIN: '/login',
   REGISTER: '/register',
-  DASHBOARD: '/dashboard',
+  CALENDAR_PARSER: '/calendar-parser',
+  DASHBOARD: '/dashboard', // Deprecated – kept for backward-compat tests, will redirect
   PROFILE: '/profile',
   ABOUT: '/about',
   SETTINGS: '/settings',

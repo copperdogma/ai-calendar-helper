@@ -16,7 +16,7 @@ export const ROUTES = {
   ABOUT: '/about',
 
   // Protected routes
-  DASHBOARD: '/dashboard',
+  DASHBOARD: '/calendar-parser',
   PROFILE: '/profile',
   SETTINGS: '/settings',
 

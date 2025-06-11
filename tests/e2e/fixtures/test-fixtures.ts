@@ -37,7 +37,8 @@ export const UI_SELECTORS: TestSelectors = {
   // Navigation elements
   NAV: {
     HOME_LINK: '[data-testid="nav-home"], a[href="/"], a:has-text("Home")',
-    DASHBOARD_LINK: '[data-testid="nav-dashboard"], a[href="/dashboard"], a:has-text("Dashboard")',
+    DASHBOARD_LINK:
+      '[data-testid="nav-calendar-parser"], a[href="/calendar-parser"], a:has-text("Calendar Parser")',
     PROFILE_LINK: '[data-testid="nav-profile"], a[href="/profile"], a:has-text("Profile")',
     SETTINGS_LINK: '[data-testid="nav-settings"], a[href="/settings"], a:has-text("Settings")',
   },

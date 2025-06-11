@@ -197,7 +197,7 @@ describe('RegistrationForm', () => {
     // Ensure router.push was not called because this specific success path doesn't trigger the redirect effect
     // (The `success` state in the main hook will be the fetch-error specific message, not the one useSuccessRedirectEffect listens for)
     // However, useSuccessRedirectEffect *will* still run due to `success` state changing.
-    // We need to ensure it doesn't redirect to /dashboard or /login based on *this* success message.
+    // We need to ensure it doesn't redirect to /calendar-parser or /login based on *this* success message.
     // The console logs would show it trying, but the key is no navigation call.
     await waitFor(() => {
       expect(mockRouterPush).not.toHaveBeenCalled();
@@ -224,7 +224,7 @@ describe('RegistrationForm - Success Redirect and Session Update Logic', () => {
 
   // No afterEach with jest.resetModules() needed as mocks are top-level.
 
-  it('should update session and redirect to /dashboard on successful registration and session update', async () => {
+  it('should update session and redirect to /calendar-parser on successful registration and session update', async () => {
     mockRegisterUserAction.mockResolvedValue({
       status: 'success',
       message: 'Registration successful!',
@@ -240,7 +240,7 @@ describe('RegistrationForm - Success Redirect and Session Update Logic', () => {
     expect(await screen.findByText('Registration successful!')).toBeInTheDocument();
     // Increased timeout and ensure mock is called before router.push
     await waitFor(() => expect(mockSessionUpdate).toHaveBeenCalledTimes(1), { timeout: 2000 });
-    await waitFor(() => expect(mockRouterPush).toHaveBeenCalledWith('/dashboard'), {
+    await waitFor(() => expect(mockRouterPush).toHaveBeenCalledWith('/calendar-parser'), {
       timeout: 2000,
     });
   });

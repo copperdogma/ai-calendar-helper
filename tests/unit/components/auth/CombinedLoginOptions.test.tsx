@@ -128,7 +128,7 @@ describe('CombinedLoginOptions Component', () => {
     // Reset signIn mock to a default successful promise for Google, unless overridden in a specific test
     mockedSignIn.mockImplementation((provider: string) => {
       if (provider === 'google') {
-        return Promise.resolve({ ok: true, error: null, url: '/dashboard' });
+        return Promise.resolve({ ok: true, error: null, url: '/calendar-parser' });
       }
       // For credentials, the mock within CredentialsLoginForm will handle it,
       // but we can provide a basic mock here too if direct calls were made.
@@ -163,7 +163,7 @@ describe('CombinedLoginOptions Component', () => {
     expect(mockedSignIn).toHaveBeenCalledWith(
       'google',
       expect.objectContaining({
-        callbackUrl: '/dashboard',
+        callbackUrl: '/calendar-parser',
       })
     );
   });
@@ -179,7 +179,7 @@ describe('CombinedLoginOptions Component', () => {
     expect(mockedSignIn).toHaveBeenCalledWith(
       'google',
       expect.objectContaining({
-        callbackUrl: '/dashboard',
+        callbackUrl: '/calendar-parser',
       })
     );
     // Add a small delay to allow promise microtasks to resolve if necessary
@@ -206,7 +206,7 @@ describe('CombinedLoginOptions Component', () => {
     // Wait for the initial setIsLoading(true) to take effect and disable the button
     await waitFor(() => expect(googleButton).toBeDisabled());
 
-    expect(mockedSignIn).toHaveBeenCalledWith('google', { callbackUrl: '/dashboard' });
+    expect(mockedSignIn).toHaveBeenCalledWith('google', { callbackUrl: '/calendar-parser' });
 
     // Now, wait for the promise rejection to update error and re-enable the button
     await waitFor(() => {

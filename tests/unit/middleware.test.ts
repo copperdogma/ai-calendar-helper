@@ -6,7 +6,7 @@ import { UserRole } from '@prisma/client';
 
 // Define paths locally for testing purposes, mirroring middleware logic
 const testPublicPaths = ['/', '/login', '/about', '/api/health'];
-const testProtectedPaths = ['/dashboard', '/profile', '/settings'];
+const testProtectedPaths = ['/calendar-parser', '/profile', '/settings'];
 
 // Mock getToken from next-auth/jwt
 const mockGetToken = getToken as jest.Mock;
@@ -82,7 +82,7 @@ async function simulateAuthCheck(request: NextRequest): Promise<boolean | NextRe
   if (isAuthRoute) {
     if (isLoggedIn) {
       // Redirect logged-in users trying to access auth pages
-      const redirectUrl = new URL('/dashboard', request.url);
+      const redirectUrl = new URL('/calendar-parser', request.url);
       return NextResponse.redirect(redirectUrl);
     }
     return true; // Allow access to auth routes if not logged in
@@ -145,7 +145,7 @@ describe('Middleware Logic Simulation (Auth.js v5)', () => {
     );
 
     it('should include search params in callbackUrl on redirect', async () => {
-      const path = '/dashboard';
+      const path = '/calendar-parser';
       const search = '?param1=value1'; // Ensure leading ?
       const request = createMockRequest(path, search);
       await simulateAuthCheck(request);
@@ -181,13 +181,13 @@ describe('Middleware Logic Simulation (Auth.js v5)', () => {
       }
     );
 
-    it('should redirect access to /login path to /dashboard', async () => {
+    it('should redirect access to /login path to /calendar-parser', async () => {
       const request = createMockRequest('/login');
       const result = await simulateAuthCheck(request);
       expect(result).not.toBe(true);
       expect(NextResponse.redirect).toHaveBeenCalledTimes(1);
       const redirectUrl = (NextResponse.redirect as jest.Mock).mock.calls[0][0];
-      expect(redirectUrl.pathname).toBe('/dashboard');
+      expect(redirectUrl.pathname).toBe('/calendar-parser');
     });
   });
 

@@ -12,7 +12,7 @@ export default function GlobalLoading() {
         p: 3,
       }}
     >
-      <CircularProgress size={48} />
+      <CircularProgress size={48} aria-label="Loading content" />
       <Typography variant="body1" sx={{ mt: 2, color: 'text.secondary' }}>
         Loading...
       </Typography>

@@ -55,7 +55,7 @@ describe('SignInButton Component', () => {
     (signInWithLogging as jest.Mock).mockResolvedValue({
       ok: true,
       error: null,
-      url: '/dashboard',
+      url: '/calendar-parser',
     });
     (signOutWithLogging as jest.Mock).mockResolvedValue({ ok: true, error: null, url: '/' });
   });
@@ -98,7 +98,7 @@ describe('SignInButton Component', () => {
     expect(signInWithLogging).toHaveBeenCalledTimes(1);
     expect(signInWithLogging).toHaveBeenCalledWith(
       'google',
-      expect.objectContaining({ callbackUrl: expect.stringContaining('/dashboard') })
+      expect.objectContaining({ callbackUrl: expect.stringContaining('/calendar-parser') })
     );
   });
 
@@ -209,7 +209,7 @@ describe('SignInButton Component', () => {
     expect(signInWithLogging).toHaveBeenCalledTimes(1);
     expect(signInWithLogging).toHaveBeenCalledWith(
       'google',
-      expect.objectContaining({ callbackUrl: expect.stringContaining('/dashboard') })
+      expect.objectContaining({ callbackUrl: expect.stringContaining('/calendar-parser') })
     );
 
     // Restore environment

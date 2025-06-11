@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 import { ExtractedEventData, AIProcessingService, OpenAIClient } from '../../../lib/ai';
 
@@ -78,6 +80,7 @@ describe('AI Processing Service', () => {
         ],
       };
 
+      // @ts-expect-error – relax type for jest mock
       (mockOpenAIClient.chat.completions.create as jest.Mock).mockResolvedValue(mockResponse);
 
       const result = await aiService.extractEventDetails('Doctor appointment tomorrow at 10am');
@@ -123,6 +126,7 @@ describe('AI Processing Service', () => {
         ],
       };
 
+      // @ts-expect-error – relax type for jest mock
       (mockOpenAIClient.chat.completions.create as jest.Mock).mockResolvedValue(mockResponse);
 
       const result = await aiService.extractEventDetails(
@@ -155,6 +159,7 @@ describe('AI Processing Service', () => {
         ],
       };
 
+      // @ts-expect-error – relax type for jest mock
       (mockOpenAIClient.chat.completions.create as jest.Mock).mockResolvedValue(mockResponse);
 
       await expect(aiService.extractEventDetails('Meeting tomorrow')).rejects.toThrow(
@@ -193,6 +198,7 @@ describe('AI Processing Service', () => {
         ],
       };
 
+      // @ts-expect-error – relax type for jest mock
       (mockOpenAIClient.chat.completions.create as jest.Mock).mockResolvedValue(mockResponse);
 
       const result = await aiService.extractEventDetails(maliciousInput);
@@ -205,6 +211,7 @@ describe('AI Processing Service', () => {
       const rateLimitError = new Error('Rate limit exceeded');
       (rateLimitError as any).status = 429;
 
+      // @ts-expect-error – relax type for jest mock
       (mockOpenAIClient.chat.completions.create as jest.Mock)
         .mockRejectedValueOnce(rateLimitError)
         .mockRejectedValueOnce(rateLimitError)
@@ -289,6 +296,7 @@ describe('AI Processing Service', () => {
         ],
       };
 
+      // @ts-expect-error – relax type for jest mock
       (mockOpenAIClient.chat.completions.create as jest.Mock).mockResolvedValue(mockResponse);
 
       await expect(aiService.extractEventDetails('Meeting tomorrow')).rejects.toThrow(
@@ -326,6 +334,7 @@ describe('AI Processing Service', () => {
         ],
       };
 
+      // @ts-expect-error – relax type for jest mock
       (mockOpenAIClient.chat.completions.create as jest.Mock).mockResolvedValue(mockResponse);
 
       await expect(aiService.extractEventDetails('Meeting tomorrow')).rejects.toThrow(

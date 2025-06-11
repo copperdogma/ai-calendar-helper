@@ -35,10 +35,10 @@ const useSuccessRedirectEffect = (
 
           if (session) {
             logger.debug(
-              '[Client] useSuccessRedirectEffect: Session updated successfully. Redirecting to /dashboard via router.push.',
+              '[Client] useSuccessRedirectEffect: Session updated successfully. Redirecting to /calendar-parser via router.push.',
               { sessionData: session } // Log actual session data for debugging
             );
-            router.push('/dashboard');
+            router.push('/calendar-parser');
           } else {
             logger.warn(
               '[Client] useSuccessRedirectEffect: Session update failed or returned no session. Redirecting to /login.'

@@ -4,8 +4,6 @@ import React from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { AppBar, Toolbar, Typography, Button, Container, Box, SxProps, Theme } from '@mui/material';
-import HomeIcon from '@mui/icons-material/Home';
-import DashboardIcon from '@mui/icons-material/Dashboard';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import InfoIcon from '@mui/icons-material/Info';
 import UserProfile from '@/components/auth/UserProfile';
@@ -13,15 +11,15 @@ import ThemeToggle from '@/components/ui/ThemeToggle';
 import LoginIcon from '@mui/icons-material/Login';
 import MobileNavigation from './MobileNavigation';
 import DesktopNavigation from './DesktopNavigation';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 
 // Define navigation links including public/private status
 export const navItems = [
-  { name: 'Home', path: '/', href: '/', icon: <HomeIcon />, public: true },
   {
-    name: 'Dashboard',
-    path: '/dashboard',
-    href: '/dashboard',
-    icon: <DashboardIcon />,
+    name: 'Calendar Parser',
+    path: '/calendar-parser',
+    href: '/calendar-parser',
+    icon: <CalendarMonthIcon />,
     public: false,
   },
   {

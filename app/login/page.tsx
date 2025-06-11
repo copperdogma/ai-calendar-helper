@@ -14,8 +14,8 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      logger.info('User already authenticated, redirecting to dashboard.');
-      router.push('/dashboard');
+      logger.info('User already authenticated, redirecting to calendar parser.');
+      router.push('/calendar-parser');
     }
   }, [status, router]);
 

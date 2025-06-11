@@ -49,11 +49,11 @@ test.describe('AI Calendar Helper Workflow', () => {
   });
 
   test('should process event text and display parsed results', async ({ page }) => {
-    // Navigate to dashboard
-    await page.goto('/dashboard');
+    // Navigate to Calendar Parser page
+    await page.goto('/calendar-parser');
 
     // Verify page loaded
-    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Calendar Parser' })).toBeVisible();
 
     // Find the text input area (not in the Raw JSON debug area)
     const textInput = page.locator('textarea[placeholder*="Enter your event text"]');
@@ -73,7 +73,7 @@ test.describe('AI Calendar Helper Workflow', () => {
 
     // Verify event details are displayed - use more specific selectors
     await expect(page.getByRole('heading', { name: 'Team Meeting' })).toBeVisible();
-    await expect(page.getByText(/June 12, 2025/)).toBeVisible();
+    await expect(page.locator('p', { hasText: /June 12, 2025/ })).toBeVisible();
 
     // Use more specific selector for location that excludes debug textarea
     const locationParagraph = page.locator('p', { hasText: '📍 Conference Room A' });
@@ -110,7 +110,7 @@ test.describe('AI Calendar Helper Workflow', () => {
       });
     });
 
-    await page.goto('/dashboard');
+    await page.goto('/calendar-parser');
 
     const textInput = page.locator('textarea[placeholder*="Enter your event text"]');
     await textInput.fill('Meeting tomorrow');
@@ -129,7 +129,7 @@ test.describe('AI Calendar Helper Workflow', () => {
   });
 
   test('should validate required input', async ({ page }) => {
-    await page.goto('/dashboard');
+    await page.goto('/calendar-parser');
 
     const parseButton = page.getByRole('button', { name: /parse events/i });
 
@@ -147,7 +147,7 @@ test.describe('AI Calendar Helper Workflow', () => {
   });
 
   test('should clear form when Clear button is clicked', async ({ page }) => {
-    await page.goto('/dashboard');
+    await page.goto('/calendar-parser');
 
     const textInput = page.locator('textarea[placeholder*="Enter your event text"]');
     const clearButton = page.getByRole('button', { name: /clear/i });
@@ -197,7 +197,7 @@ test.describe('AI Calendar Helper Workflow', () => {
       });
     });
 
-    await page.goto('/dashboard');
+    await page.goto('/calendar-parser');
 
     const textInput = page.locator('textarea[placeholder*="Enter your event text"]');
     await textInput.fill(
@@ -219,18 +219,18 @@ test.describe('AI Calendar Helper Workflow', () => {
     await expect(locationParagraph).toBeVisible();
 
     // Verify timing details
-    await expect(page.getByText(/July 15, 2025/)).toBeVisible();
+    await expect(page.locator('p', { hasText: /July 15, 2025/ })).toBeVisible();
   });
 
   test('should maintain form state during navigation', async ({ page }) => {
-    await page.goto('/dashboard');
+    await page.goto('/calendar-parser');
 
     const textInput = page.locator('textarea[placeholder*="Enter your event text"]');
     await textInput.fill('Test meeting content');
 
     // Navigate away and back
     await page.goto('/profile');
-    await page.goto('/dashboard');
+    await page.goto('/calendar-parser');
 
     // Form should be reset (this is expected behavior)
     await expect(textInput).toHaveValue('');

@@ -35,7 +35,7 @@ export default function SignInButton() {
         const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
 
         await signInWithLogging('google', {
-          callbackUrl: `${currentOrigin}/dashboard`,
+          callbackUrl: `${currentOrigin}/calendar-parser`,
           prompt: 'select_account',
         });
       }

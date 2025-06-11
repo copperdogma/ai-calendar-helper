@@ -51,7 +51,7 @@ export function CombinedLoginOptions() {
     setError(null); // Clear previous errors
 
     // Make the signIn call safely - handle both Promise and non-Promise returns
-    const signInResult = signInWithLogging('google', { callbackUrl: '/dashboard' });
+    const signInResult = signInWithLogging('google', { callbackUrl: '/calendar-parser' });
 
     // Handle Promise return (newer versions of next-auth)
     if (signInResult && typeof signInResult.catch === 'function') {

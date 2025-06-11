@@ -68,7 +68,7 @@ export const TEST_DOMAINS = {
 export const ROUTES = {
   HOME: '/',
   LOGIN: '/login',
-  DASHBOARD: '/dashboard',
+  DASHBOARD: '/calendar-parser',
   PROFILE: '/profile',
   SETTINGS: '/settings',
 };

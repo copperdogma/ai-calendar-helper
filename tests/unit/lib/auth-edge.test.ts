@@ -361,8 +361,8 @@ describe('authConfigEdge', () => {
       expect(redirectSpy).not.toHaveBeenCalled();
     });
 
-    it('should allow authenticated access to non-auth, non-public routes (e.g. /dashboard)', async () => {
-      const request = mockRequestBase('/dashboard');
+    it('should allow authenticated access to non-auth, non-public routes (e.g. /calendar-parser)', async () => {
+      const request = mockRequestBase('/calendar-parser');
       const auth = mockAuthSession();
       let result = await authorizedCallback({ auth, request });
       expect(result).toBe(true);
@@ -376,22 +376,24 @@ describe('authConfigEdge', () => {
       expect(redirectSpy).not.toHaveBeenCalled();
     });
 
-    it('should redirect authenticated access to an auth route (/login) to dashboard', async () => {
+    it('should redirect authenticated access to an auth route (/login) to calendar parser page', async () => {
       const request = mockRequestBase('/login');
       const auth = mockAuthSession();
       const result = await authorizedCallback({ auth, request });
       expect(redirectSpy).toHaveBeenCalledTimes(1); // Check the spy
       expect(receivedRedirectArgs).toBeDefined();
-      expect(receivedRedirectArgs?.[0]).toEqual(new URL('/dashboard', 'http://localhost:3000'));
+      expect(receivedRedirectArgs?.[0]).toEqual(
+        new URL('/calendar-parser', 'http://localhost:3000')
+      );
       expect(result).toBe(mockResponseInstance);
     });
 
-    it('should redirect unauthenticated access to a protected route (/dashboard) to login with callbackUrl', async () => {
-      const request = mockRequestBase('/dashboard');
+    it('should redirect unauthenticated access to a protected route (/calendar-parser) to login with callbackUrl', async () => {
+      const request = mockRequestBase('/calendar-parser');
       const result = await authorizedCallback({ auth: null, request });
       expect(redirectSpy).toHaveBeenCalledTimes(1); // Check the spy
       const expectedRedirectUrl = new URL(
-        '/login?callbackUrl=%2Fdashboard',
+        '/login?callbackUrl=%2Fcalendar-parser',
         'http://localhost:3000'
       );
       expect(receivedRedirectArgs).toBeDefined();
