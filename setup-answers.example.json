@@ -1,0 +1,21 @@
+{
+  "YOUR_PROJECT_NAME": "your-project-name",
+  "YOUR_PROJECT_DESCRIPTION": "Your project description here",
+  "YOUR_COPYRIGHT_HOLDER": "Your Name or Company",
+  "YOUR_PROJECT_URL": "https://your-project.example.com",
+  "YOUR_REPOSITORY_URL": "https://github.com/your-username/your-project-name",
+  "YOUR_AUTHOR_NAME": "Your Name",
+  "YOUR_AUTHOR_EMAIL": "you@example.com",
+  "YOUR_APP_TITLE": "Your App Title",
+  "YOUR_APP_SHORT_NAME": "YourApp",
+  "YOUR_APP_NAME": "Your Application Name",
+  "YOUR_APP_DESCRIPTION": "A description for your application",
+  "YOUR_DATABASE_NAME_DEV": "your_dev_db_name",
+  "YOUR_DATABASE_NAME_TEST": "your_test_db_name",
+  "YOUR_DATABASE_NAME": "your_main_db_name",
+  "DATABASE_URL": "postgresql://postgres:postgres@localhost:5432/your_dev_db_name?schema=public",
+  "GOOGLE_CLIENT_ID": "",
+  "GOOGLE_CLIENT_SECRET": "",
+  "REDIS_URL": "redis://localhost:6379",
+  "overwriteEnv": true
+}
