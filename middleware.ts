@@ -24,9 +24,9 @@ import { auth } from '@/lib/auth-edge';
 export default auth;
 
 // Config for route matching: apply this middleware to all routes except for
-// Next.js internals (_next), static assets (favicon.ico), and NextAuth API routes (/api/auth).
+// Next.js internals (_next), static assets (favicon.ico), NextAuth API routes (/api/auth), and AI API routes (/api/ai).
 export const config = {
-  matcher: ['/((?!api/auth|_next/static|_next/image|favicon.ico|\.well-known\/).*)'],
+  matcher: ['/((?!api/auth|api/ai|_next/static|_next/image|favicon.ico|\.well-known\/).*)'],
 };
 
 // Note: Custom rate-limiting logic for specific API endpoints (e.g., /api/log/client)

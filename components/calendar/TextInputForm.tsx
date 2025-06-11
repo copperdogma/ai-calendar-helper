@@ -12,6 +12,7 @@ interface ParsedEvent {
   location?: string;
   description?: string;
   confidence?: number;
+  rawResponse?: unknown;
 }
 
 interface TextInputFormProps {
@@ -67,8 +68,8 @@ Birthday party Saturday at 6pm at Sarah's house`;
         }, 1500);
         return;
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to parse events');
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'Failed to parse events');
     } finally {
       setIsLoading(false);
     }
@@ -160,12 +161,12 @@ Birthday party Saturday at 6pm at Sarah's house`;
             {/* Raw JSON display for debugging */}
             <Box sx={{ mt: 3 }}>
               <Typography variant="body2" color="text.secondary" gutterBottom>
-                Raw JSON (for development):
+                Raw AI Response (for development):
               </Typography>
               <TextField
                 multiline
                 fullWidth
-                value={JSON.stringify(results, null, 2)}
+                value={JSON.stringify(results[0]?.rawResponse || results, null, 2)}
                 variant="outlined"
                 size="small"
                 InputProps={{

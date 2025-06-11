@@ -50,6 +50,10 @@ setup-answers.json
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+# E2E test generated files
+tests/e2e/screenshots/
+tests/e2e/test-results/
+tests/.auth/
 
 # Vercel
 .vercel
