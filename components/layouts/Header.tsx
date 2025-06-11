@@ -99,7 +99,7 @@ const Header: React.FC = () => {
     >
       {/* Visually hidden H1 for site title - ensures every page has a top-level heading for screen readers */}
       <Typography variant="h1" component="h1" sx={visuallyHiddenStyles}>
-        {'{YOUR_APP_NAME}'}
+        AI Calendar Helper
       </Typography>
 
       <Container maxWidth="lg">
@@ -115,7 +115,7 @@ const Header: React.FC = () => {
               component="div"
               sx={{ fontWeight: 'bold', mr: 2, '&:hover': { opacity: 0.8 } }}
             >
-              {'{YOUR_APP_NAME}'}
+              AI Calendar Helper
             </Typography>
           </Link>
 
