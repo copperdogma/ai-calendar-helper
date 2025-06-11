@@ -26,7 +26,7 @@ AI Calendar Helper
 | Story ID | Title                                    | Priority | Status | Link                                            |
 | -------- | ---------------------------------------- | -------- | ------ | ----------------------------------------------- |
 | 005      | Create text input UI component           | High     | Done   | /docs/stories/story-005-text-input-ui.md        |
-| 004      | Implement OpenAI text processing service | High     | To Do  | /docs/stories/story-004-openai-service.md       |
+| 004      | Implement OpenAI text processing service | High     | Done   | /docs/stories/story-004-openai-service.md       |
 | 006      | Build event preview & editing component  | High     | To Do  | /docs/stories/story-006-event-preview.md        |
 | 007      | Add calendar integration buttons         | High     | To Do  | /docs/stories/story-007-calendar-integration.md |
 | 008      | Add ICS file generation & download       | Medium   | To Do  | /docs/stories/story-008-ics-generation.md       |
@@ -71,6 +71,13 @@ AI Calendar Helper
 | 027      | Implement E2E testing with Playwright   | Medium   | To Do  | /docs/stories/story-027-e2e-tests.md  |
 | 028      | Set up fly.io deployment pipeline       | Medium   | To Do  | /docs/stories/story-028-deployment.md |
 | 029      | Configure monitoring & error tracking   | Low      | To Do  | /docs/stories/story-029-monitoring.md |
+
+### Phase 7: Optimization & Research (Priority: Medium)
+
+| Story ID | Title                                          | Priority | Status | Link                                             |
+| -------- | ---------------------------------------------- | -------- | ------ | ------------------------------------------------ |
+| 030      | Research optimal AI model for calendar parsing | Medium   | To Do  | /docs/stories/story-030-model-optimization.md    |
+| 031      | Location parsing and map integration           | High     | To Do  | /docs/stories/story-031-location-parsing-maps.md |
 
 ## Priority Definitions
 
