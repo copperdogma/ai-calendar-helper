@@ -23,18 +23,19 @@ AI Calendar Helper
 
 ### Phase 2: Text-to-Calendar Feature (Priority: High)
 
-| Story ID | Title                                            | Priority | Status | Link                                            |
-| -------- | ------------------------------------------------ | -------- | ------ | ----------------------------------------------- |
-| 005      | Create text input UI component                   | High     | Done   | /docs/stories/story-005-text-input-ui.md        |
-| 004      | Implement OpenAI text processing service         | High     | Done   | /docs/stories/story-004-openai-service.md       |
-| 006      | Build event preview & editing component          | High     | Done   | /docs/stories/story-006-event-preview.md        |
-| 007      | Add calendar integration buttons                 | High     | Done   | /docs/stories/story-007-calendar-integration.md |
-| 008      | Add ICS file generation & download               | Medium   | Done   | /docs/stories/story-008-ics-generation.md       |
-| 009      | Implement confidence scoring display             | Medium   | Done   | /docs/stories/story-009-confidence-scoring.md   |
-| 010      | Add batch calendar actions                       | Medium   | To Do  | /docs/stories/story-010-batch-actions.md        |
-| 011      | Create smart defaults & preferences              | Medium   | To Do  | /docs/stories/story-011-user-preferences.md     |
-| 012      | Implement timezone detection/selection           | Medium   | To Do  | /docs/stories/story-012-timezone-handling.md    |
-| 032      | Implement Calendar Parser page & default routing | High     | Done   | /docs/stories/story-032-calendar-parser-page.md |
+| Story ID | Title                                            | Priority | Status   | Link                                            |
+| -------- | ------------------------------------------------ | -------- | -------- | ----------------------------------------------- |
+| 005      | Create text input UI component                   | High     | Done     | /docs/stories/story-005-text-input-ui.md        |
+| 004      | Implement OpenAI text processing service         | High     | Done     | /docs/stories/story-004-openai-service.md       |
+| 006      | Build event preview & editing component          | High     | Done     | /docs/stories/story-006-event-preview.md        |
+| 007      | Add calendar integration buttons                 | High     | Done     | /docs/stories/story-007-calendar-integration.md |
+| 008      | Add ICS file generation & download               | Medium   | Done     | /docs/stories/story-008-ics-generation.md       |
+| 009      | Implement confidence scoring display             | Medium   | Done     | /docs/stories/story-009-confidence-scoring.md   |
+| 010      | Add batch calendar actions                       | Medium   | Planning | /docs/stories/story-010-batch-actions.md        |
+| 011      | Create smart defaults & preferences              | Medium   | To Do    | /docs/stories/story-011-user-preferences.md     |
+| 012      | Implement timezone detection/selection           | Medium   | To Do    | /docs/stories/story-012-timezone-handling.md    |
+| 035      | Enhance AI parsing for multiple events           | High     | To Do    | /docs/stories/story-035-multi-event-parsing.md  |
+| 032      | Implement Calendar Parser page & default routing | High     | Done     | /docs/stories/story-032-calendar-parser-page.md |
 
 ### Phase 3: UX Enhancements (Priority: Medium)
 
@@ -80,6 +81,12 @@ AI Calendar Helper
 | 030      | Research optimal AI model for calendar parsing                        | Medium   | Done   | /docs/stories/story-030-model-optimization.md    |
 | 031      | Location parsing and map integration                                  | High     | To Do  | /docs/stories/story-031-location-parsing-maps.md |
 | 034      | Easier service entry points (browser plugin, shortcut, phone service) | Medium   | To Do  | /docs/stories/story-034-entry-points.md          |
+
+### Phase 8: Prompt Refinement (Priority: Medium)
+
+| Story ID | Title                     | Priority | Status   | Link                                                 |
+| -------- | ------------------------- | -------- | -------- | ---------------------------------------------------- |
+| 036      | Prompt Refinement Harness | Medium   | Planning | /docs/stories/story-036-prompt-refinement-harness.md |
 
 ## Priority Definitions
 
