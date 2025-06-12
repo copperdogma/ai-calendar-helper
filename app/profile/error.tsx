@@ -24,7 +24,7 @@ export default function ProfileError({
   );
 
   return (
-    <Container component="main" maxWidth="sm" sx={{ mt: 4, mb: 4 }}>
+    <Container component="div" maxWidth="sm" sx={{ mt: 4, mb: 4 }}>
       <Paper
         elevation={3}
         sx={{

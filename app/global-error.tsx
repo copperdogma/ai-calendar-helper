@@ -70,7 +70,7 @@ export default function GlobalError({
         </style>
       </head>
       <body>
-        <Container component="main" maxWidth="sm">
+        <Container component="div" maxWidth="sm">
           <Paper
             elevation={3}
             sx={{

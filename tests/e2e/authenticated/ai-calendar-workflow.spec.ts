@@ -80,7 +80,10 @@ test.describe('AI Calendar Helper Workflow', () => {
     await expect(locationParagraph).toBeVisible();
 
     // Look for time in the event display area (not input or debug)
-    await expect(page.getByText(/4:00 PM/)).toBeVisible(); // 8PM UTC = 4PM Eastern
+    await expect(
+      page.locator('[data-testid="calendar-integration-buttons"]').first()
+    ).toBeVisible();
+    await expect(page.locator('p:has-text("📅"):has-text("4:00 PM")').first()).toBeVisible(); // 8PM UTC = 4PM Eastern
     await expect(page.getByText(/Confidence: 88%/)).toBeVisible();
 
     // Verify raw JSON debugging area

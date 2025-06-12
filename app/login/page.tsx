@@ -21,7 +21,7 @@ export default function LoginPage() {
 
   if (status === 'loading') {
     return (
-      <Container component="main" maxWidth="xs">
+      <Container component="div" maxWidth="xs">
         <Box
           sx={{
             marginTop: 8,
@@ -41,7 +41,7 @@ export default function LoginPage() {
   }
 
   return (
-    <Container component="main" maxWidth="sm">
+    <Container component="div" maxWidth="sm">
       <Box
         sx={{
           marginTop: 8,

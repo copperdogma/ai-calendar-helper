@@ -6,12 +6,11 @@ import {
   TextField,
   Button,
   Typography,
-  Paper,
   Alert,
   CircularProgress,
   Tooltip,
 } from '@mui/material';
-import EventPreviewList from './EventPreviewList';
+import EventPreviewCard from './EventPreviewCard';
 
 interface ParsedEvent {
   id: string;
@@ -24,6 +23,7 @@ interface ParsedEvent {
   summary?: string;
   confidence?: number;
   rawResponse?: unknown;
+  originalText?: string;
 }
 
 interface TextInputFormProps {
@@ -36,10 +36,6 @@ const TextInputForm: React.FC<TextInputFormProps> = ({ onParseEvents }) => {
   const [results, setResults] = useState<ParsedEvent[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [debugData, setDebugData] = useState<unknown>(null);
-
-  const exampleText = `Team meeting tomorrow at 2pm in the conference room
-Doctor appointment Friday at 10am
-Birthday party Saturday at 6pm at Sarah's house`;
 
   const handleParseEvents = async () => {
     if (!inputText.trim()) {
@@ -54,7 +50,8 @@ Birthday party Saturday at 6pm at Sarah's house`;
     try {
       if (onParseEvents) {
         const parsedEvents = await onParseEvents(inputText.trim());
-        setResults(parsedEvents);
+        const enriched = parsedEvents.map(evt => ({ ...evt, originalText: inputText.trim() }));
+        setResults(enriched);
         setDebugData(parsedEvents);
       } else {
         // Mock response for testing UI without AI integration
@@ -67,6 +64,7 @@ Birthday party Saturday at 6pm at Sarah's house`;
               time: '2:00 PM',
               location: 'Conference room',
               confidence: 95,
+              originalText: inputText.trim(),
             },
             {
               id: '2',
@@ -74,6 +72,7 @@ Birthday party Saturday at 6pm at Sarah's house`;
               date: 'Friday',
               time: '10:00 AM',
               confidence: 88,
+              originalText: inputText.trim(),
             },
           ];
           setResults(mockEvents);
@@ -94,21 +93,39 @@ Birthday party Saturday at 6pm at Sarah's house`;
     setError(null);
   };
 
-  return (
-    <Box sx={{ maxWidth: 800, mx: 'auto', p: 3 }}>
-      <Paper elevation={1} sx={{ p: 3 }}>
-        <Typography variant="h4" gutterBottom>
-          AI Calendar Helper
-        </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-          Paste or type your event text below and let AI extract calendar events for you.
-        </Typography>
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleParseEvents();
+  };
 
-        {/* Text Input Area */}
+  return (
+    <Box sx={{ width: '100%', maxWidth: 800, mx: 'auto' }}>
+      <form onSubmit={handleSubmit} role="form" aria-labelledby="event-parser-heading">
+        <Box sx={{ mb: 3 }}>
+          <Typography
+            variant="h2"
+            component="h1"
+            id="event-parser-heading"
+            sx={{
+              fontSize: { xs: '1.5rem', sm: '2rem' },
+              fontWeight: 600,
+              mb: 1,
+              textAlign: 'center',
+            }}
+          >
+            AI Calendar Helper
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center', mb: 2 }}>
+            Transform natural language into calendar events
+          </Typography>
+        </Box>
+
         <TextField
           multiline
-          rows={8}
+          rows={6}
           fullWidth
+          variant="outlined"
+          placeholder="Enter your event text here (e.g., 'Team meeting tomorrow at 2pm in conference room A')"
           value={inputText}
           onChange={e => setInputText(e.target.value)}
           onKeyDown={e => {
@@ -117,12 +134,21 @@ Birthday party Saturday at 6pm at Sarah's house`;
               handleParseEvents();
             }
           }}
-          placeholder={`Enter your event text here, for example:\n\n${exampleText}`}
-          variant="outlined"
-          sx={{ mb: 2 }}
-          disabled={isLoading}
           aria-label="Enter your event text here to extract calendar events using AI"
+          aria-describedby="event-input-help"
+          data-testid="event-text-input"
+          disabled={isLoading}
+          sx={{ mb: 2 }}
         />
+
+        <Typography
+          id="event-input-help"
+          variant="caption"
+          color="text.secondary"
+          sx={{ display: 'block', mb: 2 }}
+        >
+          Tip: Include dates, times, locations, and attendees for best results
+        </Typography>
 
         {/* Action Buttons */}
         <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
@@ -130,7 +156,7 @@ Birthday party Saturday at 6pm at Sarah's house`;
             <span>
               <Button
                 variant="contained"
-                onClick={handleParseEvents}
+                type="submit"
                 disabled={isLoading || !inputText.trim()}
                 startIcon={isLoading ? <CircularProgress size={20} /> : null}
                 sx={{ minWidth: 160 }}
@@ -144,29 +170,41 @@ Birthday party Saturday at 6pm at Sarah's house`;
           </Button>
         </Box>
 
-        {/* Error Display */}
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
-
-        {/* Results Display */}
-        {results && (
-          <Box>
-            <Typography variant="h6" gutterBottom>
-              Found {results.length} event{results.length !== 1 ? 's' : ''}
+        {/* Results Section */}
+        {((results && results.length > 0) || error) && (
+          <Box sx={{ mt: 4 }} role="region" aria-labelledby="results-heading">
+            <Typography
+              variant="h3"
+              component="h2"
+              id="results-heading"
+              sx={{ fontSize: '1.25rem', fontWeight: 600, mb: 2 }}
+            >
+              {error
+                ? 'Error'
+                : `Found ${results?.length || 0} event${(results?.length || 0) !== 1 ? 's' : ''}`}
             </Typography>
 
-            {/* Enhanced Event Preview List */}
-            <EventPreviewList
-              events={results}
-              onUpdate={updated => {
-                setResults(prev =>
-                  prev ? prev.map(e => (e.id === updated.id ? { ...e, ...updated } : e)) : prev
-                );
-              }}
-            />
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }} role="alert" aria-live="polite">
+                {error}
+              </Alert>
+            )}
+
+            {results && results.length > 0 && (
+              <Box aria-live="polite" aria-label="Parsed events">
+                {results.map((event, index) => (
+                  <EventPreviewCard
+                    key={event.id || index}
+                    event={event}
+                    onUpdate={(updated: ParsedEvent) => {
+                      setResults(prev =>
+                        prev ? prev.map((e, i) => (i === index ? updated : e)) : null
+                      );
+                    }}
+                  />
+                ))}
+              </Box>
+            )}
 
             {/* Raw JSON display for debugging */}
             <Box sx={{ mt: 3 }}>
@@ -188,7 +226,7 @@ Birthday party Saturday at 6pm at Sarah's house`;
             </Box>
           </Box>
         )}
-      </Paper>
+      </form>
     </Box>
   );
 };

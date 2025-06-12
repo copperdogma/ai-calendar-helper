@@ -4,7 +4,7 @@ import RegistrationForm from './components/RegistrationForm';
 
 export default function RegisterPage() {
   return (
-    <Container component="main" maxWidth="xs">
+    <Container component="div" maxWidth="xs">
       <Paper
         elevation={3}
         sx={{ mt: 8, p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}

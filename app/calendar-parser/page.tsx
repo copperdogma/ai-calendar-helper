@@ -64,7 +64,13 @@ async function parseEventsWithAi(text: string) {
 
 export default function CalendarParserPage() {
   return (
-    <PageLayout title="Calendar Parser" subtitle="Extract events from free-form text">
+    <PageLayout
+      title="Calendar Parser"
+      subtitle="Extract events from free-form text"
+      headerSx={{ mb: 1, pb: 0.5 }}
+      contentSx={{ mt: 0.5 }}
+      rootSx={{ pt: 1 }}
+    >
       <TextInputForm onParseEvents={parseEventsWithAi} />
     </PageLayout>
   );

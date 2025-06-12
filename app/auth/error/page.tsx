@@ -26,7 +26,7 @@ export default function AuthErrorPage() {
   const message = error ? errorMessages[error] || errorMessages.Default : errorMessages.Default;
 
   return (
-    <Container component="main" maxWidth="xs" sx={{ mt: 8, mb: 4 }}>
+    <Container component="div" maxWidth="xs" sx={{ mt: 8, mb: 4 }}>
       <Paper
         elevation={3}
         sx={{

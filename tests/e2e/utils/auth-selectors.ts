@@ -30,6 +30,16 @@ export const UI_ELEMENTS = {
     DASHBOARD: '[data-testid="dashboard-content"]',
     DASHBOARD_HEADING: 'h1:has-text("Dashboard"), [data-testid="dashboard-heading"]',
     PAGE_HEADING: 'h1',
+    MAIN_CONTENT: '[data-testid="main-content-wrapper"], main',
+  },
+  CALENDAR: {
+    INTEGRATION_BUTTONS: '[data-testid="calendar-integration-buttons"]',
+    GOOGLE_BUTTON: '[data-testid="google-calendar-button"]',
+    OUTLOOK_BUTTON: '[data-testid="outlook-calendar-button"]',
+    APPLE_BUTTON: '[data-testid="apple-calendar-button"]',
+    EVENT_CARD: '[aria-label="event-preview-card"]',
+    EVENT_TIME: 'p:has-text("📅")',
+    EVENT_CONFIDENCE: 'p:has-text("Confidence:")',
   },
   ERROR_MESSAGES: {
     INVALID_CREDENTIALS: 'p:has-text("Invalid email or password")', // Selector for the specific error message

@@ -21,8 +21,9 @@ const roboto = Roboto({
 export const metadata: Metadata = {
   // TODO: Update this URL for production deployments - now using NEXTAUTH_URL
   metadataBase: new URL(process.env.NEXTAUTH_URL || 'http://localhost:3000'),
-  title: 'Next.js + NextAuth + PostgreSQL',
-  description: 'A Next.js starter template with NextAuth.js Authentication and PostgreSQL database',
+  title: 'AI Calendar Helper - Smart Event Parsing',
+  description:
+    'Transform natural language into calendar events with AI-powered parsing. Supports Google Calendar, Outlook, and Apple Calendar integration.',
 };
 
 // RootLayout needs to be async to fetch the session server-side
@@ -47,7 +48,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <CssBaseline />
               <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
                 <Header />
-                <Box component="main" sx={{ flexGrow: 1, py: 3 }} id="main-content">
+                <Box
+                  component="main"
+                  sx={{ flexGrow: 1, py: 3 }}
+                  id="main-content"
+                  aria-label="Main application content"
+                >
                   <BaseLayout>{children}</BaseLayout>
                   <Toaster />
                 </Box>

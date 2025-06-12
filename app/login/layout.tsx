@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Login | {{YOUR_APP_TITLE}}',
-  description: 'Sign in to access your account.',
+  title: 'Login - AI Calendar Helper',
+  description: 'Sign in to your AI Calendar Helper account to start parsing events.',
 };
 
 export default function LoginLayout({ children }: { children: React.ReactNode }) {

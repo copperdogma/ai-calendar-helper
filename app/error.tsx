@@ -48,7 +48,7 @@ const ErrorBoundary = ({ error, reset }: ErrorComponentProps) => {
   return (
     // Using PageLayout for consistency, assuming a title isn't strictly needed or can be generic
     <PageLayout title="Error" subtitle="Something Went Wrong">
-      <Container component="main" maxWidth="sm" sx={{ mt: 4, mb: 4 }}>
+      <Container component="div" maxWidth="sm" sx={{ mt: 4, mb: 4 }}>
         <Paper
           elevation={3}
           sx={{

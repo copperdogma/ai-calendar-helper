@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { UI_ELEMENTS } from '../utils/auth-selectors';
 
 test.describe('Public Route Accessibility', () => {
   // Test pages that should ALWAYS be public
@@ -13,23 +14,27 @@ test.describe('Public Route Accessibility', () => {
 
       // For home page specifically, check either main content or login card
       if (pagePath === '/') {
-        // Try first for login card (when not logged in)
-        // Use a more robust selector for the login options container
-        const loginOptionsContainer = page.locator(
-          'div[role="region"][aria-labelledby="login-header"]'
-        );
-        const mainContent = page.locator('[data-testid="main-content-wrapper"]');
+        // Check if we're on the login page or if main content is visible
+        const isLoginPage = page.url().includes('/login');
 
-        // Use a conditional check - either login form or main content should be visible
-        const isLoginVisible = await loginOptionsContainer.isVisible().catch(() => false);
-        const isMainContentVisible = await mainContent.isVisible().catch(() => false);
-
-        // Check that at least one element is visible
-        const isVisible = isLoginVisible || isMainContentVisible;
-        expect(
-          isVisible,
-          'Neither login form nor main content is visible on home page'
-        ).toBeTruthy();
+        if (isLoginPage) {
+          // If redirected to login, check for login form elements
+          const googleSignInButton = page.locator(UI_ELEMENTS.AUTH.GOOGLE_SIGNIN);
+          const credentialsForm = page.locator(UI_ELEMENTS.AUTH.CREDENTIALS_SUBMIT);
+          
+          const isVisible = 
+            (await googleSignInButton.isVisible()) || 
+            (await credentialsForm.isVisible());
+            
+          expect(
+            isVisible,
+            'Neither login form nor main content is visible on home page'
+          ).toBeTruthy();
+        } else {
+          // For other public pages, check for main content
+          const mainContent = page.locator(UI_ELEMENTS.CONTENT.MAIN_CONTENT);
+          await expect(mainContent).toBeVisible();
+        }
       } else {
         // For other public pages, check for main content
         await expect(page.locator('[data-testid="main-content-wrapper"]')).toBeVisible();

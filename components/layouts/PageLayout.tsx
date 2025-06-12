@@ -12,6 +12,7 @@ interface PageLayoutProps {
   headerSx?: SxProps<Theme>;
   contentSx?: SxProps<Theme>;
   maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | false;
+  rootSx?: SxProps<Theme>;
 }
 
 /**
@@ -29,6 +30,7 @@ export default function PageLayout({
   headerSx,
   contentSx,
   maxWidth = 'lg',
+  rootSx = {},
 }: PageLayoutProps) {
   return (
     <Box
@@ -38,6 +40,7 @@ export default function PageLayout({
         minHeight: 'calc(100vh - 64px - 100px)',
         bgcolor: 'background.default',
         pt: { xs: 2, sm: 3 },
+        ...rootSx,
       }}
     >
       <Container

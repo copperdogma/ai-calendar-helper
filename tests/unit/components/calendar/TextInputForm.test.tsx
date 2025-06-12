@@ -48,7 +48,6 @@ describe('TextInputForm', () => {
     it('should render the form with all required elements', () => {
       renderWithTheme(<TextInputForm />);
 
-      expect(screen.getByRole('heading', { name: /AI Calendar Helper/i })).toBeInTheDocument();
       expect(screen.getByRole('textbox')).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /Parse Events/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /Clear/i })).toBeInTheDocument();

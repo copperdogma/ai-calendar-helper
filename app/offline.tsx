@@ -5,7 +5,7 @@ import { Box, Button, Typography, Container } from '@mui/material';
 export default function Offline() {
   return (
     <Container
-      component="main"
+      component="div"
       maxWidth="sm"
       sx={{
         display: 'flex',

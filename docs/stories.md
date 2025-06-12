@@ -27,8 +27,8 @@ AI Calendar Helper
 | -------- | ------------------------------------------------ | -------- | ----------- | ----------------------------------------------- |
 | 005      | Create text input UI component                   | High     | Done        | /docs/stories/story-005-text-input-ui.md        |
 | 004      | Implement OpenAI text processing service         | High     | Done        | /docs/stories/story-004-openai-service.md       |
-| 006      | Build event preview & editing component          | High     | In Progress | /docs/stories/story-006-event-preview.md        |
-| 007      | Add calendar integration buttons                 | High     | To Do       | /docs/stories/story-007-calendar-integration.md |
+| 006      | Build event preview & editing component          | High     | Done        | /docs/stories/story-006-event-preview.md        |
+| 007      | Add calendar integration buttons                 | High     | In Progress | /docs/stories/story-007-calendar-integration.md |
 | 008      | Add ICS file generation & download               | Medium   | To Do       | /docs/stories/story-008-ics-generation.md       |
 | 009      | Implement confidence scoring display             | Medium   | To Do       | /docs/stories/story-009-confidence-scoring.md   |
 | 010      | Add batch calendar actions                       | Medium   | To Do       | /docs/stories/story-010-batch-actions.md        |
@@ -76,10 +76,11 @@ AI Calendar Helper
 
 ### Phase 7: Optimization & Research (Priority: Medium)
 
-| Story ID | Title                                          | Priority | Status | Link                                             |
-| -------- | ---------------------------------------------- | -------- | ------ | ------------------------------------------------ |
-| 030      | Research optimal AI model for calendar parsing | Medium   | Done   | /docs/stories/story-030-model-optimization.md    |
-| 031      | Location parsing and map integration           | High     | To Do  | /docs/stories/story-031-location-parsing-maps.md |
+| Story ID | Title                                                                 | Priority | Status | Link                                             |
+| -------- | --------------------------------------------------------------------- | -------- | ------ | ------------------------------------------------ |
+| 030      | Research optimal AI model for calendar parsing                        | Medium   | Done   | /docs/stories/story-030-model-optimization.md    |
+| 031      | Location parsing and map integration                                  | High     | To Do  | /docs/stories/story-031-location-parsing-maps.md |
+| 034      | Easier service entry points (browser plugin, shortcut, phone service) | Medium   | To Do  | /docs/stories/story-034-entry-points.md          |
 
 ## Priority Definitions
 
