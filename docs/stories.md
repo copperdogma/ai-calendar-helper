@@ -30,7 +30,7 @@ AI Calendar Helper
 | 006      | Build event preview & editing component          | High     | Done   | /docs/stories/story-006-event-preview.md        |
 | 007      | Add calendar integration buttons                 | High     | Done   | /docs/stories/story-007-calendar-integration.md |
 | 008      | Add ICS file generation & download               | Medium   | Done   | /docs/stories/story-008-ics-generation.md       |
-| 009      | Implement confidence scoring display             | Medium   | To Do  | /docs/stories/story-009-confidence-scoring.md   |
+| 009      | Implement confidence scoring display             | Medium   | Done   | /docs/stories/story-009-confidence-scoring.md   |
 | 010      | Add batch calendar actions                       | Medium   | To Do  | /docs/stories/story-010-batch-actions.md        |
 | 011      | Create smart defaults & preferences              | Medium   | To Do  | /docs/stories/story-011-user-preferences.md     |
 | 012      | Implement timezone detection/selection           | Medium   | To Do  | /docs/stories/story-012-timezone-handling.md    |
