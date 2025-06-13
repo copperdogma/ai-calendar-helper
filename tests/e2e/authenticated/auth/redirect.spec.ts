@@ -43,8 +43,8 @@ test.describe('Auth Redirection', () => {
     const signInButton = page.locator(UI_ELEMENTS.AUTH.GOOGLE_SIGNIN);
     await expect(signInButton).toBeVisible({ timeout: 5000 });
 
-    // Check for the specific "Login" heading element
-    const heading = page.getByRole('heading', { name: 'Login' });
+    // Check for the specific "Welcome to the App" heading element
+    const heading = page.getByRole('heading', { name: 'Welcome to the App' });
     await expect(heading).toBeVisible({ timeout: 5000 });
 
     const bodyContent = await page.evaluate(() => {

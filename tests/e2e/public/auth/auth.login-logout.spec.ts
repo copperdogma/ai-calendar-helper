@@ -5,13 +5,13 @@ test.describe('Authentication Redirects', () => {
     await page.goto('/dashboard');
     await expect(page).toHaveURL(/.*login/);
     // Verify that the login page content is displayed
-    await expect(page.getByRole('heading', { name: 'Login' })).toBeAttached();
+    await expect(page.getByRole('heading', { name: 'Welcome to the App' })).toBeAttached();
   });
 
   test('Attempt to access /profile without login should redirect to /login', async ({ page }) => {
     await page.goto('/profile');
     await expect(page).toHaveURL(/.*login/);
     // Verify that the login page content is displayed
-    await expect(page.getByRole('heading', { name: 'Login' })).toBeAttached();
+    await expect(page.getByRole('heading', { name: 'Welcome to the App' })).toBeAttached();
   });
 });
