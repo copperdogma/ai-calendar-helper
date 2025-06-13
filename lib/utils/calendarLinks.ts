@@ -44,6 +44,10 @@ export function generateAddToCalendarLinks(event: CalendarEvent): AddToCalendarL
     startUTC.format()
   )}&enddt=${encodeURIComponent(endUTC.format())}&location=${encodeURIComponent(event.location ?? '')}`;
 
+  // Helper to escape special characters per RFC 5545 (comma, semicolon, newline)
+  const escapeICSText = (text: string): string =>
+    text.replace(/\n/g, '\\n').replace(/,/g, '\\,').replace(/;/g, '\\;');
+
   const icsLines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -53,9 +57,9 @@ export function generateAddToCalendarLinks(event: CalendarEvent): AddToCalendarL
     `DTSTAMP:${dayjs().utc().format('YYYYMMDDTHHmmss')}Z`,
     `DTSTART:${startUTC.format('YYYYMMDDTHHmmss')}Z`,
     `DTEND:${endUTC.format('YYYYMMDDTHHmmss')}Z`,
-    `SUMMARY:${event.title}`,
-    event.description ? `DESCRIPTION:${(event.description || '').replace(/\n/g, '\\n')}` : '',
-    event.location ? `LOCATION:${event.location}` : '',
+    `SUMMARY:${escapeICSText(event.title)}`,
+    event.description ? `DESCRIPTION:${escapeICSText(event.description)}` : '',
+    event.location ? `LOCATION:${escapeICSText(event.location)}` : '',
     'END:VEVENT',
     'END:VCALENDAR',
   ].filter(Boolean);

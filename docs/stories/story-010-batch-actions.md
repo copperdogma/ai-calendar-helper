@@ -1,6 +1,19 @@
 # Story: Add Batch Calendar Actions
 
-**Status**: Planning
+**Status**: Cancelled
+
+---
+
+### Cancellation Reason
+
+After prototyping the UI we discovered fundamental UX constraints:
+
+1. Google & Outlook public "Add-to-Calendar" URLs accept **exactly one event**; batch insertion requires OAuth + backend work or multiple pop-up tabs (poor UX).
+2. Multi-event `.ics` import works, but Google still forces the user through Settings → Import, adding friction.
+3. Opening several provider tabs feels clunky and is frequently blocked by browsers' popup blockers.
+4. The feature provides little time-saving compared with clicking each per-event button and adds significant complexity to the UI.
+
+Given these limitations we decided the batch calendar actions do **not** justify the maintenance cost. Single-event buttons plus multi-event `.ics` download (which users can import manually) remain sufficient.
 
 ---
 
