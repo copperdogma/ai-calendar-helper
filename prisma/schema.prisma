@@ -1,13 +1,3 @@
-// Prisma Schema for Next.js Auth.js PostgreSQL Template
-// -----------------------------------------------------------------------------
-// INDEXING STRATEGY:
-// - Add indexes for fields frequently used in WHERE clauses
-// - Add indexes for fields used in ORDER BY clauses
-// - Consider composite indexes for queries using multiple fields together
-// - Monitor query performance as your application scales and adjust accordingly
-// - Run `npx prisma studio` to visually explore your database
-// -----------------------------------------------------------------------------
-
 generator client {
   provider = "prisma-client-js"
   output   = "../node_modules/.prisma/client"
@@ -18,32 +8,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum UserRole {
-  ADMIN
-  USER
-}
-
 model User {
-  id            String    @id @default(uuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
+  id             String    @id @default(uuid())
+  name           String?
+  email          String?   @unique
+  emailVerified  DateTime?
+  image          String?
   hashedPassword String?
-  role          UserRole  @default(USER)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  role           UserRole  @default(USER)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
   lastSignedInAt DateTime?
-  // deletedAt DateTime? @updatedAt
-  accounts      Account[]
-  sessions      Session[]
-
-  // REMINDER: Add additional indexes here based on your application's specific query patterns
-  // as your project evolves. For example, if you frequently query or sort users
-  // by 'lastSignedInAt' and 'role':
-  // @@index([lastSignedInAt, role])
-  // Or if searching by name becomes common:
-  // @@index([name]) // Consider a full-text index for more advanced name searching
+  accounts       Account[]
+  sessions       Session[]
 
   @@index([role])
   @@index([createdAt])
@@ -63,7 +40,6 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-  // deletedAt DateTime? @updatedAt
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
@@ -86,4 +62,9 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+enum UserRole {
+  ADMIN
+  USER
 }

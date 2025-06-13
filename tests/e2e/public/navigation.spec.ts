@@ -35,6 +35,9 @@ test.describe('Navigation and Layout', () => {
   });
 
   test('main layout should have key elements', async ({ page }) => {
+    // Wait for any redirects to complete (home redirects to calendar-parser, then to login)
+    await page.waitForLoadState('networkidle');
+    
     // Check for the core layout elements using our improved selectors utility
     const navbar = await waitForElementToBeVisible(page, 'LAYOUT.NAVBAR');
     const mainContent = await waitForElementToBeVisible(page, 'LAYOUT.MAIN_CONTENT');
@@ -45,7 +48,7 @@ test.describe('Navigation and Layout', () => {
     await expect(mainContent, 'Main content area should be visible').toBeVisible();
     await expect(footer, 'Footer should be visible').toBeVisible();
 
-    // Check that the page title is set properly
+    // Check that the page title is set properly after all redirects
     const title = await page.title();
     expect(title, 'Page should have a non-empty title').not.toBe('');
 

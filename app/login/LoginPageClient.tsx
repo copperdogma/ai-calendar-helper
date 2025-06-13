@@ -1,0 +1,57 @@
+'use client';
+
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { Box, Container } from '@mui/material';
+import CircularProgress from '@mui/material/CircularProgress';
+import { CombinedLoginOptions } from '@/components/auth/CombinedLoginOptions';
+import { logger } from '@/lib/logger';
+
+export default function LoginPageClient() {
+  const router = useRouter();
+  const { status } = useSession();
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      logger.info('User already authenticated, redirecting to calendar parser.');
+      router.push('/calendar-parser');
+    }
+  }, [status, router]);
+
+  if (status === 'loading') {
+    return (
+      <Container component="div" maxWidth="xs">
+        <Box
+          sx={{
+            marginTop: 8,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
+          <CircularProgress />
+        </Box>
+      </Container>
+    );
+  }
+
+  if (status === 'authenticated') {
+    return null;
+  }
+
+  return (
+    <Container component="div" maxWidth="sm">
+      <Box
+        sx={{
+          marginTop: 8,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
+        <CombinedLoginOptions />
+      </Box>
+    </Container>
+  );
+}

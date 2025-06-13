@@ -3,6 +3,7 @@
 import React from 'react';
 import { Container, Typography, Box } from '@mui/material';
 import TextInputForm from '@/components/calendar/TextInputForm';
+import { ExtractedEvent } from '@/types/events';
 
 // Define the interface for parsed events that matches the UI component
 interface ParsedEvent {
@@ -39,37 +40,66 @@ export default function TestComponentPage() {
       }
 
       const data = await response.json();
+      console.log('📦 API Response data:', data);
 
-      if (!data.success || !data.event) {
-        throw new Error('Invalid response from AI service');
+      if (!data.success) {
+        console.error('❌ API returned success=false:', data);
+        throw new Error('Invalid response from AI service: success=false');
       }
 
+      if (!data.events || !Array.isArray(data.events)) {
+        console.error('❌ API missing events array:', data);
+        throw new Error('Invalid response from AI service: missing events array');
+      }
+
+      if (data.events.length === 0) {
+        console.warn('⚠️ API returned empty events array');
+        return [];
+      }
+
+      console.log('✅ Processing', data.events.length, 'events from API');
+
       // Transform the AI service response to match UI component format
-      const event = data.event;
-      const startDate = new Date(event.startDate);
-      const endDate = new Date(event.endDate);
+      return data.events.map((event: ExtractedEvent, index: number) => {
+        try {
+          const startDate = new Date(event.startDate);
+          const endDate = new Date(event.endDate);
 
-      const transformedEvent: ParsedEvent = {
-        id: event.id,
-        title: event.title,
-        date: startDate.toLocaleDateString('en-US', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        }),
-        time: startDate.toLocaleTimeString('en-US', {
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true,
-        }),
-        duration: `${Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60))} minutes`,
-        location: event.location || undefined,
-        description: event.description || undefined,
-        confidence: Math.round(event.confidence.overall * 100),
-      };
+          if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            console.error('❌ Invalid dates in event:', event);
+            throw new Error(`Invalid dates in event ${index + 1}`);
+          }
 
-      return [transformedEvent]; // Return as array for compatibility
+          const transformedEvent: ParsedEvent = {
+            id: `event-${index}`,
+            title: event.title || 'Untitled Event',
+            date: startDate.toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              timeZone: event.timezone || 'UTC',
+            }),
+            time: startDate.toLocaleTimeString('en-US', {
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true,
+              timeZone: event.timezone || 'UTC',
+            }),
+            duration: `${Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60))} minutes`,
+            location: event.location || undefined,
+            description: event.description || undefined,
+            confidence: Math.round((event.confidence || 1) * 100),
+          };
+
+          return transformedEvent;
+        } catch (error) {
+          console.error('❌ Error processing event', index + 1, ':', error, 'Event data:', event);
+          throw new Error(
+            `Failed to process event ${index + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`
+          );
+        }
+      });
     } catch (error) {
       console.error('Error parsing events:', error);
       throw error; // Re-throw to let the UI component handle it

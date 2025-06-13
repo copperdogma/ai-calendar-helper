@@ -64,7 +64,8 @@ const sharedConfig = {
     '^@/(.*)$': '<rootDir>/$1',
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
-  setupFiles: ['<rootDir>/jest.setup.env.js'],
+
+  // setupFiles: ['<rootDir>/jest.setup.env.js'], // Moved to individual projects to prevent loading in development
   testEnvironment: 'jest-environment-jsdom',
   testPathIgnorePatterns: [
     '<rootDir>/node_modules/',
@@ -128,6 +129,7 @@ const customJestConfig = {
         '<rootDir>/tests/unit/profile/**/*.test.ts?(x)',
         '<rootDir>/tests/integration/**/*.test.ts?(x)', // Added from tests/config
       ],
+      setupFiles: ['<rootDir>/jest.setup.env.js'],
       setupFilesAfterEnv: [
         '<rootDir>/jest.setup.ts', // Shared setup without JSDOM specifics
         '<rootDir>/jest.setup.api.js',
@@ -157,6 +159,7 @@ const customJestConfig = {
         '<rootDir>/tests/unit/pages/**/*.test.ts?(x)',
         '<rootDir>/tests/unit/store/**/*.test.ts?(x)',
       ],
+      setupFiles: ['<rootDir>/jest.setup.env.js'],
       setupFilesAfterEnv: [
         '<rootDir>/jest.setup.ts', // Shared base setup
         '<rootDir>/jest.setup.jsdom.ts', // JSDOM-specific setup

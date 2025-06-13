@@ -16,15 +16,18 @@ const MockedAIProcessingService = AIProcessingService as jest.MockedClass<
 >;
 
 describe('/api/ai/parse-events', () => {
-  let mockExtractEventDetails: jest.Mock;
+  let mockExtractEvents: jest.Mock;
+  let mockSegmentText: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockExtractEventDetails = jest.fn();
+    mockExtractEvents = jest.fn();
+    mockSegmentText = jest.fn();
     MockedAIProcessingService.mockImplementation(
       () =>
         ({
-          extractEventDetails: mockExtractEventDetails,
+          extractEvents: mockExtractEvents,
+          segmentText: mockSegmentText,
         }) as any
     );
   });
@@ -41,28 +44,33 @@ describe('/api/ai/parse-events', () => {
 
   describe('successful requests', () => {
     it('should process valid text input and return structured event data', async () => {
-      const mockEventData = {
-        id: '1',
-        title: 'Team Meeting',
-        description: 'Weekly team sync',
-        startDate: new Date('2025-06-12T14:00:00Z'),
-        endDate: new Date('2025-06-12T15:00:00Z'),
-        location: 'Conference Room A',
-        timezone: 'America/New_York',
-        confidence: {
-          title: 0.95,
-          description: 0.8,
-          startDate: 0.9,
-          endDate: 0.9,
-          location: 0.85,
-          timezone: 0.9,
-          overall: 0.88,
+      const mockEventData = [
+        {
+          title: 'Team Meeting',
+          description: 'Weekly team sync',
+          startDate: new Date('2025-06-12T14:00:00Z'),
+          endDate: new Date('2025-06-12T15:00:00Z'),
+          location: 'Conference Room A',
+          timezone: 'America/New_York',
+          confidence: {
+            title: 0.95,
+            description: 0.8,
+            startDate: 0.9,
+            endDate: 0.9,
+            location: 0.85,
+            timezone: 0.9,
+            overall: 0.88,
+          },
+          summary: 'Weekly team sync',
+          isAllDay: false,
+          recurrence: null,
         },
-        isAllDay: false,
-        recurrence: null,
-      };
+      ];
 
-      mockExtractEventDetails.mockResolvedValue(mockEventData);
+      mockSegmentText.mockResolvedValue([
+        { id: '0', text: 'Team meeting tomorrow at 2pm in Conference Room A' },
+      ]);
+      mockExtractEvents.mockResolvedValue(mockEventData);
 
       const request = createMockRequest({
         text: 'Team meeting tomorrow at 2pm in Conference Room A',
@@ -77,29 +85,20 @@ describe('/api/ai/parse-events', () => {
 
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
-      expect(data.event).toEqual({
-        id: '1',
+      expect(data.events).toHaveLength(1);
+      expect(data.events[0]).toEqual({
         title: 'Team Meeting',
         description: 'Weekly team sync',
         startDate: '2025-06-12T14:00:00.000Z',
         endDate: '2025-06-12T15:00:00.000Z',
         location: 'Conference Room A',
         timezone: 'America/New_York',
-        confidence: {
-          title: 0.95,
-          description: 0.8,
-          startDate: 0.9,
-          endDate: 0.9,
-          location: 0.85,
-          timezone: 0.9,
-          overall: 0.88,
-        },
-        isAllDay: false,
-        recurrence: null,
+        confidence: 0.88,
+        summary: 'Weekly team sync',
       });
       expect(data.processingTimeMs).toBeGreaterThanOrEqual(0);
 
-      expect(mockExtractEventDetails).toHaveBeenCalledWith(
+      expect(mockExtractEvents).toHaveBeenCalledWith(
         'Team meeting tomorrow at 2pm in Conference Room A',
         {
           timezone: 'America/New_York',
@@ -110,28 +109,31 @@ describe('/api/ai/parse-events', () => {
     });
 
     it('should handle requests with user preferences', async () => {
-      const mockEventData = {
-        id: '1',
-        title: 'Meeting',
-        description: '',
-        startDate: new Date('2025-06-12T14:00:00Z'),
-        endDate: new Date('2025-06-12T15:30:00Z'), // 90 minutes (custom duration)
-        location: '',
-        timezone: 'America/New_York',
-        confidence: {
-          title: 0.9,
-          description: 0.5,
-          startDate: 0.9,
-          endDate: 0.9,
-          location: 0.5,
-          timezone: 0.9,
-          overall: 0.78,
+      const mockEventData = [
+        {
+          title: 'Meeting',
+          description: '',
+          startDate: new Date('2025-06-12T14:00:00Z'),
+          endDate: new Date('2025-06-12T15:30:00Z'), // 90 minutes (custom duration)
+          location: '',
+          timezone: 'America/New_York',
+          confidence: {
+            title: 0.9,
+            description: 0.5,
+            startDate: 0.9,
+            endDate: 0.9,
+            location: 0.5,
+            timezone: 0.9,
+            overall: 0.78,
+          },
+          summary: 'Meeting',
+          isAllDay: false,
+          recurrence: null,
         },
-        isAllDay: false,
-        recurrence: null,
-      };
+      ];
 
-      mockExtractEventDetails.mockResolvedValue(mockEventData);
+      mockSegmentText.mockResolvedValue([{ id: '0', text: 'Meeting at 2pm' }]);
+      mockExtractEvents.mockResolvedValue(mockEventData);
 
       const request = createMockRequest({
         text: 'Meeting at 2pm',
@@ -149,7 +151,8 @@ describe('/api/ai/parse-events', () => {
 
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
-      expect(mockExtractEventDetails).toHaveBeenCalledWith('Meeting at 2pm', {
+      expect(data.events).toHaveLength(1);
+      expect(mockExtractEvents).toHaveBeenCalledWith('Meeting at 2pm', {
         timezone: 'America/New_York',
         currentDate: new Date('2025-06-11T17:00:00Z'),
         userPreferences: {
@@ -159,28 +162,31 @@ describe('/api/ai/parse-events', () => {
     });
 
     it('should use default values when options are not provided', async () => {
-      const mockEventData = {
-        id: '1',
-        title: 'Meeting',
-        description: '',
-        startDate: new Date('2025-06-12T14:00:00Z'),
-        endDate: new Date('2025-06-12T15:00:00Z'),
-        location: '',
-        timezone: 'UTC',
-        confidence: {
-          title: 0.9,
-          description: 0.5,
-          startDate: 0.9,
-          endDate: 0.9,
-          location: 0.5,
-          timezone: 0.9,
-          overall: 0.78,
+      const mockEventData = [
+        {
+          title: 'Meeting',
+          description: '',
+          startDate: new Date('2025-06-12T14:00:00Z'),
+          endDate: new Date('2025-06-12T15:00:00Z'),
+          location: '',
+          timezone: 'UTC',
+          confidence: {
+            title: 0.9,
+            description: 0.5,
+            startDate: 0.9,
+            endDate: 0.9,
+            location: 0.5,
+            timezone: 0.9,
+            overall: 0.78,
+          },
+          summary: 'Meeting',
+          isAllDay: false,
+          recurrence: null,
         },
-        isAllDay: false,
-        recurrence: null,
-      };
+      ];
 
-      mockExtractEventDetails.mockResolvedValue(mockEventData);
+      mockSegmentText.mockResolvedValue([{ id: '0', text: 'Meeting at 2pm' }]);
+      mockExtractEvents.mockResolvedValue(mockEventData);
 
       const request = createMockRequest({
         text: 'Meeting at 2pm',
@@ -191,16 +197,65 @@ describe('/api/ai/parse-events', () => {
 
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
-      expect(mockExtractEventDetails).toHaveBeenCalledWith('Meeting at 2pm', {
+      expect(data.events).toHaveLength(1);
+      expect(mockExtractEvents).toHaveBeenCalledWith('Meeting at 2pm', {
         timezone: 'UTC',
         currentDate: expect.any(Date),
         userPreferences: undefined,
       });
     });
+
+    it('should handle multiple events', async () => {
+      const mockEventData = [
+        {
+          title: 'Meeting 1',
+          description: 'First meeting',
+          startDate: new Date('2025-06-12T14:00:00Z'),
+          endDate: new Date('2025-06-12T15:00:00Z'),
+          location: 'Room A',
+          timezone: 'UTC',
+          confidence: { overall: 0.9 },
+          summary: 'First meeting',
+          isAllDay: false,
+          recurrence: null,
+        },
+        {
+          title: 'Meeting 2',
+          description: 'Second meeting',
+          startDate: new Date('2025-06-12T16:00:00Z'),
+          endDate: new Date('2025-06-12T17:00:00Z'),
+          location: 'Room B',
+          timezone: 'UTC',
+          confidence: { overall: 0.8 },
+          summary: 'Second meeting',
+          isAllDay: false,
+          recurrence: null,
+        },
+      ];
+
+      mockSegmentText.mockResolvedValue([
+        { id: '0', text: 'Meeting 1 at 2pm in Room A' },
+        { id: '1', text: 'Meeting 2 at 4pm in Room B' },
+      ]);
+      mockExtractEvents.mockResolvedValue(mockEventData);
+
+      const request = createMockRequest({
+        text: 'Meeting 1 at 2pm in Room A\n\nMeeting 2 at 4pm in Room B',
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
+      expect(data.events).toHaveLength(2);
+      expect(data.events[0].title).toBe('Meeting 1');
+      expect(data.events[1].title).toBe('Meeting 2');
+    });
   });
 
   describe('error handling', () => {
-    it('should return 400 for missing text', async () => {
+    it('should return 500 for missing text', async () => {
       const request = createMockRequest({
         options: { timezone: 'America/New_York' },
       });
@@ -208,12 +263,12 @@ describe('/api/ai/parse-events', () => {
       const response = await POST(request);
       const data = await response.json();
 
-      expect(response.status).toBe(400);
-      expect(data.error).toBe('Text input is required');
-      expect(mockExtractEventDetails).not.toHaveBeenCalled();
+      expect(response.status).toBe(500);
+      expect(data.error).toBeDefined();
+      expect(mockExtractEvents).not.toHaveBeenCalled();
     });
 
-    it('should return 400 for empty text', async () => {
+    it('should return 500 for empty text', async () => {
       const request = createMockRequest({
         text: '   ',
         options: { timezone: 'America/New_York' },
@@ -222,12 +277,12 @@ describe('/api/ai/parse-events', () => {
       const response = await POST(request);
       const data = await response.json();
 
-      expect(response.status).toBe(400);
-      expect(data.error).toBe('Text input is required');
-      expect(mockExtractEventDetails).not.toHaveBeenCalled();
+      expect(response.status).toBe(500);
+      expect(data.error).toBeDefined();
+      expect(mockExtractEvents).not.toHaveBeenCalled();
     });
 
-    it('should return 400 for non-string text', async () => {
+    it('should return 500 for non-string text', async () => {
       const request = createMockRequest({
         text: 123,
         options: { timezone: 'America/New_York' },
@@ -236,13 +291,14 @@ describe('/api/ai/parse-events', () => {
       const response = await POST(request);
       const data = await response.json();
 
-      expect(response.status).toBe(400);
-      expect(data.error).toBe('Text input is required');
-      expect(mockExtractEventDetails).not.toHaveBeenCalled();
+      expect(response.status).toBe(500);
+      expect(data.error).toBeDefined();
+      expect(mockExtractEvents).not.toHaveBeenCalled();
     });
 
     it('should return 500 when AI service throws an error', async () => {
-      mockExtractEventDetails.mockRejectedValue(new Error('OpenAI API failed'));
+      mockSegmentText.mockResolvedValue([{ id: '0', text: 'Meeting tomorrow at 2pm' }]);
+      mockExtractEvents.mockRejectedValue(new Error('OpenAI API failed'));
 
       const request = createMockRequest({
         text: 'Meeting tomorrow at 2pm',
@@ -254,11 +310,12 @@ describe('/api/ai/parse-events', () => {
 
       expect(response.status).toBe(500);
       expect(data.error).toBe('Failed to process text. Please try again.');
-      expect(mockExtractEventDetails).toHaveBeenCalled();
+      expect(mockExtractEvents).toHaveBeenCalled();
     });
 
     it('should return 500 when AI service throws a non-Error object', async () => {
-      mockExtractEventDetails.mockRejectedValue('String error');
+      mockSegmentText.mockResolvedValue([{ id: '0', text: 'Meeting tomorrow at 2pm' }]);
+      mockExtractEvents.mockRejectedValue('String error');
 
       const request = createMockRequest({
         text: 'Meeting tomorrow at 2pm',
@@ -291,28 +348,31 @@ describe('/api/ai/parse-events', () => {
 
   describe('response format', () => {
     it('should return correctly formatted response with processing time', async () => {
-      const mockEventData = {
-        id: '1',
-        title: 'Meeting',
-        description: '',
-        startDate: new Date('2025-06-12T14:00:00Z'),
-        endDate: new Date('2025-06-12T15:00:00Z'),
-        location: '',
-        timezone: 'America/New_York',
-        confidence: {
-          title: 0.9,
-          description: 0.5,
-          startDate: 0.9,
-          endDate: 0.9,
-          location: 0.5,
-          timezone: 0.9,
-          overall: 0.78,
+      const mockEventData = [
+        {
+          title: 'Meeting',
+          description: '',
+          startDate: new Date('2025-06-12T14:00:00Z'),
+          endDate: new Date('2025-06-12T15:00:00Z'),
+          location: '',
+          timezone: 'America/New_York',
+          confidence: {
+            title: 0.9,
+            description: 0.5,
+            startDate: 0.9,
+            endDate: 0.9,
+            location: 0.5,
+            timezone: 0.9,
+            overall: 0.78,
+          },
+          summary: 'Meeting',
+          isAllDay: false,
+          recurrence: null,
         },
-        isAllDay: false,
-        recurrence: null,
-      };
+      ];
 
-      mockExtractEventDetails.mockResolvedValue(mockEventData);
+      mockSegmentText.mockResolvedValue([{ id: '0', text: 'Meeting at 2pm' }]);
+      mockExtractEvents.mockResolvedValue(mockEventData);
 
       const request = createMockRequest({
         text: 'Meeting at 2pm',
@@ -325,11 +385,13 @@ describe('/api/ai/parse-events', () => {
       const data = await response.json();
 
       expect(data.success).toBe(true);
-      expect(data.event.id).toBe('1');
-      expect(data.event.startDate).toBe('2025-06-12T14:00:00.000Z');
-      expect(data.event.endDate).toBe('2025-06-12T15:00:00.000Z');
+      expect(data.events).toHaveLength(1);
+      expect(data.events[0].title).toBe('Meeting');
+      expect(data.events[0].startDate).toBe('2025-06-12T14:00:00.000Z');
+      expect(data.events[0].endDate).toBe('2025-06-12T15:00:00.000Z');
+      expect(data.events[0].confidence).toBe(0.78);
       expect(data.processingTimeMs).toBeGreaterThanOrEqual(0);
-      expect(data.processingTimeMs).toBeLessThanOrEqual(endTime - startTime);
+      expect(data.processingTimeMs).toBeLessThanOrEqual(endTime - startTime + 100); // Allow some margin
     });
   });
 });

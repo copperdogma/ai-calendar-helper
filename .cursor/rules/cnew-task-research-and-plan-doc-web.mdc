@@ -79,6 +79,7 @@ Conduct comprehensive research and develop a detailed implementation plan for th
 9. **USER REVIEW**
    - Present your complete plan referencing scratchpad.md
    - Highlight any remaining questions that need clarification
+   - If creating a story, capture all requirements, decisions, and the master markdown checklist in the new story file
    - Ask: "I've completed the research and planning phase. Would you like me to proceed to implementation, or do you have any feedback on the plan?"
    - DO NOT proceed without explicit user confirmation
 

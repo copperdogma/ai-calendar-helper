@@ -34,7 +34,7 @@ AI Calendar Helper
 | 010      | Add batch calendar actions                       | Medium   | Planning | /docs/stories/story-010-batch-actions.md        |
 | 011      | Create smart defaults & preferences              | Medium   | To Do    | /docs/stories/story-011-user-preferences.md     |
 | 012      | Implement timezone detection/selection           | Medium   | To Do    | /docs/stories/story-012-timezone-handling.md    |
-| 035      | Enhance AI parsing for multiple events           | High     | To Do    | /docs/stories/story-035-multi-event-parsing.md  |
+| 035      | Enhance AI parsing for multiple events           | High     | Done     | /docs/stories/story-035-multi-event-parsing.md  |
 | 032      | Implement Calendar Parser page & default routing | High     | Done     | /docs/stories/story-032-calendar-parser-page.md |
 
 ### Phase 3: UX Enhancements (Priority: Medium)

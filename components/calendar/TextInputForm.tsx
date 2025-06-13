@@ -24,6 +24,7 @@ interface ParsedEvent {
   confidence?: number;
   rawResponse?: unknown;
   originalText?: string;
+  debugCombined?: string;
 }
 
 interface TextInputFormProps {
@@ -52,7 +53,18 @@ const TextInputForm: React.FC<TextInputFormProps> = ({ onParseEvents }) => {
         const parsedEvents = await onParseEvents(inputText.trim());
         const enriched = parsedEvents.map(evt => ({ ...evt, originalText: inputText.trim() }));
         setResults(enriched);
-        setDebugData(parsedEvents);
+
+        // Use explicit typing for the debugCombined property
+        interface EventWithDebug extends ParsedEvent {
+          debugCombined?: string;
+        }
+
+        const firstEvent = parsedEvents[0] as EventWithDebug;
+        if (firstEvent?.debugCombined) {
+          setDebugData(firstEvent.debugCombined);
+        } else {
+          setDebugData(parsedEvents);
+        }
       } else {
         // Mock response for testing UI without AI integration
         setTimeout(() => {
@@ -101,25 +113,6 @@ const TextInputForm: React.FC<TextInputFormProps> = ({ onParseEvents }) => {
   return (
     <Box sx={{ width: '100%', maxWidth: 800, mx: 'auto' }}>
       <form onSubmit={handleSubmit} role="form" aria-labelledby="event-parser-heading">
-        <Box sx={{ mb: 3 }}>
-          <Typography
-            variant="h2"
-            component="h1"
-            id="event-parser-heading"
-            sx={{
-              fontSize: { xs: '1.5rem', sm: '2rem' },
-              fontWeight: 600,
-              mb: 1,
-              textAlign: 'center',
-            }}
-          >
-            AI Calendar Helper
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center', mb: 2 }}>
-            Transform natural language into calendar events
-          </Typography>
-        </Box>
-
         <TextField
           multiline
           rows={6}
@@ -147,7 +140,9 @@ const TextInputForm: React.FC<TextInputFormProps> = ({ onParseEvents }) => {
           color="text.secondary"
           sx={{ display: 'block', mb: 2 }}
         >
-          Tip: Include dates, times, locations, and attendees for best results
+          Tip: Include dates, times, locations, and attendees for best results.
+          <br />
+          Separate multiple events with blank lines.
         </Typography>
 
         {/* Action Buttons */}
@@ -214,7 +209,11 @@ const TextInputForm: React.FC<TextInputFormProps> = ({ onParseEvents }) => {
               <TextField
                 multiline
                 fullWidth
-                value={JSON.stringify(debugData || results, null, 2)}
+                value={
+                  typeof debugData === 'string'
+                    ? debugData
+                    : JSON.stringify(debugData || results, null, 2)
+                }
                 variant="outlined"
                 size="small"
                 InputProps={{

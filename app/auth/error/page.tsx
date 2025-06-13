@@ -6,7 +6,7 @@ import { Typography, Paper, Container, Box, Button } from '@mui/material';
 
 export default function AuthErrorPage() {
   const searchParams = useSearchParams();
-  const error = searchParams.get('error');
+  const error = searchParams?.get('error');
 
   const errorMessages: { [key: string]: string } = {
     Signin: 'There was an error signing in. Please try again with a different account or method.',

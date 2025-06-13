@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { SegmentChunk } from '@/types/events';
 
 /**
  * Interface for confidence scores on extracted event data fields
@@ -40,6 +41,8 @@ export interface AIProcessingOptions {
     workingHours?: { start: string; end: string };
   };
   model?: string; // Allow model override for testing
+  multiEvent?: boolean;
+  originalLength?: number;
 }
 
 /**
@@ -194,6 +197,7 @@ export class AIProcessingService {
    * Build simplified system prompt optimized for JSON-only output
    */
   private buildSystemPrompt(options: AIProcessingOptions): string {
+    const multi = options.multiEvent;
     const currentDate = options.currentDate || new Date();
     const userTimezone = options.timezone || 'UTC';
     const defaultDuration = options.userPreferences?.defaultDuration || 60;
@@ -205,28 +209,9 @@ Current context:
 - User timezone: ${userTimezone}
 - Default meeting duration: ${defaultDuration} minutes
 
-Return JSON with event data and confidence scores (0.0 to 1.0 for each field):
+Return JSON ${multi ? 'with an "events" array where each item is' : 'with'} event data and confidence scores (0.0 to 1.0 for each field):
 
-{
-  "title": "Event title",
-  "description": "Event description or empty string",
-  "startDate": "ISO 8601 date with timezone offset for ${userTimezone}",
-  "endDate": "ISO 8601 date with timezone offset for ${userTimezone}", 
-  "location": "Location or empty string",
-  "timezone": "IANA timezone identifier",
-  "summary": "Succinct summary <= 20 words",
-  "confidence": {
-    "title": 0.0-1.0,
-    "description": 0.0-1.0,
-    "startDate": 0.0-1.0,
-    "endDate": 0.0-1.0,
-    "location": 0.0-1.0,
-    "timezone": 0.0-1.0,
-    "overall": 0.0-1.0
-  },
-  "isAllDay": boolean,
-  "recurrence": "recurrence pattern or null"
-}
+${multi ? '{ "events": [ { ...event } ] }' : '{ ...event }'}
 
 Rules:
 - Return dates with proper timezone offset for ${userTimezone}, NOT UTC
@@ -235,7 +220,7 @@ Rules:
 - Use conservative confidence scores for ambiguous data
 - Return null for recurrence if no pattern mentioned
 - summary must be ≤20 words, descriptive but concise
-- Calculate relative dates from current time in ${userTimezone}`;
+${multi ? '- If more than 10 events are found, include only the 10 most salient events.\n' : ''}- Calculate relative dates from current time in ${userTimezone}`;
   }
 
   /**
@@ -341,17 +326,51 @@ Rules:
       throw new Error('End date must be after start date');
     }
 
-    // Validate confidence scores
-    const confidence = eventData.confidence as ConfidenceScore;
-    Object.keys(confidence).forEach(key => {
-      if (
-        typeof confidence[key as keyof ConfidenceScore] !== 'number' ||
-        confidence[key as keyof ConfidenceScore] < 0 ||
-        confidence[key as keyof ConfidenceScore] > 1
-      ) {
-        throw new Error(`Invalid confidence score for ${key}`);
+    let confidence: ConfidenceScore;
+    if (typeof eventData.confidence === 'number') {
+      const score = eventData.confidence as number;
+      if (score < 0 || score > 1) {
+        throw new Error('Invalid confidence score: must be between 0 and 1');
       }
-    });
+      confidence = {
+        title: score,
+        description: score,
+        startDate: score,
+        endDate: score,
+        location: score,
+        timezone: score,
+        overall: score,
+      };
+    } else if (typeof eventData.confidence === 'object' && eventData.confidence) {
+      const confObj = eventData.confidence as ConfidenceScore;
+      // Validate each confidence score
+      const fields = [
+        'title',
+        'description',
+        'startDate',
+        'endDate',
+        'location',
+        'timezone',
+        'overall',
+      ] as const;
+      for (const field of fields) {
+        const score = confObj[field];
+        if (typeof score === 'number' && (score < 0 || score > 1)) {
+          throw new Error(`Invalid confidence score for ${field}`);
+        }
+      }
+      confidence = confObj;
+    } else {
+      confidence = {
+        title: 0.5,
+        description: 0.5,
+        startDate: 0.5,
+        endDate: 0.5,
+        location: 0.5,
+        timezone: 0.5,
+        overall: 0.5,
+      };
+    }
 
     return {
       title: (eventData.title as string) || '',
@@ -365,6 +384,163 @@ Rules:
       isAllDay: Boolean(eventData.isAllDay),
       recurrence: (eventData.recurrence as string) || null,
     };
+  }
+
+  /* -------------------------------- Segmentation ------------------------------ */
+
+  private buildSegmentationPrompt(_: AIProcessingOptions): string {
+    return `You will be given arbitrary text that may describe zero or more calendar events.
+
+Return valid JSON ONLY in this format (no extra keys):
+{
+  "starts": [1, 15, 42]
+}
+
+Segmentation rules:
+1. Every line in the input must be assigned to exactly one event chunk. No text should be left out or unassigned.
+2. Blank lines (lines containing only whitespace) are NOT events, but may separate events.
+3. The only valid way to split events is at a line break. If an event spans multiple lines, all those lines must be included in its chunk.
+4. Each start index must be the 1-based line number of the FIRST line of a new event. Do NOT pick a line inside an event.
+5. Indices must be in strictly ascending order.
+6. Provide max 10 indices. Ignore additional events.
+7. If no events exist, return { "starts": [] }.
+
+Example (total lines = 6):
+1: Meet Tue at 2pm.
+2:
+3: Party Sat 5pm at 36 Main St.
+→ "starts": [1, 3]
+
+Return nothing else – no comments or trailing text.`;
+  }
+
+  /**
+   * Public wrapper for segmenting raw text into line-number chunks.
+   * NOTE: Previously this method was private and accessed reflectively by the
+   * API route.  It is now part of the public surface so that callers can use
+   * it directly without TypeScript hacks.
+   */
+  public async segmentText(
+    text: string,
+    options: AIProcessingOptions = {}
+  ): Promise<SegmentChunk[]> {
+    // Enumerate lines (1-based) and send that to the model
+    const rawLines = text.trim().split(/\r?\n/);
+    const enumerated = rawLines.map((l, i) => `${i + 1}: ${l}`).join('\n');
+
+    const segPrompt = this.buildSegmentationPrompt({ ...options, originalLength: rawLines.length });
+
+    const response = await this.processWithRetry(
+      segPrompt,
+      enumerated,
+      options.model || this.defaultModel
+    );
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(response);
+    } catch {
+      throw new Error('Segmentation JSON parse error');
+    }
+
+    // Safely type the parsed JSON
+    interface SegmentationResponse {
+      starts: number[];
+    }
+
+    if (
+      !parsed ||
+      typeof parsed !== 'object' ||
+      !Array.isArray((parsed as SegmentationResponse).starts)
+    ) {
+      throw new Error('Segmentation response missing starts');
+    }
+
+    // starts are 1-based line numbers
+    const parsedResponse = parsed as SegmentationResponse;
+    const rawStarts = parsedResponse.starts
+      .filter(s => typeof s === 'number' && s >= 1 && s <= rawLines.length)
+      .map(Math.floor);
+
+    const uniqueSorted = Array.from(new Set(rawStarts))
+      .sort((a, b) => a - b)
+      .slice(0, 10);
+    if (uniqueSorted.length === 0) uniqueSorted.push(1);
+
+    const indices = [...uniqueSorted, rawLines.length + 1]; // sentinel end
+
+    const chunks: SegmentChunk[] = uniqueSorted.map((lineStart, idx) => {
+      const nextStart = indices[idx + 1];
+      const slice = rawLines.slice(lineStart - 1, nextStart - 1).join('\n');
+      return {
+        id: String(idx),
+        text: slice,
+        startLine: lineStart,
+        endLine: nextStart - 1,
+      };
+    });
+
+    return chunks;
+  }
+
+  /* --------------------------- Chunk event extraction -------------------------- */
+
+  private buildChunkPrompt(options: AIProcessingOptions): string {
+    const userTimezone = options.timezone || 'UTC';
+    return `You will be given a snippet that describes ONE calendar event. Convert it to JSON:
+{
+  "title": "...",
+  "description": "...",
+  "startDate": "ISO 8601 in ${userTimezone}",
+  "endDate": "ISO 8601 in ${userTimezone}",
+  "location": "...",
+  "timezone": "${userTimezone}",
+  "summary": "<=20 words",
+  "confidence": 0.0-1.0
+}`;
+  }
+
+  private async parseEventChunk(
+    chunk: SegmentChunk,
+    options: AIProcessingOptions = {}
+  ): Promise<ExtractedEventData | null> {
+    if (!chunk.text) return null;
+
+    const response = await this.processWithRetry(
+      this.buildChunkPrompt(options),
+      chunk.text as string,
+      options.model || this.defaultModel
+    );
+
+    try {
+      const obj = JSON.parse(response);
+      return this.validateAndEnhanceData(obj);
+    } catch {
+      return null; // skip invalid chunk
+    }
+  }
+
+  /**
+   * Extract multiple events (up to 10) from natural language text
+   */
+  async extractEvents(
+    text: string,
+    options: AIProcessingOptions = {}
+  ): Promise<ExtractedEventData[]> {
+    // Phase 1: segment text into chunks
+    const chunks = await this.segmentText(text, options);
+
+    const parsePromises = chunks.map(ch => this.parseEventChunk(ch, options));
+
+    const results = await Promise.all(parsePromises);
+
+    const events = results.filter((e): e is ExtractedEventData => e !== null);
+
+    if (events.length === 0) {
+      throw new Error('No valid events extracted');
+    }
+
+    return events.slice(0, 10);
   }
 }
 

@@ -164,7 +164,7 @@ export function CredentialsLoginForm({
         setIsLoading(false);
         logger.info('State updated for error: error set, isLoading set to false');
       } else if (result?.ok) {
-        const callbackUrl = searchParams.get('callbackUrl');
+        const callbackUrl = searchParams?.get('callbackUrl');
         const redirectUrl =
           callbackUrl && callbackUrl.startsWith('/') ? callbackUrl : '/calendar-parser';
         logger.info(`Credentials sign-in successful, redirecting to ${redirectUrl}`);

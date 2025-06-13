@@ -9,10 +9,13 @@ process.env.NEXTAUTH_SECRET = 'test-secret-key';
 process.env.ALLOW_TEST_ENDPOINTS = 'true';
 
 // Optional: Load environment variables from .env.test if it exists
-try {
-  dotenv.config({ path: path.resolve(process.cwd(), '.env.test') });
-} catch {
-  // console.warn('Warning: Could not load .env.test file');
+// Only load when actually running Jest tests
+if (process.env.JEST_WORKER_ID !== undefined || process.argv.some(arg => arg.includes('jest'))) {
+  try {
+    dotenv.config({ path: path.resolve(process.cwd(), '.env.test') });
+  } catch {
+    // console.warn('Warning: Could not load .env.test file');
+  }
 }
 
 // Reset all mocks after each test
