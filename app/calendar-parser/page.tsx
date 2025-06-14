@@ -81,6 +81,8 @@ async function parseEventsWithAi(text: string) {
         duration: `${Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60))} minutes`,
         location: event.location || undefined,
         description: event.description || undefined,
+        summary: event.summary || undefined,
+        originalText: event.originalText || undefined,
         confidence: Math.round((event.confidence || 1) * 100),
         rawResponse: data,
         debugCombined: data.debug,

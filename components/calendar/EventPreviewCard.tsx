@@ -183,6 +183,7 @@ const EventPreviewCard: React.FC<EventPreviewCardProps> = ({ event, onUpdate }) 
               event.description || event.summary || '',
               event.originalText
             );
+
             const links = generateAddToCalendarLinks({
               title: event.title,
               date: event.date,
@@ -190,7 +191,17 @@ const EventPreviewCard: React.FC<EventPreviewCardProps> = ({ event, onUpdate }) 
               location: event.location,
               description: fullDesc,
             });
-            const icsDataUri = `data:text/calendar;charset=utf-8,${encodeURIComponent(links.ics)}`;
+
+            const icsContent = generateAddToCalendarLinks({
+              title: event.title,
+              date: event.date,
+              time: event.time,
+              location: event.location,
+              description: fullDesc,
+            }).ics;
+
+            const icsDataUri = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
+
             return (
               <Box
                 sx={{ position: 'absolute', bottom: 8, right: 8, display: 'flex', gap: 1 }}

@@ -2,10 +2,8 @@
 
 ## OUTSTANDING ISSUES
 
-\*\* go back through our entire conversation and make sure you update out docs with detailed notes on how to successfully set up and deploy to fly.io. Not sure if that should be in @README.md or a more specific doc README links to. You decide.
-
+- do the evals include a bunch of examples with one, two, and three events?
 - When editing the date/time text (not using the calendar picker), hitting return re-parses the events. It should be the equivalent of clicking the "OK" button in the editing panel. When editing the event title, hiting return properly saves the changes and doesn't re-parse the events.
-- Replace the Googel Calendar / Outlook / ICS icons with colourful versions. The multi-event icons are different from the single-event icons, and the single-event icons aren't great. I think I actually like the multi-event icons better but they need to be the colours of the normal corporate icons, not monochrome.
 - footer has "Your Website Name 2025"
   - \*\* external todo: update the template repo to replace this with the actual website name
 

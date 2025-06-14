@@ -252,6 +252,61 @@ describe('/api/ai/parse-events', () => {
       expect(data.events[0].title).toBe('Meeting 1');
       expect(data.events[1].title).toBe('Meeting 2');
     });
+
+    it('should include the correct originalText snippet for each event', async () => {
+      const fullInput = 'Meeting 1 at 2pm in Room A\n\nMeeting 2 at 4pm in Room B';
+
+      const chunkA = 'Meeting 1 at 2pm in Room A';
+      const chunkB = 'Meeting 2 at 4pm in Room B';
+
+      const mockEventData = [
+        {
+          title: 'Meeting 1',
+          description: 'First meeting',
+          startDate: new Date('2025-06-12T14:00:00Z'),
+          endDate: new Date('2025-06-12T15:00:00Z'),
+          location: 'Room A',
+          timezone: 'UTC',
+          confidence: { overall: 0.9 },
+          summary: 'First meeting',
+          isAllDay: false,
+          recurrence: null,
+          originalText: chunkA,
+        },
+        {
+          title: 'Meeting 2',
+          description: 'Second meeting',
+          startDate: new Date('2025-06-12T16:00:00Z'),
+          endDate: new Date('2025-06-12T17:00:00Z'),
+          location: 'Room B',
+          timezone: 'UTC',
+          confidence: { overall: 0.8 },
+          summary: 'Second meeting',
+          isAllDay: false,
+          recurrence: null,
+          originalText: chunkB,
+        },
+      ];
+
+      mockSegmentText.mockResolvedValue([
+        { id: '0', text: chunkA },
+        { id: '1', text: chunkB },
+      ]);
+      mockExtractEvents.mockResolvedValue(mockEventData);
+
+      const request = createMockRequest({ text: fullInput });
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
+      expect(data.events).toHaveLength(2);
+      expect(data.events[0].originalText).toBe(chunkA);
+      expect(data.events[1].originalText).toBe(chunkB);
+      // Ensure the full input was NOT used as originalText
+      expect(data.events[0].originalText).not.toBe(fullInput);
+      expect(data.events[1].originalText).not.toBe(fullInput);
+    });
   });
 
   describe('error handling', () => {

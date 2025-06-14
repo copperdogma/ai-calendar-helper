@@ -24,6 +24,8 @@ export interface ExtractedEvent {
   timezone: string;
   summary: string;
   confidence: number;
+  /** Raw chunk text corresponding to this event */
+  originalText?: string;
 }
 
 /**

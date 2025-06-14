@@ -28,6 +28,13 @@ export interface ExtractedEventData {
   confidence: ConfidenceScore;
   isAllDay: boolean;
   recurrence: string | null;
+  /**
+   * The exact snippet of raw text that was used to generate this event. This is
+   * useful for displaying contextual information or including in calendar
+   * descriptions.  It should NOT contain the entire multi-event input text –
+   * only the lines relevant to this single event.
+   */
+  originalText?: string;
 }
 
 /**
@@ -567,7 +574,13 @@ Return nothing except the JSON object.`;
 
     try {
       const obj = JSON.parse(response);
-      return this.validateAndEnhanceData(obj);
+      // Attach the raw chunk text so downstream consumers can reference only the
+      // relevant portion of the multi-event input when building calendar
+      // descriptions.
+      return {
+        ...this.validateAndEnhanceData(obj),
+        originalText: (chunk.text || '').trim(),
+      };
     } catch {
       return null; // skip invalid chunk
     }

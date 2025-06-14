@@ -51,7 +51,9 @@ const TextInputForm: React.FC<TextInputFormProps> = ({ onParseEvents }) => {
     try {
       if (onParseEvents) {
         const parsedEvents = await onParseEvents(inputText.trim());
-        const enriched = parsedEvents.map(evt => ({ ...evt, originalText: inputText.trim() }));
+        const enriched = parsedEvents.map(evt => ({
+          ...evt,
+        }));
         setResults(enriched);
 
         // Use explicit typing for the debugCombined property

@@ -55,6 +55,7 @@ type RawEvent = {
   timezone: string;
   summary?: string;
   confidence?: number | { overall?: number };
+  originalText?: string;
 };
 
 function transformEvents(events: RawEvent[]): ExtractedEvent[] {
@@ -75,6 +76,7 @@ function transformEvents(events: RawEvent[]): ExtractedEvent[] {
     timezone: ev.timezone,
     summary: ev.summary ?? '',
     confidence: getConfidence(ev.confidence),
+    ...(ev.originalText ? { originalText: ev.originalText.trim() } : {}),
   }));
 }
 
