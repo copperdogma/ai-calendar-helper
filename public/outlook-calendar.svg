@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="4 4 40 40" width="24" height="24" role="img">
+  <title>Microsoft Outlook Calendar</title>
+  <path fill="#1976d2" d="M28 17H42.533C43.343 17 44 17.657 44 18.467v19.066C44 43.343 43.343 44 42.533 44H28V17z"/>
+  <rect width="14" height="15.542" x="28" y="21.958" fill="#fff"/>
+  <polygon fill="#1976d2" points="27 48 4 43.5 4 12.5 27 8"/>
+  <path fill="#fff" d="M15.25 20.5c-3.176 0-5.75 3.358-5.75 7.5s2.574 7.5 5.75 7.5 5.75-3.358 5.75-7.5-2.574-7.5-5.75-7.5zm-.25 12c-1.657 0-3-2.015-3-4.5s1.343-4.5 3-4.5 3 2.015 3 4.5-1.343 4.5-3 4.5z"/>
+</svg> 
