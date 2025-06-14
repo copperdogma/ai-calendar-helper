@@ -1,0 +1,621 @@
+{
+  "evalId": "eval-J6o-2025-06-14T18:09:16",
+  "results": {
+    "version": 3,
+    "timestamp": "2025-06-14T18:09:16.576Z",
+    "prompts": [
+      {
+        "raw": "async ({ vars }) => {\n  const rawLines = vars.input.split(/\\r?\\n/);\n  const enumerated = rawLines.map((l, i) => `${i + 1}: ${l}`).join('\\n');\n\n  return `${buildSegmentationPrompt()}\\n\\n${enumerated}`;\n}",
+        "label": "evals/prompts/event-split-lines.js",
+        "config": {},
+        "id": "22fb3dfde7f5232cac9c6ed1d71fc5eb5ef78345fd1885a053ba7fd70ede2ae2",
+        "provider": "openai:gpt-4o-mini",
+        "metrics": {
+          "score": 0,
+          "testPassCount": 0,
+          "testFailCount": 5,
+          "testErrorCount": 0,
+          "assertPassCount": 0,
+          "assertFailCount": 5,
+          "totalLatencyMs": 3592,
+          "tokenUsage": {
+            "total": 6935,
+            "prompt": 6875,
+            "completion": 60,
+            "cached": 0,
+            "numRequests": 5,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            },
+            "assertions": {
+              "total": 0,
+              "prompt": 0,
+              "completion": 0,
+              "cached": 0
+            }
+          },
+          "namedScores": {},
+          "namedScoresCount": {},
+          "cost": 0.00106725
+        }
+      }
+    ],
+    "results": [
+      {
+        "cost": 0.00021345,
+        "error": "Expected [1,7] got [1,9]",
+        "gradingResult": {
+          "pass": false,
+          "score": 0,
+          "reason": "Expected [1,7] got [1,9]",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0
+          },
+          "componentResults": [
+            {
+              "pass": false,
+              "score": 0,
+              "reason": "Expected [1,7] got [1,9]"
+            }
+          ],
+          "assertion": null
+        },
+        "id": "0d2a6d72-fe51-4be4-a419-a28b5aa1bd15",
+        "latencyMs": 649,
+        "namedScores": {},
+        "prompt": {
+          "raw": "You will be given arbitrary text that may describe zero or more calendar events.\n\nReturn valid JSON ONLY in this format (no extra keys):\n{\n  \"starts\": [1, 15, 42]\n}\n\nSegmentation rules:\n1. Every line in the input must be assigned to exactly one event chunk. No text should be left out or unassigned.\n2. Blank lines (lines containing only whitespace) are NOT events, but may separate events.\n3. The only valid way to split events is at a line break. If an event spans multiple lines, all those lines must be included in its chunk.\n4. A line qualifies as the *start* of a new event only if it introduces a **new date, time, or clearly different occasion**.  Lines that merely supply details (e.g. prefixed with \"When:\", \"Where:\", \"Location:\", \"Time:\") STILL belong to the current event – do NOT treat them as separate events.\n5. Bullet or numbered schedules: each bullet/number *is* a new event **iff** it contains its own date **or** time token (digits + am/pm or yyyy-mm-dd etc.). Headers that contain words like \"schedule\", \"agenda\", \"itinerary\", \"timeline\", \"offsite\" **and** have NO digits/time are NEVER events.\n6. Lines that start with \"When:\", \"Where:\", \"Location:\", \"Time:\", \"Date:\", \"Details:\" are DETAIL lines – they **MUST NOT** appear in the \"starts\" array. If they do, replace them with the closest previous non-detail line that introduces that event.\n7. If the very first line contains keywords (schedule|agenda|timeline|offsite|workshop[s]?) AND is immediately followed by a numbered or bulleted list, treat the header as *context* only—do NOT include it in \"starts\". Instead include every numbered/bulleted line that contains a time or date.\n8. Always choose the *earliest* eligible line for an event. If both a narrative headline and a later detail line describe the same event, pick the headline.\n9. Numbered/bulleted agendas: if bullet numbers form a consecutive sequence (1.,2.,3. or •,– etc.) you **must** output a start index for every such bullet.\n10. A capitalised line that contains event keywords (party|birthday|graduation|conference|meeting|board|wedding|concert|picnic) counts as a new event even if it lacks an explicit time.\n11. You must ALWAYS return at least one start index whenever the text references a date, time, or event keyword. [] allowed only for non-event text.\n12. Each start index must be the 1-based line number of the FIRST line of a new event.\n13. Indices strictly ascending, max 10.\n14. If no events exist, return { \"starts\": [] }.\n\nAdditional examples:\nExample 2 – header with bullet times (total lines = 5):\n1: Saturday schedule:\n2: • Soccer practice 8am\n3: • Grocery run 10am\n4: • Movie night 8pm\n5:\n→ \"starts\": [2, 3, 4]\n\nExample 3 – event with detail lines (total lines = 3):\n1: Alex's birthday dinner!\n2: When: Sat July 20, 7pm\n3: Where: 42 Main St\n→ \"starts\": [1]\n\nExample 4 – agenda header (total lines = 7):\n1: Agenda 14 Feb:\n2: – Breakfast 9\n3: – Stand-up 10\n4: – Feature review 11\n5: – Release party 20:00\n6: – Team photo 22:00\n7:\n→ \"starts\": [2,3,4,5,6]\n\nExample 5 – timeline with dashes (total lines = 6):\n1: Concert day timeline:\n2: – Soundcheck 15:00\n3: – Meet & greet 17:00\n4: – Headline show 20:00\n5: – After-party 23:00\n6:\n→ \"starts\": [2,3,4,5]\n\nExample 6 – single-line reminder:\n1: Quick note: Parent-teacher conference next Thursday 2pm.\n→ \"starts\": [1]\n\nExample 7 – narrative header + details:\n1: Team meeting tomorrow at 4pm at Nori House\n2:\n3:\n4: Hey everyone!\n5:\n6: FOOD BOARD PARTY – Part 2!\n7: When: Saturday, July 19, 2025, at 5:00 PM\n→ \"starts\": [1,6]\n\nExample 8 – detail lines excluded:\n1: FOOD BOARD PARTY – Part 2!\n2: When: Saturday, July 19, 2025, at 5:00 PM\n→ \"starts\": [1]\n\nExample 9 – workshops header ignored:\n1: Workshops 30 Mar:\n2: 1. Git at 9\n3: 2. Docker at 11\n4: 3. Kubernetes at 13\n5: 4. Cloud at 15\n6: 5. Testing at 17\n7: 6. Q&A at 19\n→ \"starts\": [2,3,4,5,6,7]\n\nExample 10 – two events with detail lines:\n1: Team meeting tomorrow at 4pm at Nori House\n2:\n3: FOOD BOARD PARTY – Part 2!\n4: When: Saturday, July 19, 2025, at 5:00 PM\n→ \"starts\": [1,3]\n\nReturn nothing else – no comments or trailing text.\n\n1: Team meeting tomorrow at 4pm at Nori House\n2: \n3: \n4: \n5: Hey everyone!\n6: \n7: Jordan's birthday is next Wednesday, and they want to celebrate with a repeat of last year's fantastic bash!\n8: \n9: FOOD BOARD PARTY – Part 2! 🧀\n10: \n11: When: Saturday, July 19, 2025, at 5:00 PM\n12: Where: 42 Sunset Blvd, River City\n13: \n14: Bring a creative and delicious charcuterie-style board! Get as fun and inventive as you like - sweet, savory, themed, or totally out-of-the-box!\n15: \n16: No pressure, but we'll be voting again, and yes, there will be prizes!\n17: \n18: See you soon!",
+          "label": "evals/prompts/event-split-lines.js",
+          "config": {}
+        },
+        "promptId": "22fb3dfde7f5232cac9c6ed1d71fc5eb5ef78345fd1885a053ba7fd70ede2ae2",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:gpt-4o-mini",
+          "label": ""
+        },
+        "response": {
+          "output": "{\n  \"starts\": [1, 9]\n}",
+          "tokenUsage": {
+            "total": 1387,
+            "prompt": 1375,
+            "completion": 12,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "cost": 0.00021345
+        },
+        "score": 0,
+        "success": false,
+        "testCase": {
+          "vars": {
+            "input": "Team meeting tomorrow at 4pm at Nori House\n\n\n\nHey everyone!\n\nJordan's birthday is next Wednesday, and they want to celebrate with a repeat of last year's fantastic bash!\n\nFOOD BOARD PARTY – Part 2! 🧀\n\nWhen: Saturday, July 19, 2025, at 5:00 PM\nWhere: 42 Sunset Blvd, River City\n\nBring a creative and delicious charcuterie-style board! Get as fun and inventive as you like - sweet, savory, themed, or totally out-of-the-box!\n\nNo pressure, but we'll be voting again, and yes, there will be prizes!\n\nSee you soon!"
+          },
+          "expected": [1, 7],
+          "description": "Row #1",
+          "assert": [
+            {
+              "type": "javascript",
+              "value": "file://scorers/event-lines-accuracy.js"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 2,
+        "vars": {
+          "input": "Team meeting tomorrow at 4pm at Nori House\n\n\n\nHey everyone!\n\nJordan's birthday is next Wednesday, and they want to celebrate with a repeat of last year's fantastic bash!\n\nFOOD BOARD PARTY – Part 2! 🧀\n\nWhen: Saturday, July 19, 2025, at 5:00 PM\nWhere: 42 Sunset Blvd, River City\n\nBring a creative and delicious charcuterie-style board! Get as fun and inventive as you like - sweet, savory, themed, or totally out-of-the-box!\n\nNo pressure, but we'll be voting again, and yes, there will be prizes!\n\nSee you soon!"
+        },
+        "metadata": {
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 1
+      },
+      {
+        "cost": 0.00021345,
+        "error": "Expected [1,7] got [1,9]",
+        "gradingResult": {
+          "pass": false,
+          "score": 0,
+          "reason": "Expected [1,7] got [1,9]",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0
+          },
+          "componentResults": [
+            {
+              "pass": false,
+              "score": 0,
+              "reason": "Expected [1,7] got [1,9]"
+            }
+          ],
+          "assertion": null
+        },
+        "id": "d42ece1d-e0b1-4d65-b3e8-9bb24006b2e1",
+        "latencyMs": 715,
+        "namedScores": {},
+        "prompt": {
+          "raw": "You will be given arbitrary text that may describe zero or more calendar events.\n\nReturn valid JSON ONLY in this format (no extra keys):\n{\n  \"starts\": [1, 15, 42]\n}\n\nSegmentation rules:\n1. Every line in the input must be assigned to exactly one event chunk. No text should be left out or unassigned.\n2. Blank lines (lines containing only whitespace) are NOT events, but may separate events.\n3. The only valid way to split events is at a line break. If an event spans multiple lines, all those lines must be included in its chunk.\n4. A line qualifies as the *start* of a new event only if it introduces a **new date, time, or clearly different occasion**.  Lines that merely supply details (e.g. prefixed with \"When:\", \"Where:\", \"Location:\", \"Time:\") STILL belong to the current event – do NOT treat them as separate events.\n5. Bullet or numbered schedules: each bullet/number *is* a new event **iff** it contains its own date **or** time token (digits + am/pm or yyyy-mm-dd etc.). Headers that contain words like \"schedule\", \"agenda\", \"itinerary\", \"timeline\", \"offsite\" **and** have NO digits/time are NEVER events.\n6. Lines that start with \"When:\", \"Where:\", \"Location:\", \"Time:\", \"Date:\", \"Details:\" are DETAIL lines – they **MUST NOT** appear in the \"starts\" array. If they do, replace them with the closest previous non-detail line that introduces that event.\n7. If the very first line contains keywords (schedule|agenda|timeline|offsite|workshop[s]?) AND is immediately followed by a numbered or bulleted list, treat the header as *context* only—do NOT include it in \"starts\". Instead include every numbered/bulleted line that contains a time or date.\n8. Always choose the *earliest* eligible line for an event. If both a narrative headline and a later detail line describe the same event, pick the headline.\n9. Numbered/bulleted agendas: if bullet numbers form a consecutive sequence (1.,2.,3. or •,– etc.) you **must** output a start index for every such bullet.\n10. A capitalised line that contains event keywords (party|birthday|graduation|conference|meeting|board|wedding|concert|picnic) counts as a new event even if it lacks an explicit time.\n11. You must ALWAYS return at least one start index whenever the text references a date, time, or event keyword. [] allowed only for non-event text.\n12. Each start index must be the 1-based line number of the FIRST line of a new event.\n13. Indices strictly ascending, max 10.\n14. If no events exist, return { \"starts\": [] }.\n\nAdditional examples:\nExample 2 – header with bullet times (total lines = 5):\n1: Saturday schedule:\n2: • Soccer practice 8am\n3: • Grocery run 10am\n4: • Movie night 8pm\n5:\n→ \"starts\": [2, 3, 4]\n\nExample 3 – event with detail lines (total lines = 3):\n1: Alex's birthday dinner!\n2: When: Sat July 20, 7pm\n3: Where: 42 Main St\n→ \"starts\": [1]\n\nExample 4 – agenda header (total lines = 7):\n1: Agenda 14 Feb:\n2: – Breakfast 9\n3: – Stand-up 10\n4: – Feature review 11\n5: – Release party 20:00\n6: – Team photo 22:00\n7:\n→ \"starts\": [2,3,4,5,6]\n\nExample 5 – timeline with dashes (total lines = 6):\n1: Concert day timeline:\n2: – Soundcheck 15:00\n3: – Meet & greet 17:00\n4: – Headline show 20:00\n5: – After-party 23:00\n6:\n→ \"starts\": [2,3,4,5]\n\nExample 6 – single-line reminder:\n1: Quick note: Parent-teacher conference next Thursday 2pm.\n→ \"starts\": [1]\n\nExample 7 – narrative header + details:\n1: Team meeting tomorrow at 4pm at Nori House\n2:\n3:\n4: Hey everyone!\n5:\n6: FOOD BOARD PARTY – Part 2!\n7: When: Saturday, July 19, 2025, at 5:00 PM\n→ \"starts\": [1,6]\n\nExample 8 – detail lines excluded:\n1: FOOD BOARD PARTY – Part 2!\n2: When: Saturday, July 19, 2025, at 5:00 PM\n→ \"starts\": [1]\n\nExample 9 – workshops header ignored:\n1: Workshops 30 Mar:\n2: 1. Git at 9\n3: 2. Docker at 11\n4: 3. Kubernetes at 13\n5: 4. Cloud at 15\n6: 5. Testing at 17\n7: 6. Q&A at 19\n→ \"starts\": [2,3,4,5,6,7]\n\nExample 10 – two events with detail lines:\n1: Team meeting tomorrow at 4pm at Nori House\n2:\n3: FOOD BOARD PARTY – Part 2!\n4: When: Saturday, July 19, 2025, at 5:00 PM\n→ \"starts\": [1,3]\n\nReturn nothing else – no comments or trailing text.\n\n1: Team meeting tomorrow at 4pm at Nori House\n2: \n3: \n4: \n5: Hey everyone!\n6: \n7: Jordan's birthday is next Wednesday, and they want to celebrate with a repeat of last year's fantastic bash!\n8: \n9: FOOD BOARD PARTY – Part 2! 🧀\n10: \n11: When: Saturday, July 19, 2025, at 5:00 PM\n12: Where: 42 Sunset Blvd, River City\n13: \n14: Bring a creative and delicious charcuterie-style board! Get as fun and inventive as you like - sweet, savory, themed, or totally out-of-the-box!\n15: \n16: No pressure, but we'll be voting again, and yes, there will be prizes!\n17: \n18: See you soon!",
+          "label": "evals/prompts/event-split-lines.js",
+          "config": {}
+        },
+        "promptId": "22fb3dfde7f5232cac9c6ed1d71fc5eb5ef78345fd1885a053ba7fd70ede2ae2",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:gpt-4o-mini",
+          "label": ""
+        },
+        "response": {
+          "output": "{\n  \"starts\": [1, 9]\n}",
+          "tokenUsage": {
+            "total": 1387,
+            "prompt": 1375,
+            "completion": 12,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "cost": 0.00021345
+        },
+        "score": 0,
+        "success": false,
+        "testCase": {
+          "vars": {
+            "input": "Team meeting tomorrow at 4pm at Nori House\n\n\n\nHey everyone!\n\nJordan's birthday is next Wednesday, and they want to celebrate with a repeat of last year's fantastic bash!\n\nFOOD BOARD PARTY – Part 2! 🧀\n\nWhen: Saturday, July 19, 2025, at 5:00 PM\nWhere: 42 Sunset Blvd, River City\n\nBring a creative and delicious charcuterie-style board! Get as fun and inventive as you like - sweet, savory, themed, or totally out-of-the-box!\n\nNo pressure, but we'll be voting again, and yes, there will be prizes!\n\nSee you soon!"
+          },
+          "expected": [1, 7],
+          "description": "Row #1",
+          "assert": [
+            {
+              "type": "javascript",
+              "value": "file://scorers/event-lines-accuracy.js"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 1,
+        "vars": {
+          "input": "Team meeting tomorrow at 4pm at Nori House\n\n\n\nHey everyone!\n\nJordan's birthday is next Wednesday, and they want to celebrate with a repeat of last year's fantastic bash!\n\nFOOD BOARD PARTY – Part 2! 🧀\n\nWhen: Saturday, July 19, 2025, at 5:00 PM\nWhere: 42 Sunset Blvd, River City\n\nBring a creative and delicious charcuterie-style board! Get as fun and inventive as you like - sweet, savory, themed, or totally out-of-the-box!\n\nNo pressure, but we'll be voting again, and yes, there will be prizes!\n\nSee you soon!"
+        },
+        "metadata": {
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 1
+      },
+      {
+        "cost": 0.00021345,
+        "error": "Expected [1,7] got [1,9]",
+        "gradingResult": {
+          "pass": false,
+          "score": 0,
+          "reason": "Expected [1,7] got [1,9]",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0
+          },
+          "componentResults": [
+            {
+              "pass": false,
+              "score": 0,
+              "reason": "Expected [1,7] got [1,9]"
+            }
+          ],
+          "assertion": null
+        },
+        "id": "b575a4ba-6bc6-4cfc-8c46-903533308a4f",
+        "latencyMs": 726,
+        "namedScores": {},
+        "prompt": {
+          "raw": "You will be given arbitrary text that may describe zero or more calendar events.\n\nReturn valid JSON ONLY in this format (no extra keys):\n{\n  \"starts\": [1, 15, 42]\n}\n\nSegmentation rules:\n1. Every line in the input must be assigned to exactly one event chunk. No text should be left out or unassigned.\n2. Blank lines (lines containing only whitespace) are NOT events, but may separate events.\n3. The only valid way to split events is at a line break. If an event spans multiple lines, all those lines must be included in its chunk.\n4. A line qualifies as the *start* of a new event only if it introduces a **new date, time, or clearly different occasion**.  Lines that merely supply details (e.g. prefixed with \"When:\", \"Where:\", \"Location:\", \"Time:\") STILL belong to the current event – do NOT treat them as separate events.\n5. Bullet or numbered schedules: each bullet/number *is* a new event **iff** it contains its own date **or** time token (digits + am/pm or yyyy-mm-dd etc.). Headers that contain words like \"schedule\", \"agenda\", \"itinerary\", \"timeline\", \"offsite\" **and** have NO digits/time are NEVER events.\n6. Lines that start with \"When:\", \"Where:\", \"Location:\", \"Time:\", \"Date:\", \"Details:\" are DETAIL lines – they **MUST NOT** appear in the \"starts\" array. If they do, replace them with the closest previous non-detail line that introduces that event.\n7. If the very first line contains keywords (schedule|agenda|timeline|offsite|workshop[s]?) AND is immediately followed by a numbered or bulleted list, treat the header as *context* only—do NOT include it in \"starts\". Instead include every numbered/bulleted line that contains a time or date.\n8. Always choose the *earliest* eligible line for an event. If both a narrative headline and a later detail line describe the same event, pick the headline.\n9. Numbered/bulleted agendas: if bullet numbers form a consecutive sequence (1.,2.,3. or •,– etc.) you **must** output a start index for every such bullet.\n10. A capitalised line that contains event keywords (party|birthday|graduation|conference|meeting|board|wedding|concert|picnic) counts as a new event even if it lacks an explicit time.\n11. You must ALWAYS return at least one start index whenever the text references a date, time, or event keyword. [] allowed only for non-event text.\n12. Each start index must be the 1-based line number of the FIRST line of a new event.\n13. Indices strictly ascending, max 10.\n14. If no events exist, return { \"starts\": [] }.\n\nAdditional examples:\nExample 2 – header with bullet times (total lines = 5):\n1: Saturday schedule:\n2: • Soccer practice 8am\n3: • Grocery run 10am\n4: • Movie night 8pm\n5:\n→ \"starts\": [2, 3, 4]\n\nExample 3 – event with detail lines (total lines = 3):\n1: Alex's birthday dinner!\n2: When: Sat July 20, 7pm\n3: Where: 42 Main St\n→ \"starts\": [1]\n\nExample 4 – agenda header (total lines = 7):\n1: Agenda 14 Feb:\n2: – Breakfast 9\n3: – Stand-up 10\n4: – Feature review 11\n5: – Release party 20:00\n6: – Team photo 22:00\n7:\n→ \"starts\": [2,3,4,5,6]\n\nExample 5 – timeline with dashes (total lines = 6):\n1: Concert day timeline:\n2: – Soundcheck 15:00\n3: – Meet & greet 17:00\n4: – Headline show 20:00\n5: – After-party 23:00\n6:\n→ \"starts\": [2,3,4,5]\n\nExample 6 – single-line reminder:\n1: Quick note: Parent-teacher conference next Thursday 2pm.\n→ \"starts\": [1]\n\nExample 7 – narrative header + details:\n1: Team meeting tomorrow at 4pm at Nori House\n2:\n3:\n4: Hey everyone!\n5:\n6: FOOD BOARD PARTY – Part 2!\n7: When: Saturday, July 19, 2025, at 5:00 PM\n→ \"starts\": [1,6]\n\nExample 8 – detail lines excluded:\n1: FOOD BOARD PARTY – Part 2!\n2: When: Saturday, July 19, 2025, at 5:00 PM\n→ \"starts\": [1]\n\nExample 9 – workshops header ignored:\n1: Workshops 30 Mar:\n2: 1. Git at 9\n3: 2. Docker at 11\n4: 3. Kubernetes at 13\n5: 4. Cloud at 15\n6: 5. Testing at 17\n7: 6. Q&A at 19\n→ \"starts\": [2,3,4,5,6,7]\n\nExample 10 – two events with detail lines:\n1: Team meeting tomorrow at 4pm at Nori House\n2:\n3: FOOD BOARD PARTY – Part 2!\n4: When: Saturday, July 19, 2025, at 5:00 PM\n→ \"starts\": [1,3]\n\nReturn nothing else – no comments or trailing text.\n\n1: Team meeting tomorrow at 4pm at Nori House\n2: \n3: \n4: \n5: Hey everyone!\n6: \n7: Jordan's birthday is next Wednesday, and they want to celebrate with a repeat of last year's fantastic bash!\n8: \n9: FOOD BOARD PARTY – Part 2! 🧀\n10: \n11: When: Saturday, July 19, 2025, at 5:00 PM\n12: Where: 42 Sunset Blvd, River City\n13: \n14: Bring a creative and delicious charcuterie-style board! Get as fun and inventive as you like - sweet, savory, themed, or totally out-of-the-box!\n15: \n16: No pressure, but we'll be voting again, and yes, there will be prizes!\n17: \n18: See you soon!",
+          "label": "evals/prompts/event-split-lines.js",
+          "config": {}
+        },
+        "promptId": "22fb3dfde7f5232cac9c6ed1d71fc5eb5ef78345fd1885a053ba7fd70ede2ae2",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:gpt-4o-mini",
+          "label": ""
+        },
+        "response": {
+          "output": "{\n  \"starts\": [1, 9]\n}",
+          "tokenUsage": {
+            "total": 1387,
+            "prompt": 1375,
+            "completion": 12,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "cost": 0.00021345
+        },
+        "score": 0,
+        "success": false,
+        "testCase": {
+          "vars": {
+            "input": "Team meeting tomorrow at 4pm at Nori House\n\n\n\nHey everyone!\n\nJordan's birthday is next Wednesday, and they want to celebrate with a repeat of last year's fantastic bash!\n\nFOOD BOARD PARTY – Part 2! 🧀\n\nWhen: Saturday, July 19, 2025, at 5:00 PM\nWhere: 42 Sunset Blvd, River City\n\nBring a creative and delicious charcuterie-style board! Get as fun and inventive as you like - sweet, savory, themed, or totally out-of-the-box!\n\nNo pressure, but we'll be voting again, and yes, there will be prizes!\n\nSee you soon!"
+          },
+          "expected": [1, 7],
+          "description": "Row #1",
+          "assert": [
+            {
+              "type": "javascript",
+              "value": "file://scorers/event-lines-accuracy.js"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 0,
+        "vars": {
+          "input": "Team meeting tomorrow at 4pm at Nori House\n\n\n\nHey everyone!\n\nJordan's birthday is next Wednesday, and they want to celebrate with a repeat of last year's fantastic bash!\n\nFOOD BOARD PARTY – Part 2! 🧀\n\nWhen: Saturday, July 19, 2025, at 5:00 PM\nWhere: 42 Sunset Blvd, River City\n\nBring a creative and delicious charcuterie-style board! Get as fun and inventive as you like - sweet, savory, themed, or totally out-of-the-box!\n\nNo pressure, but we'll be voting again, and yes, there will be prizes!\n\nSee you soon!"
+        },
+        "metadata": {
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 1
+      },
+      {
+        "cost": 0.00021345,
+        "error": "Expected [1,7] got [1,9]",
+        "gradingResult": {
+          "pass": false,
+          "score": 0,
+          "reason": "Expected [1,7] got [1,9]",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0
+          },
+          "componentResults": [
+            {
+              "pass": false,
+              "score": 0,
+              "reason": "Expected [1,7] got [1,9]"
+            }
+          ],
+          "assertion": null
+        },
+        "id": "55225f8a-dae8-4a9e-83b1-8110a1e91bc6",
+        "latencyMs": 726,
+        "namedScores": {},
+        "prompt": {
+          "raw": "You will be given arbitrary text that may describe zero or more calendar events.\n\nReturn valid JSON ONLY in this format (no extra keys):\n{\n  \"starts\": [1, 15, 42]\n}\n\nSegmentation rules:\n1. Every line in the input must be assigned to exactly one event chunk. No text should be left out or unassigned.\n2. Blank lines (lines containing only whitespace) are NOT events, but may separate events.\n3. The only valid way to split events is at a line break. If an event spans multiple lines, all those lines must be included in its chunk.\n4. A line qualifies as the *start* of a new event only if it introduces a **new date, time, or clearly different occasion**.  Lines that merely supply details (e.g. prefixed with \"When:\", \"Where:\", \"Location:\", \"Time:\") STILL belong to the current event – do NOT treat them as separate events.\n5. Bullet or numbered schedules: each bullet/number *is* a new event **iff** it contains its own date **or** time token (digits + am/pm or yyyy-mm-dd etc.). Headers that contain words like \"schedule\", \"agenda\", \"itinerary\", \"timeline\", \"offsite\" **and** have NO digits/time are NEVER events.\n6. Lines that start with \"When:\", \"Where:\", \"Location:\", \"Time:\", \"Date:\", \"Details:\" are DETAIL lines – they **MUST NOT** appear in the \"starts\" array. If they do, replace them with the closest previous non-detail line that introduces that event.\n7. If the very first line contains keywords (schedule|agenda|timeline|offsite|workshop[s]?) AND is immediately followed by a numbered or bulleted list, treat the header as *context* only—do NOT include it in \"starts\". Instead include every numbered/bulleted line that contains a time or date.\n8. Always choose the *earliest* eligible line for an event. If both a narrative headline and a later detail line describe the same event, pick the headline.\n9. Numbered/bulleted agendas: if bullet numbers form a consecutive sequence (1.,2.,3. or •,– etc.) you **must** output a start index for every such bullet.\n10. A capitalised line that contains event keywords (party|birthday|graduation|conference|meeting|board|wedding|concert|picnic) counts as a new event even if it lacks an explicit time.\n11. You must ALWAYS return at least one start index whenever the text references a date, time, or event keyword. [] allowed only for non-event text.\n12. Each start index must be the 1-based line number of the FIRST line of a new event.\n13. Indices strictly ascending, max 10.\n14. If no events exist, return { \"starts\": [] }.\n\nAdditional examples:\nExample 2 – header with bullet times (total lines = 5):\n1: Saturday schedule:\n2: • Soccer practice 8am\n3: • Grocery run 10am\n4: • Movie night 8pm\n5:\n→ \"starts\": [2, 3, 4]\n\nExample 3 – event with detail lines (total lines = 3):\n1: Alex's birthday dinner!\n2: When: Sat July 20, 7pm\n3: Where: 42 Main St\n→ \"starts\": [1]\n\nExample 4 – agenda header (total lines = 7):\n1: Agenda 14 Feb:\n2: – Breakfast 9\n3: – Stand-up 10\n4: – Feature review 11\n5: – Release party 20:00\n6: – Team photo 22:00\n7:\n→ \"starts\": [2,3,4,5,6]\n\nExample 5 – timeline with dashes (total lines = 6):\n1: Concert day timeline:\n2: – Soundcheck 15:00\n3: – Meet & greet 17:00\n4: – Headline show 20:00\n5: – After-party 23:00\n6:\n→ \"starts\": [2,3,4,5]\n\nExample 6 – single-line reminder:\n1: Quick note: Parent-teacher conference next Thursday 2pm.\n→ \"starts\": [1]\n\nExample 7 – narrative header + details:\n1: Team meeting tomorrow at 4pm at Nori House\n2:\n3:\n4: Hey everyone!\n5:\n6: FOOD BOARD PARTY – Part 2!\n7: When: Saturday, July 19, 2025, at 5:00 PM\n→ \"starts\": [1,6]\n\nExample 8 – detail lines excluded:\n1: FOOD BOARD PARTY – Part 2!\n2: When: Saturday, July 19, 2025, at 5:00 PM\n→ \"starts\": [1]\n\nExample 9 – workshops header ignored:\n1: Workshops 30 Mar:\n2: 1. Git at 9\n3: 2. Docker at 11\n4: 3. Kubernetes at 13\n5: 4. Cloud at 15\n6: 5. Testing at 17\n7: 6. Q&A at 19\n→ \"starts\": [2,3,4,5,6,7]\n\nExample 10 – two events with detail lines:\n1: Team meeting tomorrow at 4pm at Nori House\n2:\n3: FOOD BOARD PARTY – Part 2!\n4: When: Saturday, July 19, 2025, at 5:00 PM\n→ \"starts\": [1,3]\n\nReturn nothing else – no comments or trailing text.\n\n1: Team meeting tomorrow at 4pm at Nori House\n2: \n3: \n4: \n5: Hey everyone!\n6: \n7: Jordan's birthday is next Wednesday, and they want to celebrate with a repeat of last year's fantastic bash!\n8: \n9: FOOD BOARD PARTY – Part 2! 🧀\n10: \n11: When: Saturday, July 19, 2025, at 5:00 PM\n12: Where: 42 Sunset Blvd, River City\n13: \n14: Bring a creative and delicious charcuterie-style board! Get as fun and inventive as you like - sweet, savory, themed, or totally out-of-the-box!\n15: \n16: No pressure, but we'll be voting again, and yes, there will be prizes!\n17: \n18: See you soon!",
+          "label": "evals/prompts/event-split-lines.js",
+          "config": {}
+        },
+        "promptId": "22fb3dfde7f5232cac9c6ed1d71fc5eb5ef78345fd1885a053ba7fd70ede2ae2",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:gpt-4o-mini",
+          "label": ""
+        },
+        "response": {
+          "output": "{\n  \"starts\": [1, 9]\n}",
+          "tokenUsage": {
+            "total": 1387,
+            "prompt": 1375,
+            "completion": 12,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "cost": 0.00021345
+        },
+        "score": 0,
+        "success": false,
+        "testCase": {
+          "vars": {
+            "input": "Team meeting tomorrow at 4pm at Nori House\n\n\n\nHey everyone!\n\nJordan's birthday is next Wednesday, and they want to celebrate with a repeat of last year's fantastic bash!\n\nFOOD BOARD PARTY – Part 2! 🧀\n\nWhen: Saturday, July 19, 2025, at 5:00 PM\nWhere: 42 Sunset Blvd, River City\n\nBring a creative and delicious charcuterie-style board! Get as fun and inventive as you like - sweet, savory, themed, or totally out-of-the-box!\n\nNo pressure, but we'll be voting again, and yes, there will be prizes!\n\nSee you soon!"
+          },
+          "expected": [1, 7],
+          "description": "Row #1",
+          "assert": [
+            {
+              "type": "javascript",
+              "value": "file://scorers/event-lines-accuracy.js"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 3,
+        "vars": {
+          "input": "Team meeting tomorrow at 4pm at Nori House\n\n\n\nHey everyone!\n\nJordan's birthday is next Wednesday, and they want to celebrate with a repeat of last year's fantastic bash!\n\nFOOD BOARD PARTY – Part 2! 🧀\n\nWhen: Saturday, July 19, 2025, at 5:00 PM\nWhere: 42 Sunset Blvd, River City\n\nBring a creative and delicious charcuterie-style board! Get as fun and inventive as you like - sweet, savory, themed, or totally out-of-the-box!\n\nNo pressure, but we'll be voting again, and yes, there will be prizes!\n\nSee you soon!"
+        },
+        "metadata": {
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 1
+      },
+      {
+        "cost": 0.00021345,
+        "error": "Expected [1,7] got [1,9]",
+        "gradingResult": {
+          "pass": false,
+          "score": 0,
+          "reason": "Expected [1,7] got [1,9]",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0
+          },
+          "componentResults": [
+            {
+              "pass": false,
+              "score": 0,
+              "reason": "Expected [1,7] got [1,9]"
+            }
+          ],
+          "assertion": null
+        },
+        "id": "3e2d94fd-c014-47cc-848e-4bb4e17df346",
+        "latencyMs": 776,
+        "namedScores": {},
+        "prompt": {
+          "raw": "You will be given arbitrary text that may describe zero or more calendar events.\n\nReturn valid JSON ONLY in this format (no extra keys):\n{\n  \"starts\": [1, 15, 42]\n}\n\nSegmentation rules:\n1. Every line in the input must be assigned to exactly one event chunk. No text should be left out or unassigned.\n2. Blank lines (lines containing only whitespace) are NOT events, but may separate events.\n3. The only valid way to split events is at a line break. If an event spans multiple lines, all those lines must be included in its chunk.\n4. A line qualifies as the *start* of a new event only if it introduces a **new date, time, or clearly different occasion**.  Lines that merely supply details (e.g. prefixed with \"When:\", \"Where:\", \"Location:\", \"Time:\") STILL belong to the current event – do NOT treat them as separate events.\n5. Bullet or numbered schedules: each bullet/number *is* a new event **iff** it contains its own date **or** time token (digits + am/pm or yyyy-mm-dd etc.). Headers that contain words like \"schedule\", \"agenda\", \"itinerary\", \"timeline\", \"offsite\" **and** have NO digits/time are NEVER events.\n6. Lines that start with \"When:\", \"Where:\", \"Location:\", \"Time:\", \"Date:\", \"Details:\" are DETAIL lines – they **MUST NOT** appear in the \"starts\" array. If they do, replace them with the closest previous non-detail line that introduces that event.\n7. If the very first line contains keywords (schedule|agenda|timeline|offsite|workshop[s]?) AND is immediately followed by a numbered or bulleted list, treat the header as *context* only—do NOT include it in \"starts\". Instead include every numbered/bulleted line that contains a time or date.\n8. Always choose the *earliest* eligible line for an event. If both a narrative headline and a later detail line describe the same event, pick the headline.\n9. Numbered/bulleted agendas: if bullet numbers form a consecutive sequence (1.,2.,3. or •,– etc.) you **must** output a start index for every such bullet.\n10. A capitalised line that contains event keywords (party|birthday|graduation|conference|meeting|board|wedding|concert|picnic) counts as a new event even if it lacks an explicit time.\n11. You must ALWAYS return at least one start index whenever the text references a date, time, or event keyword. [] allowed only for non-event text.\n12. Each start index must be the 1-based line number of the FIRST line of a new event.\n13. Indices strictly ascending, max 10.\n14. If no events exist, return { \"starts\": [] }.\n\nAdditional examples:\nExample 2 – header with bullet times (total lines = 5):\n1: Saturday schedule:\n2: • Soccer practice 8am\n3: • Grocery run 10am\n4: • Movie night 8pm\n5:\n→ \"starts\": [2, 3, 4]\n\nExample 3 – event with detail lines (total lines = 3):\n1: Alex's birthday dinner!\n2: When: Sat July 20, 7pm\n3: Where: 42 Main St\n→ \"starts\": [1]\n\nExample 4 – agenda header (total lines = 7):\n1: Agenda 14 Feb:\n2: – Breakfast 9\n3: – Stand-up 10\n4: – Feature review 11\n5: – Release party 20:00\n6: – Team photo 22:00\n7:\n→ \"starts\": [2,3,4,5,6]\n\nExample 5 – timeline with dashes (total lines = 6):\n1: Concert day timeline:\n2: – Soundcheck 15:00\n3: – Meet & greet 17:00\n4: – Headline show 20:00\n5: – After-party 23:00\n6:\n→ \"starts\": [2,3,4,5]\n\nExample 6 – single-line reminder:\n1: Quick note: Parent-teacher conference next Thursday 2pm.\n→ \"starts\": [1]\n\nExample 7 – narrative header + details:\n1: Team meeting tomorrow at 4pm at Nori House\n2:\n3:\n4: Hey everyone!\n5:\n6: FOOD BOARD PARTY – Part 2!\n7: When: Saturday, July 19, 2025, at 5:00 PM\n→ \"starts\": [1,6]\n\nExample 8 – detail lines excluded:\n1: FOOD BOARD PARTY – Part 2!\n2: When: Saturday, July 19, 2025, at 5:00 PM\n→ \"starts\": [1]\n\nExample 9 – workshops header ignored:\n1: Workshops 30 Mar:\n2: 1. Git at 9\n3: 2. Docker at 11\n4: 3. Kubernetes at 13\n5: 4. Cloud at 15\n6: 5. Testing at 17\n7: 6. Q&A at 19\n→ \"starts\": [2,3,4,5,6,7]\n\nExample 10 – two events with detail lines:\n1: Team meeting tomorrow at 4pm at Nori House\n2:\n3: FOOD BOARD PARTY – Part 2!\n4: When: Saturday, July 19, 2025, at 5:00 PM\n→ \"starts\": [1,3]\n\nReturn nothing else – no comments or trailing text.\n\n1: Team meeting tomorrow at 4pm at Nori House\n2: \n3: \n4: \n5: Hey everyone!\n6: \n7: Jordan's birthday is next Wednesday, and they want to celebrate with a repeat of last year's fantastic bash!\n8: \n9: FOOD BOARD PARTY – Part 2! 🧀\n10: \n11: When: Saturday, July 19, 2025, at 5:00 PM\n12: Where: 42 Sunset Blvd, River City\n13: \n14: Bring a creative and delicious charcuterie-style board! Get as fun and inventive as you like - sweet, savory, themed, or totally out-of-the-box!\n15: \n16: No pressure, but we'll be voting again, and yes, there will be prizes!\n17: \n18: See you soon!",
+          "label": "evals/prompts/event-split-lines.js",
+          "config": {}
+        },
+        "promptId": "22fb3dfde7f5232cac9c6ed1d71fc5eb5ef78345fd1885a053ba7fd70ede2ae2",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:gpt-4o-mini",
+          "label": ""
+        },
+        "response": {
+          "output": "{\n  \"starts\": [1, 9]\n}",
+          "tokenUsage": {
+            "total": 1387,
+            "prompt": 1375,
+            "completion": 12,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "cost": 0.00021345
+        },
+        "score": 0,
+        "success": false,
+        "testCase": {
+          "vars": {
+            "input": "Team meeting tomorrow at 4pm at Nori House\n\n\n\nHey everyone!\n\nJordan's birthday is next Wednesday, and they want to celebrate with a repeat of last year's fantastic bash!\n\nFOOD BOARD PARTY – Part 2! 🧀\n\nWhen: Saturday, July 19, 2025, at 5:00 PM\nWhere: 42 Sunset Blvd, River City\n\nBring a creative and delicious charcuterie-style board! Get as fun and inventive as you like - sweet, savory, themed, or totally out-of-the-box!\n\nNo pressure, but we'll be voting again, and yes, there will be prizes!\n\nSee you soon!"
+          },
+          "expected": [1, 7],
+          "description": "Row #1",
+          "assert": [
+            {
+              "type": "javascript",
+              "value": "file://scorers/event-lines-accuracy.js"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 4,
+        "vars": {
+          "input": "Team meeting tomorrow at 4pm at Nori House\n\n\n\nHey everyone!\n\nJordan's birthday is next Wednesday, and they want to celebrate with a repeat of last year's fantastic bash!\n\nFOOD BOARD PARTY – Part 2! 🧀\n\nWhen: Saturday, July 19, 2025, at 5:00 PM\nWhere: 42 Sunset Blvd, River City\n\nBring a creative and delicious charcuterie-style board! Get as fun and inventive as you like - sweet, savory, themed, or totally out-of-the-box!\n\nNo pressure, but we'll be voting again, and yes, there will be prizes!\n\nSee you soon!"
+        },
+        "metadata": {
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 1
+      }
+    ],
+    "stats": {
+      "successes": 0,
+      "failures": 5,
+      "errors": 0,
+      "tokenUsage": {
+        "cached": 0,
+        "completion": 60,
+        "prompt": 6875,
+        "total": 6935,
+        "numRequests": 5,
+        "completionDetails": {
+          "reasoning": 0,
+          "acceptedPrediction": 0,
+          "rejectedPrediction": 0
+        },
+        "assertions": {
+          "total": 0,
+          "prompt": 0,
+          "completion": 0,
+          "cached": 0
+        }
+      }
+    }
+  },
+  "config": {
+    "tags": {},
+    "prompts": [
+      "file:///Users/cam/Documents/Projects/ai-calendar-helper/evals/prompts/event-split-lines.js"
+    ],
+    "providers": [
+      {
+        "id": "openai:gpt-4o-mini",
+        "config": {
+          "temperature": 0
+        }
+      }
+    ],
+    "tests": [
+      {
+        "vars": {
+          "input": "Team meeting tomorrow at 4pm at Nori House\n\n\n\nHey everyone!\n\nJordan's birthday is next Wednesday, and they want to celebrate with a repeat of last year's fantastic bash!\n\nFOOD BOARD PARTY – Part 2! 🧀\n\nWhen: Saturday, July 19, 2025, at 5:00 PM\nWhere: 42 Sunset Blvd, River City\n\nBring a creative and delicious charcuterie-style board! Get as fun and inventive as you like - sweet, savory, themed, or totally out-of-the-box!\n\nNo pressure, but we'll be voting again, and yes, there will be prizes!\n\nSee you soon!"
+        },
+        "expected": [1, 7],
+        "description": "Row #1"
+      },
+      {
+        "vars": {
+          "input": "Hello amazing friends and family,\n\nCan you believe it? After four intense years and countless late-night study sessions, I'm finally graduating! I'd be so honored if you could join me to celebrate this milestone.\n\nHere are the key details (feel free to skim past my sentimental rambling):\n• Date: Saturday, May 17, 2025\n• Time: Ceremony begins promptly at 11:00 AM (doors open 10:15)\n• Location: Riverside Auditorium, 800 College Way, Springfield\n\nPost-ceremony, we'll take photos, then head to the quad for cupcakes and lemonade.\n\nHope to see you there!"
+        },
+        "expected": [1],
+        "description": "Row #2"
+      },
+      {
+        "vars": {
+          "input": "Lunch & Learn Thursday 12:00 PM (pizza provided)\n\nProject kickoff Friday 9 AM in Conference Room B"
+        },
+        "expected": [1, 3],
+        "description": "Row #3"
+      },
+      {
+        "vars": {
+          "input": "Morning yoga at 7am on the beach.\nTeam stand-up at 10am in the office.\nProduct launch party at 6pm downtown."
+        },
+        "expected": [1, 2, 3],
+        "description": "Row #4"
+      },
+      {
+        "vars": {
+          "input": "Just a reminder, dentist appointment next Tuesday at 3pm."
+        },
+        "expected": [1],
+        "description": "Row #5"
+      },
+      {
+        "vars": {
+          "input": "Tomorrow: Coffee catch-up with Alex at 9.\nSee you then!"
+        },
+        "expected": [1],
+        "description": "Row #6"
+      },
+      {
+        "vars": {
+          "input": "All-hands at 2pm today in the auditorium."
+        },
+        "expected": [1],
+        "description": "Row #7"
+      },
+      {
+        "vars": {
+          "input": "Dinner with Sam 7pm.\n(It's sushi night!)"
+        },
+        "expected": [1],
+        "description": "Row #8"
+      },
+      {
+        "vars": {
+          "input": "Breakfast with CEO 8am.\nDemo rehearsal 9:30am."
+        },
+        "expected": [1, 2],
+        "description": "Row #9"
+      },
+      {
+        "vars": {
+          "input": "Saturday schedule: \n• Soccer practice 8am \n• Grocery run 10am \n• Movie night 8pm"
+        },
+        "expected": [2, 3, 4],
+        "description": "Row #10"
+      },
+      {
+        "vars": {
+          "input": "Full-day offsite Monday:\n1. Opening keynote 9:00\n2. Workshop 11:00\n3. Lunch noon\n4. Closing Q&A 4:00"
+        },
+        "expected": [2, 3, 4, 5],
+        "description": "Row #11"
+      },
+      {
+        "vars": {
+          "input": "Agenda 14 Feb:\n– Breakfast 9\n– Stand-up 10\n– Feature review 11\n– Release party 20:00\n– Team photo 22:00"
+        },
+        "expected": [2, 3, 4, 5, 6],
+        "description": "Row #12"
+      },
+      {
+        "vars": {
+          "input": "Workshops 30 Mar:\n1. Git at 9\n2. Docker at 11\n3. Kubernetes at 13\n4. Cloud at 15\n5. Testing at 17\n6. Q&A at 19"
+        },
+        "expected": [2, 3, 4, 5, 6, 7],
+        "description": "Row #13"
+      },
+      {
+        "vars": {
+          "input": "Quick note: Parent-teacher conference next Thursday 2pm."
+        },
+        "expected": [1],
+        "description": "Row #14"
+      },
+      {
+        "vars": {
+          "input": "Reminder: Evening run 6pm in the park."
+        },
+        "expected": [1],
+        "description": "Row #15"
+      },
+      {
+        "vars": {
+          "input": "Travel itinerary:\n• Flight departure 1 Oct 06:00 JFK\n• Arrival meeting 1 Oct 10:00 Downtown office"
+        },
+        "expected": [2, 3],
+        "description": "Row #16"
+      },
+      {
+        "vars": {
+          "input": "Exam day schedule:\nMath 9:00\nPhysics 11:00\nChem 13:00\nReview 15:00"
+        },
+        "expected": [2, 3, 4, 5],
+        "description": "Row #17"
+      },
+      {
+        "vars": {
+          "input": "Concert day timeline:\n– Soundcheck 15:00\n– Meet & greet 17:00\n– Headline show 20:00\n– After-party 23:00"
+        },
+        "expected": [2, 3, 4, 5],
+        "description": "Row #18"
+      }
+    ],
+    "scenarios": [],
+    "env": {},
+    "sharing": true,
+    "defaultTest": {
+      "assert": [
+        {
+          "type": "javascript",
+          "value": "file://scorers/event-lines-accuracy.js"
+        }
+      ],
+      "vars": {},
+      "options": {},
+      "metadata": {}
+    },
+    "outputPath": ["evals/first-test-runs.json"],
+    "extensions": [],
+    "metadata": {}
+  },
+  "shareableUrl": null
+}

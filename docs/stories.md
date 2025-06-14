@@ -85,9 +85,10 @@ AI Calendar Helper
 
 ### Phase 8: Prompt Refinement (Priority: Medium)
 
-| Story ID | Title                     | Priority | Status   | Link                                                 |
-| -------- | ------------------------- | -------- | -------- | ---------------------------------------------------- |
-| 036      | Prompt Refinement Harness | Medium   | Planning | /docs/stories/story-036-prompt-refinement-harness.md |
+| Story ID | Title                              | Priority | Status      | Link                                                 |
+| -------- | ---------------------------------- | -------- | ----------- | ---------------------------------------------------- |
+| 036      | Prompt Refinement Harness          | Medium   | Done        | /docs/stories/story-036-prompt-refinement-harness.md |
+| 038      | Event Splitting Evaluation Harness | Medium   | In Progress | /docs/stories/story-038-event-splitting-eval.md      |
 
 ## Priority Definitions
 

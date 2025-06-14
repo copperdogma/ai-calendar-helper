@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function, max-statements, complexity, sonarjs/cognitive-complexity */
 module.exports = (output, context) => {
   let pass = false;
   let score = 0;
@@ -40,19 +41,28 @@ module.exports = (output, context) => {
       // Allow treating a single-element array and a single object as equivalent
       if (idealIsArray && !actualIsArray && ideal.length === 1) {
         const { correct, mismatches, total } = compareEvent(ideal[0], actual);
+
         return {
           pass: correct === total,
           score: correct / total,
-          reason: correct === total ? 'All fields match (len1 array vs object)' : `Mismatch: ${mismatches.join(', ')}`,
+          reason:
+            correct === total
+              ? 'All fields match (len1 array vs object)'
+              : `Mismatch: ${mismatches.join(', ')}`,
         };
       } else if (!idealIsArray && actualIsArray && actual.length === 1) {
         const { correct, mismatches, total } = compareEvent(ideal, actual[0]);
+
         return {
           pass: correct === total,
           score: correct / total,
-          reason: correct === total ? 'All fields match (object vs len1 array)' : `Mismatch: ${mismatches.join(', ')}`,
+          reason:
+            correct === total
+              ? 'All fields match (object vs len1 array)'
+              : `Mismatch: ${mismatches.join(', ')}`,
         };
       }
+
       return {
         pass: false,
         score: 0,

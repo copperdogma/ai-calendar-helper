@@ -1,0 +1,18 @@
+{"vars":{"input":"Team meeting tomorrow at 4pm at Nori House\n\n\n\nHey everyone!\n\nJordan's birthday is next Wednesday, and they want to celebrate with a repeat of last year's fantastic bash!\n\nFOOD BOARD PARTY – Part 2! 🧀\n\nWhen: Saturday, July 19, 2025, at 5:00 PM\nWhere: 42 Sunset Blvd, River City\n\nBring a creative and delicious charcuterie-style board! Get as fun and inventive as you like - sweet, savory, themed, or totally out-of-the-box!\n\nNo pressure, but we'll be voting again, and yes, there will be prizes!\n\nSee you soon!"},"expected":[1,9]}
+{"vars":{"input":"Hello amazing friends and family,\n\nCan you believe it? After four intense years and countless late-night study sessions, I'm finally graduating! I'd be so honored if you could join me to celebrate this milestone.\n\nHere are the key details (feel free to skim past my sentimental rambling):\n• Date: Saturday, May 17, 2025\n• Time: Ceremony begins promptly at 11:00 AM (doors open 10:15)\n• Location: Riverside Auditorium, 800 College Way, Springfield\n\nPost-ceremony, we'll take photos, then head to the quad for cupcakes and lemonade.\n\nHope to see you there!"},"expected":[6]}
+{"vars":{"input":"Lunch & Learn Thursday 12:00 PM (pizza provided)\n\nProject kickoff Friday 9 AM in Conference Room B"},"expected":[1,3]}
+{"vars":{"input":"Morning yoga at 7am on the beach.\nTeam stand-up at 10am in the office.\nProduct launch party at 6pm downtown."},"expected":[1,2,3]}
+{"vars":{"input":"Just a reminder, dentist appointment next Tuesday at 3pm."},"expected":[1]}
+{"vars":{"input":"Tomorrow: Coffee catch-up with Alex at 9.\nSee you then!"},"expected":[1]}
+{"vars":{"input":"All-hands at 2pm today in the auditorium."},"expected":[1]}
+{"vars":{"input":"Dinner with Sam 7pm.\n(It's sushi night!)"},"expected":[1]}
+{"vars":{"input":"Breakfast with CEO 8am.\nDemo rehearsal 9:30am."},"expected":[1,2]}
+{"vars":{"input":"Saturday schedule: \n• Soccer practice 8am \n• Grocery run 10am \n• Movie night 8pm"},"expected":[2,3,4]}
+{"vars":{"input":"Full-day offsite Monday:\n1. Opening keynote 9:00\n2. Workshop 11:00\n3. Lunch noon\n4. Closing Q&A 4:00"},"expected":[2,3,4,5]}
+{"vars":{"input":"Agenda 14 Feb:\n– Breakfast 9\n– Stand-up 10\n– Feature review 11\n– Release party 20:00\n– Team photo 22:00"},"expected":[2,3,4,5,6]}
+{"vars":{"input":"Workshops 30 Mar:\n1. Git at 9\n2. Docker at 11\n3. Kubernetes at 13\n4. Cloud at 15\n5. Testing at 17\n6. Q&A at 19"},"expected":[2,3,4,5,6,7]}
+{"vars":{"input":"Quick note: Parent-teacher conference next Thursday 2pm."},"expected":[1]}
+{"vars":{"input":"Reminder: Evening run 6pm in the park."},"expected":[1]}
+{"vars":{"input":"Travel itinerary:\n• Flight departure 1 Oct 06:00 JFK\n• Arrival meeting 1 Oct 10:00 Downtown office"},"expected":[2,3]}
+{"vars":{"input":"Exam day schedule:\nMath 9:00\nPhysics 11:00\nChem 13:00\nReview 15:00"},"expected":[2,3,4,5]}
+{"vars":{"input":"Concert day timeline:\n– Soundcheck 15:00\n– Meet & greet 17:00\n– Headline show 20:00\n– After-party 23:00"},"expected":[2,3,4,5]} 

@@ -182,4 +182,10 @@ evals/report.html
 evals/*.html
 
 # Promptfoo results JSON
-evals/results.json 
+# Keep canonical log but ignore all other result artefacts
+# (results-split-latest.json is still tracked for reference)
+evals/results-*.json
+!evals/results-split-latest.json
+evals/results-split-lines*.json
+evals/results-split-count*.json
+evals/results-split*.json

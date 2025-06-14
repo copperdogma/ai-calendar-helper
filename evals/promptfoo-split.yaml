@@ -1,0 +1,14 @@
+providers:
+  - id: openai:gpt-4o-mini
+    config:
+      temperature: 0
+
+defaultTest:
+  assert:
+    - type: javascript
+      value: file://scorers/event-lines-accuracy.js
+
+tests: file://fixtures/split-lines-dataset.jsonl
+
+prompts:
+  - file://prompts/event-split-lines.js 
