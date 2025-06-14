@@ -62,6 +62,7 @@ const bundleAnalyzer = withBundleAnalyzer({
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  output: 'standalone',
 
   // Mark pino and pino-pretty as external packages to prevent bundling issues
   // This is generally the preferred way for server-only packages

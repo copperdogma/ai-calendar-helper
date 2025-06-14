@@ -235,9 +235,80 @@ The application uses Prisma with PostgreSQL for:
 
 The application is configured for deployment on Vercel or similar platforms:
 
-- Environment variables configured in deployment platform
-- Database migrations run automatically
-- Static assets optimized for production
++> **Fly.io**: see [`docs/deployment/flyio.md`](docs/deployment/flyio.md) for the authoritative, step-by-step guide used in production.
+
+-
+
+* Environment variables configured in deployment platform
+* Database migrations run automatically
+* Static assets optimized for production
+
+## Deployment on Fly.io
+
+Follow these steps to deploy the application to Fly.io. Commands assume you have installed the Fly CLI (`brew install flyctl` or see Fly docs) and run `fly auth login`.
+
+### 1. Create and configure the production app
+
+```bash
+# Launch a new Fly app (will detect Dockerfile)
+fly launch --name ai-calendar-helper --region sea --now --copy-config
+```
+
+This generates `fly.toml` (already committed) and deploys once. You can skip deployment with `--no-deploy` if you only want config.
+
+### 2. Provision and attach Postgres clusters
+
+Production DB:
+
+```bash
+fly postgres create \
+  --initial-cluster-size 1 \
+  --volume-size 1 \
+  --region sea \
+  -a ai-calendar-helper-db
+
+# Attach database to app – adds DATABASE_URL secret automatically
+fly postgres attach --app ai-calendar-helper ai-calendar-helper-db
+```
+
+Dev DB (optional):
+
+```bash
+fly postgres create --initial-cluster-size 1 --volume-size 1 --region sea -a ai-calendar-helper-dev-db
+fly postgres attach --app ai-calendar-helper-dev ai-calendar-helper-dev-db
+```
+
+### 3. Set secrets
+
+Export the variables you need in `.env.production` (exclude NEXT*PUBLIC* variables you wish to bake at build time):
+
+```bash
+fly secrets import < .env.production
+```
+
+Repeat for the dev app (`-a ai-calendar-helper-dev`).
+
+### 4. Deploy
+
+```bash
+npm run deploy:fly            # builds image, pushes, releases prod
+# For dev environment:
+FLY_APP=ai-calendar-helper-dev fly deploy --remote-only
+```
+
+The `release_command` defined in `fly.toml` runs `npx prisma migrate deploy` on an ephemeral machine before new instances start.
+
+### 5. Health check & rollback
+
+Visit `https://ai-calendar-helper.fly.dev/api/health` after deploy. If the check fails, Fly auto-rolls back to the previous stable release.
+
+### 6. Rollbacks & monitoring
+
+Run `fly releases` to view previous versions and `fly deploy --image <IMAGE_ID>` to roll back manually. Consider enabling Fly's built-in metrics or log-ship to Grafana Cloud (story 029).
+
+---
+
+For detailed DevOps workflow decisions, see `/docs/stories/story-028-deployment.md`.
 
 ## License
 

@@ -1,0 +1,22 @@
+app = "ai-calendar-helper"
+primary_region = "sea"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[deploy]
+  release_command = "prisma migrate deploy --schema=./db/schema.prisma"
+  release_machine = { size = "shared-cpu-1x", memory_mb = 512 }
+
+[env]
+  NODE_ENV = "production"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_rollback = true
+  processes = ["app"]
+
+[vm]
+  size = "shared-cpu-1x"
+  memory_mb = 512 

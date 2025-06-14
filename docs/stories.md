@@ -67,12 +67,13 @@ AI Calendar Helper
 
 ### Phase 6: Testing & Deployment (Priority: Medium)
 
-| Story ID | Title                                   | Priority | Status | Link                                  |
-| -------- | --------------------------------------- | -------- | ------ | ------------------------------------- |
-| 026      | Write unit tests for core functionality | Medium   | Done   | /docs/stories/story-026-unit-tests.md |
-| 027      | Implement E2E testing with Playwright   | Medium   | Done   | /docs/stories/story-027-e2e-tests.md  |
-| 028      | Set up fly.io deployment pipeline       | Medium   | To Do  | /docs/stories/story-028-deployment.md |
-| 029      | Configure monitoring & error tracking   | Low      | To Do  | /docs/stories/story-029-monitoring.md |
+| Story ID | Title                                     | Priority | Status   | Link                                  |
+| -------- | ----------------------------------------- | -------- | -------- | ------------------------------------- |
+| 026      | Write unit tests for core functionality   | Medium   | Done     | /docs/stories/story-026-unit-tests.md |
+| 027      | Implement E2E testing with Playwright     | Medium   | Done     | /docs/stories/story-027-e2e-tests.md  |
+| 028      | Set up fly.io deployment pipeline         | Medium   | Done     | /docs/stories/story-028-deployment.md |
+| 029      | Configure monitoring & error tracking     | Low      | To Do    | /docs/stories/story-029-monitoring.md |
+| 037      | Fix production profile auth/session issue | Critical | Planning | /docs/stories/story-037-auth-bug.md   |
 
 ### Phase 7: Optimization & Research (Priority: Medium)
 

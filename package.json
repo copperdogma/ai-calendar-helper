@@ -55,7 +55,8 @@
     "dev:simple": "next dev -p 3336",
     "dev:background": "npm run dev &",
     "model:compare": "tsx scripts/model-comparison-test.ts",
-    "model:test": "npm run model:compare"
+    "model:test": "npm run model:compare",
+    "deploy:fly": "fly deploy --remote-only"
   },
   "dependencies": {
     "@auth/core": "^0.39.1",
@@ -81,7 +82,8 @@
     "react-icons": "^5.5.0",
     "uuid": "^11.1.0",
     "zod": "^3.24.2",
-    "zustand": "^5.0.3"
+    "zustand": "^5.0.3",
+    "prisma": "^6.6.0"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.1",
@@ -90,7 +92,6 @@
     "@mui/material": "^7.0.2",
     "@next/bundle-analyzer": "^15.3.0",
     "@next/eslint-plugin-next": "^15.3.0",
-    "@next/swc-darwin-arm64": "^15.3.3",
     "@playwright/test": "^1.51.1",
     "@swc/core": "^1.11.31",
     "@swc/jest": "^0.2.38",
@@ -133,7 +134,6 @@
     "playwright-core": "^1.52.0",
     "pm2": "^6.0.5",
     "prettier": "^3.5.3",
-    "prisma": "^6.6.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-intersection-observer": "^9.16.0",

@@ -28,7 +28,7 @@ export const redactFields = [
 
 // Create base logger configuration with Next.js-compatible settings
 const pinoOptions: pino.LoggerOptions = {
-  level: process.env.LOG_LEVEL || 'info', // Use env var or default to info
+  level: (process.env.LOG_LEVEL || 'info').trim().toLowerCase(), // normalize level for pino
   redact: {
     paths: redactFields,
     censor: '[REDACTED]',
