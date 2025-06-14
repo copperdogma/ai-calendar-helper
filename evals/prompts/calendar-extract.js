@@ -2,7 +2,10 @@ module.exports = async function ({ vars }) {
   const nowISO = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
   return `You are an expert calendar event extraction AI. The CURRENT DATE is ${nowISO} (ISO 8601).
-Given any natural-language text (often a full email), extract a SINGLE structured event and return ONLY valid minified JSON with these fields:
+Given any natural-language text (often a full email), extract ONE OR MORE structured events depending on input. Return ONLY valid minified JSON:
+• If the text describes exactly one event → return a single object as before.
+• If the text describes multiple distinct events → return an ARRAY of those objects **in chronological order**.
+Each event object must have exactly these keys (no extras):
 {
   "title": string,
   "startDate": ISO8601,
@@ -35,20 +38,26 @@ Strict rules:
 17. Acronyms and airport codes (2–4 uppercase letters) must remain uppercase (e.g., "NYC", "YYZ").
 18. Capitalization refinement pt 2: preserve any word that is uppercase in the source text (e.g., "AI", "KPI", airport codes) and keep its original casing in the title.
 19. Preserve punctuation such as ":" exactly as in the source when it separates title segments (e.g., "Webinar: AI Trends").
-20. Monthly/recurring phrases like "first of every month" or "monthly" with no explicit time → set startDate 00:00 UTC and endDate 01:00 UTC on the inferred date.  This rule OVERRIDES any generic deadline timing defaults in rule 15.
-21. Multi-day spans indicated by patterns like "starts <weekday> <time> ends <weekday> <time>" or explicit date ranges "Jan 15-17":
-    • Extract the first timestamp as startDate and the second as endDate (may be on different days).
-    • After identifying the two tokens, DEFER to rule 28 to decide *which calendar dates* these refer to.
+20. RECURRING DATE OVERRIDE: If rule 20 applies (monthly/recurring phrases), it OVERRIDES ALL other default-time rules. Always set startDate 00:00 UTC and endDate 01:00 UTC for that date.
+21. Multi-day explicit range rule:
+    • If the text contains an explicit date range with a dash or the word "to" (e.g., "Jan 15–17", "3-4 March 2026"), treat the FIRST date/time token as startDate and the LAST as endDate exactly as written (do NOT apply the 4-week lead-time).
+    • If the phrase uses "starts <weekday> <time> ends <weekday> <time>" (or "end"/"ending") then use those two timestamps directly, even if they occur within the next week – ignore rule 28's lead-time.
+    • When only weekdays are present without times, fall back to rule 28.
 22. Keywords "end of day" or "EOD" without an explicit time → assume startDate 17:00 and endDate 18:00 UTC.
 23. If the event includes keywords "webinar", "online", "Zoom", "Teams", "Google Meet" (and no explicit end time) → assume a 1-hour duration.
 24. (Intentionally left blank – multi-day logic is unified in rules 21 & 28.)
 25. Treat "Home", "home", "Office", "HQ" as valid explicit locations when preceded by "at", "in", or "location:".
 26. ALWAYS capitalize the first character of the title—even if the source phrase is entirely lowercase. Subsequent words follow rule 13.
 27. If a colon appears in the title (e.g., "Webinar: AI Trends"), keep the exact casing after the colon but ensure the word immediately after remains capitalized.
-28. Multi-day range rule: If the text contains BOTH the words "starts" (or "start") AND "ends" (or "end") *and* NO numeric date, month name, or year is present, treat it as a generic upcoming multi-day block (often a weekend). Choose the first such range that begins at least FOUR (4) WEEKS (28 days) after CURRENT DATE to allow preparation time. If the phrase includes explicit dates (e.g., "Jan 3–5", "3-4 March 2026"), use those dates directly without additional lead time. This rule DOES NOT apply to phrases beginning with "every", "each", "daily", or "weekly".
+28. Lead-time multi-day rule (fallback): If *both* "starts" (or "start") **and** "ends" (or "end") appear and NO numeric date/month/year is present, choose the first such weekend-style block that begins ≥ 28 days after CURRENT DATE.
 29. For ordinal patterns like "2nd Tuesday" or "4th Friday", choose the next calendar occurrence of that ordinal weekday after CURRENT DATE; if multiple ordinals are listed ("2nd and 4th Tuesday"), pick the earliest upcoming one.
-30. Recurring rule: For patterns that start with "every", "each", "daily", "weekly", or a simple weekday ("every Tuesday 6pm"), pick the NEXT chronological occurrence of that weekday after CURRENT DATE (no extra lead time).
-31. Black Friday special case: if the text contains the phrase "Black Friday" and no explicit end time, assume a 3-hour duration (startDate + 3 h).
+30. Recurrence single-instance rule: For patterns starting with "every", "each", "daily", "weekly", or listing multiple weekdays separated by "/" or commas (e.g., "Mon/Wed/Fri 6:30"), extract **only the first upcoming occurrence** after CURRENT DATE as a single event. Do NOT create multiple events.
+31. Recurring monthly override clarification: Phrases like "first of every month", "last day of each month" always set startDate 00:00 UTC and endDate 01:00 UTC on that date and IGNORE ALL other default-time rules (overrides 15, 22).
+32. Black Friday special case: if the text contains the phrase "Black Friday" and no explicit end time, assume a 3-hour duration (startDate + 3 h).
+
+Return guidelines addition:
+• Do NOT create separate events for simple recurrence patterns like "every Tuesday" or "Mon/Wed/Fri 6:30"—instead, extract ONLY the FIRST upcoming occurrence as a single event.
+• Produce multiple events only when the text clearly describes different times or dates (e.g., "Breakfast at 8 then meeting at 10").
 
 ---
 ${vars.input}`;

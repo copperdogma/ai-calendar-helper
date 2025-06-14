@@ -543,19 +543,21 @@ Strict rules:
 18. Preserve any word that is uppercase in the source text (e.g., "AI", "KPI").
 19. Preserve colons exactly as in the source when separating title segments.
 20. Monthly/recurring phrases like "first of every month" or "monthly" with no time → start 00:00, end 01:00 ${tz} on that date, overriding rule 15.
-21. Multi-day spans such as "starts <weekday> <time> ends <weekday> <time>" or explicit ranges "Jan 15-17":
-    • Use the first timestamp as startDate and the second as endDate (may cross days).
-    • After extracting the two timestamps, apply rule 28 to pick concrete calendar dates.
-22. "end of day" / "EOD" without a time → start 17:00, end 18:00 ${tz}.
+21. Multi-day explicit range rule:
+    • If the text contains an explicit date range with a dash or the word "to" (e.g., "Jan 15–17", "3-4 March 2026"), treat the FIRST date/time token as startDate and the LAST as endDate exactly as written (do NOT apply the 4-week lead-time).
+    • If the phrase uses "starts <weekday> <time> ends <weekday> <time>" (or "end"/"ending") then use those two timestamps directly, even if they occur within the next week – ignore rule 28's lead-time.
+    • When only weekdays are present without times, fall back to rule 28.
+22. Keywords "end of day" or "EOD" without an explicit time → start 17:00, end 18:00 ${tz}.
 23. If keywords "webinar", "online", "Zoom", "Teams", "Google Meet" and no end time → assume 1-hour duration.
-24. (Reserved – multi-day logic unified below.)
+24. (Reserved – multi-day logic unified above.)
 25. Treat "Home", "home", "Office", "HQ" as explicit locations when preceded by "at", "in", or "location:".
 26. ALWAYS capitalize the first character of the title, even if the source is lowercase; subsequent words follow rule 13.
 27. If the title contains a colon, keep exact casing after the colon; ensure the word immediately after remains capitalized.
-28. Multi-day range rule: If text contains BOTH "starts" (or "start") AND "ends" (or "end") *and* NO explicit numeric date/month/year, schedule the first such range that begins ≥4 weeks (28 days) after CURRENT DATE.  Ranges with explicit dates use those dates directly.  Does NOT apply to phrases starting with "every", "each", "daily", or "weekly".
+28. Lead-time multi-day rule (fallback): If *both* "starts" (or "start") **and** "ends" (or "end") appear and NO numeric date/month/year is present, choose the first such weekend-style block that begins ≥ 4 weeks (28 days) after CURRENT DATE.
 29. For ordinal patterns like "2nd Tuesday" or "4th Friday", choose the next calendar occurrence of that ordinal weekday after CURRENT DATE; if multiple ordinals ("2nd & 4th Tuesday"), pick the earliest upcoming one.
-30. Recurring events starting with "every", "each", "daily", or a weekday ("every Tuesday 6pm") → choose the next chronological occurrence after CURRENT DATE (no extra lead time).
-31. Black Friday special case: if text contains "Black Friday" and no end time, assume 3-hour duration.
+30. Recurrence single-instance rule: For patterns starting with "every", "each", "daily", "weekly", or listing multiple weekdays separated by "/" or commas (e.g., "Mon/Wed/Fri 6:30"), extract ONLY the first upcoming occurrence after CURRENT DATE as a single event. Do NOT create multiple events.
+31. Recurring monthly override clarification: Phrases like "first of every month", "last day of each month" always set startDate 00:00 ${tz} and endDate 01:00 ${tz} on that date and IGNORE ALL other default-time rules (overrides 15, 22).
+32. Black Friday special case: if text contains "Black Friday" and no end time, assume a 3-hour duration.
 
 Return nothing except the JSON object.`;
   }
