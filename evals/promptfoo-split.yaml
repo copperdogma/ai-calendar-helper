@@ -11,4 +11,4 @@ defaultTest:
 tests: file://fixtures/split-lines-dataset.jsonl
 
 prompts:
-  - file://prompts/event-split-lines.js 
+  - file://prompts/event-split-lines.js

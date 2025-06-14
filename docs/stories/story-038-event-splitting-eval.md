@@ -37,7 +37,7 @@ The goal has narrowed: **evaluate ONLY the model's ability to correctly identify
 
 ## Deliverables
 
-- `evals/fixtures/split-events-dataset.jsonl` with ≥ 6 anonymised test cases.
+- `evals/fixtures/split-lines-dataset.jsonl` with ≥ 6 anonymised test cases.
 - `evals/promptfoo-split.yaml` referencing the new fixture and the standard scorer.
 - Documentation in `/docs/requirements.md` → Testing section (note optional).
 
@@ -46,7 +46,7 @@ The goal has narrowed: **evaluate ONLY the model's ability to correctly identify
 - [ ] Story record marked **Done** once the harness reaches ≥ 95 % pass-rate.
 - [ ] `evals/prompts/event-split-count.js` exists and is documented.
 - [ ] `evals/scorers/event-count-accuracy.js` correctly computes accuracy.
-- [ ] `evals/fixtures/split-count-dataset.jsonl` contains ground-truth counts.
+- [ ] `evals/fixtures/split-lines-dataset.jsonl` contains ground-truth counts.
 - [ ] `evals/promptfoo-split.yaml` points to the new prompt, scorer, and dataset.
 - [ ] CI task (`npm run test:prompt-evals`) green.
 
