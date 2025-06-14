@@ -56,7 +56,8 @@
     "dev:background": "npm run dev &",
     "model:compare": "tsx scripts/model-comparison-test.ts",
     "model:test": "npm run model:compare",
-    "deploy:fly": "fly deploy --remote-only"
+    "deploy:fly": "fly deploy --remote-only",
+    "eval:prompt": "dotenv -e .env.local -- promptfoo eval -c evals/promptfoo.yaml --no-cache -o evals/report.html && echo 'HTML report written to evals/report.html'"
   },
   "dependencies": {
     "@auth/core": "^0.39.1",
@@ -77,13 +78,13 @@
     "next-themes": "^0.4.6",
     "openai": "^5.3.0",
     "pino": "^9.6.0",
+    "prisma": "^6.6.0",
     "rate-limiter-flexible": "^7.1.0",
     "react-hook-form": "^7.55.0",
     "react-icons": "^5.5.0",
     "uuid": "^11.1.0",
     "zod": "^3.24.2",
-    "zustand": "^5.0.3",
-    "prisma": "^6.6.0"
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.1",
@@ -134,12 +135,14 @@
     "playwright-core": "^1.52.0",
     "pm2": "^6.0.5",
     "prettier": "^3.5.3",
+    "promptfoo": "^0.115.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-intersection-observer": "^9.16.0",
     "server-only": "^0.0.1",
     "tsx": "^4.20.1",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "dotenv-cli": "^8.0.0"
   },
   "description": "A Next.js application with NextAuth.js and PostgreSQL",
   "repository": {

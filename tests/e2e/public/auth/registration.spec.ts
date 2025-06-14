@@ -77,6 +77,9 @@ test.describe('User Registration', () => {
   });
 
   test('should show an error if email is already taken', async ({ page }) => {
+    // Ensure test user is present in DB (setup endpoint creates if missing)
+    await page.goto('/api/test/e2e-auth-setup');
+
     // Use the standard test user known to exist
     const existingUser = {
       email: process.env.TEST_USER_EMAIL || 'test@example.com',

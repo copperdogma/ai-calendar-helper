@@ -492,14 +492,79 @@ None currently identified.
 
 ## Prompt Refinement Harness Research & Planning Checklist
 
-- [ ] Initial research questions identified
-- [ ] Web research completed
-- [ ] Codebase analysis completed
-- [ ] Best practices identified
-- [ ] Implementation strategy developed
-- [ ] Detailed implementation checklist created
-- [ ] User preference questions identified and asked
-- [ ] Plan reviewed and approved by user
+- [x] Initial research questions identified
+- [x] Web research completed
+- [x] Codebase analysis completed
+- [x] Best practices identified
+- [x] Implementation strategy developed
+- [x] Detailed implementation checklist created
+- [x] User preference questions identified and asked
+- [x] Plan reviewed and approved by user
+
+### Implementation Progress (2025-06-14)
+
+- [x] `promptfoo` dev dependency installed
+- [x] Eval script updated in `package.json`
+- [x] Custom scorer updated for new schema
+- [x] Dataset converted to vars/expected schema (30 cases)
+- [x] Rebuilt `evals/promptfoo.yaml` for v0.115 syntax
+- [x] Dry run executed locally (pass-rate 9.1 %, harness operational)
+
+Next iterations: refine extraction prompt & parsing logic to raise pass-rate above 80 %.
+
+### Web Research Findings (2025-06-14)
+
+| Framework            | Language      | Pros                                                                                                                                | Cons                                                                                      |
+| -------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| OpenAI Evals         | Python        | Official, supports complex grading, integrates with OpenAI "evals" repo                                                             | Requires Python env, non-trivial setup in TS project, heavier to maintain                 |
+| Promptfoo            | TypeScript/JS | Native to our stack, simple YAML/JSON config, CLI, custom JS scorers, HTML report, built-in retry & cost summary, works with OpenAI | Less powerful grading DSL than OpenAI Evals (but sufficient for our structured JSON case) |
+| LangChain Benchmarks | Python        | Integrated with LangSmith, good for chains                                                                                          | Adds LangChain dependency, sends data to external service, overkill                       |
+
+**Decision → Use Promptfoo**: aligns with TypeScript stack, minimal dependencies, easy manual CLI run, supports custom scoring, outputs console & HTML, cost control via `--max-cost` & dataset size.
+
+### Codebase Analysis Notes
+
+- Project is Node/TS; adding `promptfoo` as dev dependency fits naturally.
+- Existing tests live in Jest & Playwright forests; prompt evaluation can live in `evals/` directory.
+- CI already has `npm test` etc.; manual script can be added without modifying default workflows.
+
+### Best Practices Identified
+
+1. Keep eval fixtures in repo to ensure deterministic regression tests.
+2. Use **structured scoring**: compare parsed JSON fields for exact match on date, start/end time, title, location; ignore description unless specified.
+3. Limit dataset to ~50 examples to stay within budget (< $0.02 per run with gpt-4o-mini).
+4. Provide HTML and console summary; do not store model responses by default to avoid leaking data.
+5. Gate run behind npm script (`npm run eval:prompt`) which requires `OPENAI_EVALS=1` env var.
+
+### Caching Explanation for User
+
+Promptfoo can optionally cache model responses so that _unchanged model+prompt+input_ triples are not re-queried, saving cost on repeated runs. However, because our primary use case is changing the prompt between runs, caching yields little benefit and could hide issues if accidentally reused. We will **disable caching** by default but leave a `--cache` flag available if future batch runs over identical prompts are needed (e.g., verifying scoring logic).
+
+### Implementation Strategy
+
+1. **Eval Dataset**: Create `evals/fixtures/events-dataset.jsonl` containing ~50 `{ "input": "<natural text>", "ideal": {...} }` lines.
+2. **Promptfoo Config**: Add `evals/promptfoo.yaml` specifying:
+   - provider: OpenAI, model `gpt-4o-mini` (alias `gpt-4o-mini`)
+   - prompt template imports existing prompt from `lib/ai-prompts.ts` (path) or inline.
+   - dataset path to fixtures.
+   - custom JS scorer `evals/scorers/event-json-accuracy.ts`.
+   - cost limit `$0.20`.
+3. **Custom Scorer**: Implement TS module that takes `output` & `ideal` JSON, returns `score` 1 or 0 and per-field breakdown.
+4. **NPM Script**: Add `"eval:prompt": "promptfoo evals/promptfoo.yaml --output html,console"`.
+5. **Docs**: Document usage in `README.md` & story file.
+
+### Detailed Implementation Checklist
+
+- [ ] Add dev dependency `promptfoo` (^0.12) and `ts-node` if required for scorer.
+- [ ] Create `evals/` directory with:
+  - [ ] `fixtures/events-dataset.jsonl` (initial 30 examples; expand to 50 later).
+  - [ ] `scorers/event-json-accuracy.ts`.
+  - [ ] `promptfoo.yaml`.
+- [ ] Implement scorer comparing `title`, `startDate`, `endDate`, `location` (exact) and tolerant string compare for description.
+- [ ] Add npm script `eval:prompt`.
+- [ ] Verify a dry run with 3 samples to ensure cost < $0.002.
+- [ ] Update `/docs/stories/story-036-prompt-refinement-harness.md` status to "In Progress" and paste plan summary.
+- [ ] Await user approval before coding.
 
 ## ✅ STORY 035 COMPLETE - READY FOR NEXT TASK
 
@@ -538,6 +603,7 @@ None currently identified.
    - **Dependencies**: Core functionality complete (✅)
 
 4. **Story 036 - Prompt Refinement Harness** (MEDIUM PRIORITY)
+
    - **Why**: Improves AI parsing accuracy through systematic testing
    - **Scope**: Testing framework for prompt optimization
    - **Dependencies**: Multi-event parsing complete (✅)

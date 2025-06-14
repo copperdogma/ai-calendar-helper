@@ -1,6 +1,6 @@
 # Story: Prompt Refinement Harness
 
-**Status**: Planning
+**Status**: Done
 
 ---
 
@@ -25,6 +25,20 @@ Refer to **Prompt Refinement Harness Research & Planning Checklist** in `scratch
 
 ---
 
+## Planning Summary (2025-06-14)
+
+We will implement an automated prompt evaluation harness using **Promptfoo**. Key characteristics:
+
+- **Framework**: Promptfoo (TypeScript-native, simple CLI)
+- **Dataset**: JSONL fixtures (initial 30–50 examples) stored in `evals/fixtures/`
+- **Scoring**: Custom JS scorer `event-json-accuracy.js` compares `title,startDate,endDate,location`
+- **Config**: `evals/promptfoo.yaml` sets provider `openai:gpt-4o-mini`, $0.20 cost cap, HTML & console output
+- **Run Command**: `npm run eval:prompt` (manual only, not in default CI)
+
+All implementation tasks are tracked in `scratchpad.md` under _Prompt Refinement Harness_ checklist.
+
+---
+
 ## Notes
 
 - Investigate existing open-source eval frameworks: **OpenAI Evals**, **LangChain Benchmarks**, **Promptfoo**, etc.
@@ -33,4 +47,6 @@ Refer to **Prompt Refinement Harness Research & Planning Checklist** in `scratch
 
 ---
 
-(Planning in progress.)
+### Completion Notes (2025-06-14)
+
+Prompt evaluation harness implemented with Promptfoo, dynamic date injection, expanded dataset (~70 cases), HTML and console reporting, cross-platform env loading via `dotenv-cli`, and git-ignored reports. See `README` or run `npm run eval:prompt` for usage.

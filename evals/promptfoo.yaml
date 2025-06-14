@@ -1,0 +1,15 @@
+# Promptfoo evaluation config (v0.115+) for calendar extraction
+
+providers:
+  - openai:gpt-4o-mini
+
+defaultTest:
+  assert:
+    - type: javascript
+      value: file://scorers/event-json-accuracy.js
+
+# Load test cases
+tests: file://fixtures/events-dataset.jsonl
+
+prompts:
+  - file://prompts/calendar-extract.js

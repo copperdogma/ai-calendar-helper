@@ -175,4 +175,8 @@ combined_*.txt
 .yarn/unplugged
 .yarn/build-state.yml
 .yarn/install-state.gz
-.pnp.* 
+.pnp.*
+
+# Promptfoo reports
+evals/report.html
+evals/*.html 
