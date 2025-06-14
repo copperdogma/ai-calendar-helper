@@ -179,4 +179,7 @@ combined_*.txt
 
 # Promptfoo reports
 evals/report.html
-evals/*.html 
+evals/*.html
+
+# Promptfoo results JSON
+evals/results.json 
