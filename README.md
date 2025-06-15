@@ -79,33 +79,17 @@ ai-calendar-helper/
     └── stories/        # User stories and tasks
 ```
 
-## Key Commands
+## Development & Operations
 
-### Development
+This project uses a comprehensive set of Cursor Rules (`.cursor/rules/`) to provide in-context, up-to-date procedural guidance for development, testing, and deployment.
 
-- `npm run dev`: Start development server
-- `npm run build`: Create production build
-- `npm run start`: Start production server
+For detailed commands and procedures, please refer to the following rules (you can open them in Cursor with `@`):
 
-### AI Agent Server Management (PM2)
-
-- `npm run ai:start`: Start dev server managed by PM2
-- `npm run ai:stop`: Stop PM2-managed server
-- `npm run ai:health`: Check health endpoint
-- `npm run ai:logs`: Show server logs
-- `npm run ai:status`: Check PM2 status
-
-### Testing
-
-- `npm test`: Run all Jest unit tests
-- `npm run test:e2e`: Run Playwright E2E tests
-- `npm run test:coverage`: Run unit tests with coverage
-
-### Code Quality
-
-- `npm run lint`: Check ESLint issues
-- `npm run format`: Format code with Prettier
-- `npm run type-check`: Run TypeScript compiler
+- **`@testing.mdc`**: Comprehensive guide for all unit, integration, and E2E testing commands and patterns.
+- **`@deployment.mdc`**: Step-by-step procedures for deploying to Fly.io and managing the PM2 server.
+- **`@formatting-linting.mdc`**: Commands for running formatters and linters, and explanations of the automated hooks.
+- **`@database.mdc`**: Instructions for running migrations, using Prisma Studio, and other database tasks.
+- **`@debugging.mdc`**: Patterns for debugging common issues with authentication, APIs, and the database.
 
 ## Environment Variables
 

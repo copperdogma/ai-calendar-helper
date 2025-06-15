@@ -76,33 +76,15 @@ npx dotenv-cli -e .env.local npx prisma migrate dev
 
 This creates necessary tables based on `prisma/schema.prisma`.
 
-### 5. Server Management
+For ongoing database operations, such as creating new migrations or browsing data, see **`@database.mdc`**.
 
-**Development Environment (port 3001):**
+### 5. Server Management & Deployment
 
-```bash
-npm run ai:start              # Start development server
-npm run ai:restart            # Restart development server
-npm run ai:status             # Check server status
-npm run ai:health            # Health check endpoint
-npm run ai:logs              # View server logs
-npm run ai:stop              # Stop server
-```
-
-**Test Environment (port 3777):**
-
-```bash
-npm run ai:start:test         # Start test server
-npm run ai:restart:test       # Restart test server
-```
+For starting, stopping, and monitoring the development server with PM2, or for deploying the application to a hosting environment like Fly.io, refer to the detailed procedures in **`@deployment.mdc`**.
 
 ### 6. Validation
 
-```bash
-# Run tests to verify setup
-npm run test:unit            # Unit tests
-npm run test:e2e            # End-to-end tests (if needed)
-```
+To verify the setup and run tests, see the comprehensive commands and patterns in **`@testing.mdc`**.
 
 ## Environment Variables
 
@@ -128,14 +110,7 @@ Core authentication uses NextAuth.js with Prisma Adapter:
 
 ## Google OAuth Configuration (Optional)
 
-If using Google Sign-In:
-
-1. Obtain credentials from [Google Cloud Console](https://console.cloud.google.com/)
-2. Configure OAuth consent screen
-3. Add authorized origins: `http://localhost:3001` (or your NEXTAUTH_URL)
-4. Add redirect URI: `[YOUR_APP_URL]/api/auth/callback/google`
-5. Update `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `.env.local`
-6. Restart server: `npm run ai:restart`
+If using Google Sign-In, see **`@authentication.mdc`** for guidance on provider configuration.
 
 ## Project Structure
 

@@ -1,10 +1,411 @@
 ---
-globs: ["eslint.config.*", "prettier.config.*", "**/.prettierrc*", "**/.lintstagedrc*", ".husky/**"]
+description: 
+globs: 
 alwaysApply: false
 ---
+# Code Formatting & Linting Guide
 
----
-description:
-globs:
-alwaysApply: false
----
+## Quick Commands
+
+```bash
+# Formatting
+npm run format                  # Format all files with Prettier
+npm run format:check           # Check formatting without changes
+prettier --write .             # Format all files directly
+
+# Linting
+npm run lint                   # Check for ESLint issues
+npm run lint:fix               # Auto-fix ESLint issues
+npm run type-check             # Run TypeScript compiler
+
+# Combined validation
+npm run validate               # Run lint, format check, and type check
+npm run dev:clean              # Format, lint, then start dev server
+npm run build:clean            # Format, lint, then build
+```
+
+## Automatic Formatting Integration
+
+### Build Process Auto-Formatting
+
+**Every** `npm run dev` and `npm run build` automatically formats code via pre-scripts:
+
+```json
+"predev": "prettier --write .",
+"prebuild": "prettier --write ."
+```
+
+This ensures AI-generated and manually written code is consistently formatted.
+
+### Git Pre-commit Hook
+
+Files are automatically formatted before commits via `.husky/pre-commit`:
+
+```bash
+#!/usr/bin/env sh
+npx lint-staged
+```
+
+**Configuration** (`.lintstagedrc.js`):
+```js
+module.exports = {
+  '**/*.ts?(x)': filenames => [
+    `npm run lint:fix -- ${filenames.join(' ')}`,
+    `npm run format -- ${filenames.join(' ')}`,
+    'git add',  // Critical: re-stages formatted files
+  ],
+  '**/*.md': filenames => [`npm run format -- ${filenames.join(' ')}`, 'git add'],
+  '**/*.json': filenames => [`npm run format -- ${filenames.join(' ')}`, 'git add'],
+}
+```
+
+### Editor Integration
+
+**VS Code auto-format** (`.vscode/settings.json`):
+```json
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
+}
+```
+
+## ESLint Configuration Patterns
+
+### TypeScript ESLint Rules
+
+**Core rule enforcement**:
+- `@typescript-eslint/no-explicit-any`: ERROR
+- Strict type checking enabled
+- Automatic fixing for style issues
+
+### Handling `any` Types
+
+**❌ Avoid `any` - use alternatives**:
+
+```typescript
+// ❌ Don't use any
+function process(data: any): any {
+  return data.someProperty
+}
+
+// ✅ Use unknown for type safety
+function process(data: unknown): string {
+  if (typeof data === 'object' && data !== null && 'someProperty' in data) {
+    return String((data as { someProperty: unknown }).someProperty)
+  }
+  return 'default'
+}
+
+// ✅ Use proper interfaces
+interface ApiResponse {
+  status: number
+  data: Record<string, unknown>
+  meta?: {
+    page?: number
+    total?: number
+  }
+}
+
+// ✅ Use generics for flexibility
+function getValue<T>(obj: Record<string, T>, key: string): T | undefined {
+  return obj[key]
+}
+
+// ✅ Use union types
+function formatValue(value: string | number | boolean): string {
+  return String(value)
+}
+```
+
+### When `any` Is Permitted
+
+**Rare justified cases**:
+1. External libraries without typings
+2. Complex interop with non-TypeScript code
+3. Dynamic patterns TypeScript cannot model
+
+**Disabling the rule**:
+```typescript
+// Single line disable
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const data: any = getDataFromExternalSource()
+
+// Section disable
+/* eslint-disable @typescript-eslint/no-explicit-any */
+function legacyFunction(param: any): any {
+  // Necessary any usage
+}
+/* eslint-enable @typescript-eslint/no-explicit-any */
+```
+
+## Prettier Configuration
+
+### Standard Settings (`.prettierrc`)
+
+```json
+{
+  "semi": false,
+  "singleQuote": true,
+  "tabWidth": 2,
+  "trailingComma": "es5",
+  "printWidth": 100,
+  "bracketSpacing": true,
+  "arrowParens": "avoid"
+}
+```
+
+### File Exclusions (`.prettierignore`)
+
+```
+node_modules/
+.next/
+dist/
+build/
+coverage/
+*.min.js
+*.generated.*
+```
+
+## Fixing Common Issues
+
+### Formatting Issues
+
+```bash
+# 1. Check current formatting status
+npm run format:check
+
+# 2. Auto-fix all formatting
+npm run format
+
+# 3. Check if VS Code Prettier extension is installed
+code --install-extension esbenp.prettier-vscode
+
+# 4. Reset formatting configuration
+rm -rf node_modules && npm install
+```
+
+### Linting Issues
+
+```bash
+# 1. Check current linting status
+npm run lint
+
+# 2. Auto-fix fixable issues
+npm run lint:fix
+
+# 3. Check TypeScript compilation
+npm run type-check
+
+# 4. Run all validations
+npm run validate
+```
+
+### Pre-commit Hook Issues
+
+```bash
+# 1. Reinstall Husky hooks
+npx husky install
+
+# 2. Check lint-staged configuration
+cat .lintstagedrc.js
+
+# 3. Test pre-commit manually
+npx lint-staged
+
+# 4. Skip hooks temporarily (for emergencies)
+git commit --no-verify
+```
+
+## Code Quality Patterns
+
+### Import Organization
+
+```typescript
+// ✅ Correct import order
+import React from 'react'
+import { NextRequest, NextResponse } from 'next/server'
+
+import { Button } from '@/components/ui/Button'
+import { prisma } from '@/lib/prisma'
+import { auth } from '@/lib/auth-node'
+
+import type { User } from '@prisma/client'
+```
+
+### Consistent Naming Conventions
+
+```typescript
+// ✅ File naming
+// Components: PascalCase (Button.tsx)
+// Utilities: camelCase (formatDate.ts)
+// Constants: UPPER_SNAKE_CASE
+// Types: PascalCase (UserProfile)
+
+// ✅ Variable naming
+const userName = 'john'          // camelCase
+const MAX_RETRIES = 3           // UPPER_SNAKE_CASE constants
+const isLoggedIn = true         // boolean with is/has prefix
+
+// ✅ Function naming
+function getUserById(id: string) { }     // camelCase, descriptive
+function formatCurrency(amount: number) { }  // verb + noun pattern
+```
+
+### Type Safety Patterns
+
+```typescript
+// ✅ Strict null checks
+function processUser(user: User | null): string {
+  if (!user) {
+    return 'No user'
+  }
+  return user.name ?? 'Anonymous'
+}
+
+// ✅ Proper error typing
+interface ApiError {
+  message: string
+  code: string
+  status: number
+}
+
+function handleApiError(error: unknown): ApiError {
+  if (error instanceof Error) {
+    return {
+      message: error.message,
+      code: 'UNKNOWN_ERROR',
+      status: 500
+    }
+  }
+  return {
+    message: 'An unknown error occurred',
+    code: 'UNKNOWN_ERROR', 
+    status: 500
+  }
+}
+```
+
+## File-Specific Configurations
+
+### React Components
+
+```typescript
+'use client'
+
+import React, { forwardRef } from 'react'
+import { cn } from '@/lib/utils'
+
+interface ComponentProps {
+  className?: string
+  children: React.ReactNode
+}
+
+const Component = forwardRef<HTMLDivElement, ComponentProps>(
+  ({ className, children, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={cn('base-classes', className)}
+        {...props}
+      >
+        {children}
+      </div>
+    )
+  }
+)
+Component.displayName = 'Component'
+
+export { Component }
+```
+
+### API Routes
+
+```typescript
+import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
+
+const RequestSchema = z.object({
+  email: z.string().email(),
+  name: z.string().min(1),
+})
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { email, name } = RequestSchema.parse(body)
+    
+    // Process request
+    
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: error.errors },
+        { status: 400 }
+      )
+    }
+    
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+```
+
+## Troubleshooting Workflow
+
+### When Validation Fails
+
+1. **Run formatting first**: `npm run format`
+2. **Fix linting issues**: `npm run lint:fix`
+3. **Check TypeScript**: `npm run type-check`
+4. **Run full validation**: `npm run validate`
+5. **If still failing**: Check individual error messages and fix manually
+
+### Performance Issues
+
+```bash
+# Skip type checking for faster linting
+npm run lint -- --no-ts-check
+
+# Format specific files only
+prettier --write "src/**/*.ts"
+
+# Lint specific files only
+npm run lint -- src/components/
+```
+
+## References
+
+- @eslint.config.mjs - ESLint configuration
+- @.prettierrc - Prettier configuration
+- @.lintstagedrc.js - Pre-commit formatting
+- @.husky/pre-commit - Git hook configuration
+
+## SOLID Principle Enforcement
+
+This project uses ESLint rules to encourage adherence to SOLID principles.
+
+### Single Responsibility Principle (SRP)
+*A module or function should have one reason to change.*
+- **`max-lines-per-function`**: Warns if function exceeds 50 lines.
+- **`complexity`**: Errors if cyclomatic complexity > 10.
+- **`max-params`**: Errors if a function has > 4 parameters.
+- **`max-depth`**: Errors if nesting is deeper than 3 levels.
+
+### Open/Closed Principle (OCP)
+*Entities should be open for extension, closed for modification.*
+- **`no-param-reassign`**: Prevents modification of function parameters.
+
+### Liskov Substitution Principle (LSP)
+*Subtypes must be substitutable for their base types.*
+- **TypeScript `strict: true`**: Enforces type compatibility between subtypes and base types.
+
+### Interface Segregation Principle (ISP)
+*No client should depend on methods it does not use.*
+- **`@typescript-eslint/no-unused-vars`**: Helps identify when parts of a large interface are unused.
+
+### Dependency Inversion Principle (DIP)
+*High-level modules should not depend on low-level modules.*
+- **`import/no-cycle`**: Prevents circular dependencies.

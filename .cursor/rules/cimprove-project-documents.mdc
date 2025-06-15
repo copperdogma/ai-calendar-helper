@@ -11,7 +11,7 @@ You are tasked with conducting a comprehensive audit of all project documentatio
 
 This is a complex, multi-phase project with potentially MANY documents to process. You MUST:
 - Write your complete action plan in `@scratchpad.md` under a "Documentation Optimization" section
-- Create detailed checklists for each phase (discovery, analysis, cursor rules creation, reference docs optimization)
+- Create detailed checklists for each phase (discovery, analysis, cursor rules review/creation as needed, reference docs optimization)
 - Check off items as you complete them in `@scratchpad.md`
 - Update progress regularly so you can resume if interrupted
 - Document decisions and rationale in `@scratchpad.md` for reference
@@ -25,10 +25,10 @@ This is a complex, multi-phase project with potentially MANY documents to proces
 - [x] Categorize by cursor rules vs reference docs
 - [x] Identify glob patterns for auto-attached rules
 
-### Phase 2: Cursor Rules Creation 🔄 IN PROGRESS
-- [x] Create testing.mdc with auto-attach globs
-- [ ] Create authentication.mdc rule
-- [ ] Create api-development.mdc rule
+### Phase 2: Cursor Rules Review & Creation 🔄 IN PROGRESS (create only if needed)
+- [x] Ensure testing.mdc exists with correct auto-attach globs (create or update)
+- [ ] Review authentication.mdc rule (create if missing)
+- [ ] Review api-development.mdc rule (create if missing)
 ...
 ```
 
@@ -142,7 +142,7 @@ Common issues and immediate solutions
 
 2. **Categorize for Cursor Rules vs Reference Documentation**:
 
-   **For Cursor Rules Creation:**
+   **For Cursor Rules Review/Creation:**
    - **Testing procedures** (TESTING.md → testing.mdc)
    - **Authentication flows** (AUTHENTICATION.md → authentication.mdc)  
    - **Development standards** (formatting.md, solid-principles.md → formatting-linting.mdc)
@@ -164,9 +164,9 @@ Common issues and immediate solutions
    - Database: `["prisma/**", "lib/prisma*", "**/*migration*", "**/*seed*"]`
    - Deployment: `["fly.toml", "Dockerfile", "ecosystem.config.js", "scripts/deploy*"]`
 
-## Phase 2: Cursor Rules Creation & Content Extraction
+## Phase 2: Cursor Rules Review & Content Extraction
 
-4. **Create auto-attached cursor rules from existing documentation**:
+4. **Review existing cursor rules and create or update them as needed**:
    - **Extract actionable procedures** from comprehensive docs into focused rules
    - **Strip explanatory context** - focus on "what to do" not "why"
    - **Structure for AI parsing** - use consistent headings and bullet points
@@ -209,7 +209,6 @@ Common issues and immediate solutions
    - Test glob patterns match intended files
    - Verify rules activate in expected contexts
    - Ensure MDC frontmatter is properly formatted
-   - Add cursor rules directory to `.gitignore` and `.cursorindexingignore`
 
 10. **Update reference documentation**:
     - Streamline comprehensive guides by removing now-redundant procedural content
@@ -236,7 +235,6 @@ Common issues and immediate solutions
 13. **Final integration and cleanup**:
     - Update any remaining cross-references between documents
     - Ensure consistent formatting across cursor rules
-    - Add `.cursor/rules/` to appropriate ignore files
     - Remove any redundant or superseded documentation files
     - Create summary documentation of the new organization
 
