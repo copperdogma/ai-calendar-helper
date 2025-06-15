@@ -5,6 +5,7 @@ import PageLayout from '@/components/layouts/PageLayout';
 import TextInputForm from '@/components/calendar/TextInputForm';
 import { ExtractedEvent } from '@/types/events';
 import { useTimezone } from '@/lib/hooks/useTimezone';
+import TimezoneSelector from '@/components/ui/TimezoneSelector';
 
 // In-component helper to use the active timezone from context/hook
 function useParseEventsWithAi() {
@@ -97,6 +98,7 @@ export default function CalendarParserPage() {
     <PageLayout
       title="Calendar Parser"
       subtitle="Extract events from free-form text"
+      action={<TimezoneSelector dense />}
       headerSx={{ mb: 1, pb: 0.5 }}
       contentSx={{ mt: 0.5 }}
       rootSx={{ pt: 1 }}

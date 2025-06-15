@@ -2,7 +2,7 @@
 
 ### Legacy Issues (from previous scratchpad)
 
-- minor: move timezone from header into the calendar-parser page, as it's specific to that functionality
+- ~~minor: move timezone from header into the calendar-parser page, as it's specific to that functionality~~ ✅
 - bug: Addys birthday email input, by itself, gets the top lines cut off which means the title doesn't include that it's HER birthday
 - When editing the date/time text (not using the calendar picker), hitting return re-parses the events. It should be the equivalent of clicking the "OK" button in the editing panel. When editing the event title, hiting return properly saves the changes and doesn't re-parse the events.
 - footer has "Your Website Name 2025"
