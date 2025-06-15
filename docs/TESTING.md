@@ -2,6 +2,8 @@
 
 This document serves as the comprehensive guide for all testing activities in this Next.js application with NextAuth.js and PostgreSQL.
 
+> **💡 Quick Development Reference**: For testing commands, debugging procedures, and test patterns while working on tests, see **@testing.mdc** cursor rule (auto-activated when editing test files).
+
 ## Overview
 
 Our testing strategy employs multiple layers:

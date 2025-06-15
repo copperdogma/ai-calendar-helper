@@ -1,11 +1,6 @@
 ---
+description: 
 globs: ["components/**", "**/*.tsx", "app/**/page.tsx", "app/**/layout.tsx"]
-alwaysApply: false
----
-
----
-description:
-globs:
 alwaysApply: false
 ---
 # UI Components Development Guide

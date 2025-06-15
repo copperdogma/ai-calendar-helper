@@ -1,11 +1,6 @@
 ---
+description: 
 globs: ["prisma/**", "lib/prisma*", "**/*migration*", "**/*seed*"]
-alwaysApply: false
----
-
----
-description:
-globs:
 alwaysApply: false
 ---
 # Database Operations

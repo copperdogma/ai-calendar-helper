@@ -2,6 +2,8 @@
 
 This document explains how automatic code formatting is configured in this project.
 
+> **💡 Quick Development Reference**: For formatting commands, ESLint rules, and debugging formatting issues while working on config files, see **@formatting-linting.mdc** cursor rule (auto-activated when editing ESLint/Prettier config files).
+
 ## Overview
 
 This project implements automatic code formatting at multiple stages of the development workflow. This is particularly important for AI-driven development workflows, where formatting may be overlooked.

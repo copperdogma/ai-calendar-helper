@@ -2,6 +2,8 @@
 
 This document explains the authentication implementation details and behaviors in this template.
 
+> **💡 Quick Development Reference**: For procedural guidance, code patterns, and debugging steps while working with authentication files, see **@authentication.mdc** cursor rule (auto-activated when editing auth-related files).
+
 ## Overview
 
 This template uses NextAuth.js v5 with the Prisma Adapter for PostgreSQL to provide a complete authentication solution. Key authentication features include:

@@ -2,6 +2,8 @@
 
 This guide captures the **exact working steps** we followed (and pitfalls fixed) while implementing Story 028.
 
+> **💡 Quick Development Reference**: For deployment commands, PM2 management, and troubleshooting while working on deployment files, see **@deployment** cursor rule (request with @deployment).
+
 > **TL;DR** — Quick cheat-sheet is at the top; detailed rationale and troubleshooting follow.
 
 ---

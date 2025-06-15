@@ -5,6 +5,8 @@ alwaysApply: true
 ---
 ## ⚠️ CRITICAL DEVELOPMENT RULES ⚠️
 
+NEVER check anything into github unless directed to by the user ❌
+
 ### Interactive Commands - NEVER USE
 NEVER run these interactive commands that will freeze the AI assistant:
 - `npm run dev` ❌
@@ -24,6 +26,37 @@ ALWAYS use these non-interactive alternatives instead:
 When working with repository operations or when diff analysis is needed:
 - Use `gh cli` commands when necessary for repository operations
 - **For diffs**: Always use `gh` CLI commands (e.g., `gh pr diff`, `gh repo view --json`) rather than web-based approaches when programmatic diff access is required
+
+## Cursor Rules Ecosystem
+
+This project uses a comprehensive cursor rules system that provides contextual AI guidance. The rules are split between **auto-attached** (triggered by file patterns) and **agent-requested** (AI decides when relevant).
+
+### Auto-Attached Rules (File-Pattern Based)
+- **@authentication.mdc** - Activates for: `**/auth/**`, `**/login/**`, `lib/auth*`, `middleware.ts`, `app/api/auth/**`
+  - NextAuth.js v5 configuration, OAuth providers, route protection, JWT handling
+- **@api-development.mdc** - Activates for: `app/api/**`, `**/*route.ts`, `lib/api*`
+  - API route patterns, request validation, error handling, CORS, rate limiting
+- **@ui-components.mdc** - Activates for: `components/**`, `**/*.tsx`, `app/**/page.tsx`, `app/**/layout.tsx`
+  - React component architecture, MUI patterns, form validation, accessibility
+- **@database.mdc** - Activates for: `prisma/**`, `lib/prisma*`, `**/*migration*`, `**/*seed*`
+  - Prisma schema patterns, CRUD operations, migrations, transactions
+- **@formatting-linting.mdc** - Activates for: `eslint.config.*`, `prettier.config.*`, `**/.prettierrc*`
+  - Code formatting, ESLint rules, TypeScript best practices, pre-commit hooks
+- **@testing.mdc** - Activates for: `**/*.test.*`, `tests/**`, `**/jest.config.*`, `**/playwright.config.*`
+  - Jest configuration, Playwright E2E testing, coverage standards, debugging procedures
+
+### Agent-Requested Rules (AI Context)
+- **@debugging** - Debugging procedures, logging conventions, troubleshooting steps
+- **@deployment** - PM2 server management, Fly.io deployment, environment configuration
+- **@agent-workflow** - AI agent workflow guidelines, development procedures
+
+### Reference Documentation
+For comprehensive guides and architectural context, see:
+- `/docs/design.md` - System design and architecture decisions
+- `/docs/architecture.md` - Technical architecture overview
+- `/docs/requirements.md` - Project requirements and strategic decisions
+- `/docs/stories.md` - User stories and project management
+- `/docs/build-log/` - Historical development tracking
 
 ## Project Structure
 ```
