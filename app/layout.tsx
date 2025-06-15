@@ -4,6 +4,7 @@ import { Metadata } from 'next';
 import { Toaster } from '@/components/ui/Toaster';
 import { ThemeProvider } from 'next-themes';
 import ThemeRegistry from '@/app/providers/ThemeRegistry';
+import TimezoneProvider from '@/lib/providers/TimezoneProvider';
 import SessionProviderWrapper from '@/app/providers/SessionProviderWrapper';
 import BaseLayout from '@/components/layouts/BaseLayout';
 import { auth } from '@/lib/auth-edge';
@@ -44,22 +45,24 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             disableTransitionOnChange
             storageKey="theme-preference"
           >
-            <ThemeRegistry>
-              <CssBaseline />
-              <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-                <Header />
-                <Box
-                  component="main"
-                  sx={{ flexGrow: 1, py: 3 }}
-                  id="main-content"
-                  aria-label="Main application content"
-                >
-                  <BaseLayout>{children}</BaseLayout>
-                  <Toaster />
+            <TimezoneProvider>
+              <ThemeRegistry>
+                <CssBaseline />
+                <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                  <Header />
+                  <Box
+                    component="main"
+                    sx={{ flexGrow: 1, py: 3 }}
+                    id="main-content"
+                    aria-label="Main application content"
+                  >
+                    <BaseLayout>{children}</BaseLayout>
+                    <Toaster />
+                  </Box>
+                  <Footer />
                 </Box>
-                <Footer />
-              </Box>
-            </ThemeRegistry>
+              </ThemeRegistry>
+            </TimezoneProvider>
           </ThemeProvider>
         </SessionProviderWrapper>
         {/* Custom theme script removed as next-themes handles FOUC */}

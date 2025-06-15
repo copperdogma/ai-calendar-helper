@@ -38,3 +38,24 @@ This scratchpad tracks the comprehensive audit and strategic split of project do
 - When editing the date/time text (not using the calendar picker), hitting return re-parses the events. It should be the equivalent of clicking the "OK" button in the editing panel. When editing the event title, hiting return properly saves the changes and doesn't re-parse the events.
 - footer has "Your Website Name 2025"
   - \*\* external todo: update the template repo to replace this with the actual website name
+
+## Current Story
+
+- Story 012: Implement Timezone Detection & Selection (Medium)
+
+## Current Task
+
+- Deliver initial implementation: browser detection, user-selectable timezone dropdown, persistence via localStorage, unit/component tests.
+
+## Plan Checklist
+
+- [x] Add util to validate and list timezones (`lib/utils/timezone.ts`)
+- [x] Create React hook for timezone state with persistence (`lib/hooks/useTimezone.ts`)
+- [x] Build `TimezoneSelector` UI component (`components/ui/TimezoneSelector.tsx`)
+- [x] Write unit tests for utils and component
+- [ ] Integrate selector into Settings page (pending Story 011 preferences)
+- [ ] Ensure API calls and date rendering honour selected timezone (future task)
+
+## Recently Completed
+
+- Implemented utilities, hook, component, tests for basic timezone feature

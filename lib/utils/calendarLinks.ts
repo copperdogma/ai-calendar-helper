@@ -1,8 +1,10 @@
 // utility to build provider-specific "Add to Calendar" links and raw ICS content
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 
 dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export interface CalendarEvent {
   title: string;
@@ -11,6 +13,7 @@ export interface CalendarEvent {
   durationMinutes?: number; // defaults to 60
   location?: string;
   description?: string;
+  timezone?: string; // IANA timezone to treat date/time as
 }
 
 export interface AddToCalendarLinks {
@@ -21,8 +24,12 @@ export interface AddToCalendarLinks {
 
 export function generateAddToCalendarLinks(event: CalendarEvent): AddToCalendarLinks {
   const duration = event.durationMinutes ?? 60;
+  const tz = event.timezone || dayjs.tz.guess();
   // Build start & end times in UTC ISO strings without punctuation for Google
-  const localStart = event.time ? dayjs(`${event.date} ${event.time}`) : dayjs(event.date);
+  const localStart = event.time
+    ? dayjs.tz(`${event.date} ${event.time}`, tz)
+    : dayjs.tz(event.date, 'YYYY-MM-DD', tz);
+  // For all-day events ensure we begin at midnight
   const start = event.time ? localStart : localStart.startOf('day');
   const end = start.add(duration, 'minute');
 

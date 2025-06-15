@@ -5,6 +5,7 @@ import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import { generateAddToCalendarLinks, buildEventDescription } from '@/lib/utils/calendarLinks';
+import { useTimezone } from '@/lib/hooks/useTimezone';
 // Vendor-specific icons from react-icons
 import GoogleCalendarIcon from '@/components/icons/GoogleCalendarIcon';
 import AppleCalendarIcon from '@/components/icons/AppleCalendarIcon';
@@ -32,6 +33,7 @@ const EventPreviewCard: React.FC<EventPreviewCardProps> = ({ event, onUpdate }) 
   const [isEditing, setIsEditing] = React.useState(false);
   const [draft, setDraft] = React.useState<EventPreview>(event);
   const titleInputRef = React.useRef<HTMLInputElement>(null);
+  const { timezone } = useTimezone();
 
   const handleFieldChange =
     (field: keyof EventPreview) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -179,6 +181,18 @@ const EventPreviewCard: React.FC<EventPreviewCardProps> = ({ event, onUpdate }) 
           )}
           {/* Add to Calendar Buttons - positioned bottom-right */}
           {(() => {
+            let isoDate: string | null = null;
+            if (/^[\d]{4}-[\d]{2}-[\d]{2}$/.test(event.date)) {
+              isoDate = event.date;
+            } else {
+              const parsed = dayjs(event.date);
+              if (parsed.isValid()) {
+                isoDate = parsed.format('YYYY-MM-DD');
+              }
+            }
+
+            if (!isoDate) return null;
+
             const fullDesc = buildEventDescription(
               event.description || event.summary || '',
               event.originalText
@@ -186,18 +200,20 @@ const EventPreviewCard: React.FC<EventPreviewCardProps> = ({ event, onUpdate }) 
 
             const links = generateAddToCalendarLinks({
               title: event.title,
-              date: event.date,
+              date: isoDate,
               time: event.time,
               location: event.location,
               description: fullDesc,
+              timezone,
             });
 
             const icsContent = generateAddToCalendarLinks({
               title: event.title,
-              date: event.date,
+              date: isoDate,
               time: event.time,
               location: event.location,
               description: fullDesc,
+              timezone,
             }).ics;
 
             const icsDataUri = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;

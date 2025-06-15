@@ -15,6 +15,7 @@ import {
 import { useUserStore } from '@/lib/store/userStore'; // Import Zustand store
 import PageLayout from '@/components/layouts/PageLayout';
 import TextInputForm from '@/components/calendar/TextInputForm';
+import { useTimezone } from '@/lib/hooks/useTimezone';
 
 // Define the interface for parsed events that matches the UI component
 interface ParsedEvent {
@@ -49,12 +50,11 @@ const OverviewSection = () => {
 };
 
 const CalendarHelperSection = () => {
+  const { timezone } = useTimezone();
+
   const handleParseEvents = async (text: string): Promise<ParsedEvent[]> => {
     try {
-      console.log('🔍 Sending to AI API:', {
-        text,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      });
+      // prepare request
 
       const response = await fetch('/api/ai/parse-events', {
         method: 'POST',
@@ -64,7 +64,7 @@ const CalendarHelperSection = () => {
         body: JSON.stringify({
           text,
           options: {
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, // User's timezone
+            timezone,
             currentDate: new Date().toISOString(),
           },
         }),
@@ -76,7 +76,6 @@ const CalendarHelperSection = () => {
       }
 
       const data = await response.json();
-      console.log('🤖 Raw AI API Response:', data);
 
       if (!data.success || !data.event) {
         throw new Error('Invalid response from AI service');
@@ -89,18 +88,6 @@ const CalendarHelperSection = () => {
       // We need to create a date object that represents the correct local time
       const startDate = new Date(event.startDate);
       const endDate = new Date(event.endDate);
-
-      console.log('📅 Date parsing:', {
-        originalText: text,
-        aiStartDate: event.startDate,
-        aiEndDate: event.endDate,
-        parsedStart: startDate,
-        parsedEnd: endDate,
-        startUTC: startDate.toISOString(),
-        startInAITimezone: startDate.toLocaleString('en-US', { timeZone: event.timezone }),
-        userTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        aiTimezone: event.timezone,
-      });
 
       const transformedEvent: ParsedEvent = {
         id: event.id,
@@ -125,7 +112,6 @@ const CalendarHelperSection = () => {
         rawResponse: data, // Include raw response for debugging
       };
 
-      console.log('✅ Final transformed event:', transformedEvent);
       return [transformedEvent]; // Return as array for compatibility
     } catch (error: unknown) {
       console.error('❌ Error parsing events:', error);

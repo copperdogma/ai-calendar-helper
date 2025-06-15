@@ -33,47 +33,47 @@ AI Calendar Helper
 | 009      | Implement confidence scoring display             | Medium   | Done      | /docs/stories/story-009-confidence-scoring.md   |
 | 010      | Add batch calendar actions                       | Medium   | Cancelled | /docs/stories/story-010-batch-actions.md        |
 | 011      | Create smart defaults & preferences              | Medium   | To Do     | /docs/stories/story-011-user-preferences.md     |
-| 012      | Implement timezone detection/selection           | Medium   | To Do     | /docs/stories/story-012-timezone-handling.md    |
+| 012      | Implement timezone detection/selection           | Medium   | Done      | /docs/stories/story-012-timezone-handling.md    |
 | 035      | Enhance AI parsing for multiple events           | High     | Done      | /docs/stories/story-035-multi-event-parsing.md  |
 | 032      | Implement Calendar Parser page & default routing | High     | Done      | /docs/stories/story-032-calendar-parser-page.md |
 
 ### Phase 3: UX Enhancements (Priority: Medium)
 
-| Story ID | Title                                      | Priority | Status | Link                                          |
-| -------- | ------------------------------------------ | -------- | ------ | --------------------------------------------- |
-| 013      | Add conflict detection for existing events | Medium   | To Do  | /docs/stories/story-013-conflict-detection.md |
-| 014      | Implement comprehensive error handling     | Medium   | To Do  | /docs/stories/story-014-error-handling.md     |
-| 015      | Create empty state & usage examples        | Low      | To Do  | /docs/stories/story-015-empty-state.md        |
-| 016      | Add mobile responsive design               | Medium   | To Do  | /docs/stories/story-016-mobile-responsive.md  |
-| 017      | Implement keyboard shortcuts               | Low      | Done   | /docs/stories/story-017-keyboard-shortcuts.md |
+| Story ID | Title                                      | Priority | Status    | Link                                          |
+| -------- | ------------------------------------------ | -------- | --------- | --------------------------------------------- |
+| 013      | Add conflict detection for existing events | Medium   | Cancelled | /docs/stories/story-013-conflict-detection.md |
+| 014      | Implement comprehensive error handling     | Medium   | To Do     | /docs/stories/story-014-error-handling.md     |
+| 015      | Create empty state & usage examples        | Low      | To Do     | /docs/stories/story-015-empty-state.md        |
+| 016      | Add mobile responsive design               | Medium   | To Do     | /docs/stories/story-016-mobile-responsive.md  |
+| 017      | Implement keyboard shortcuts               | Low      | Done      | /docs/stories/story-017-keyboard-shortcuts.md |
 
 ### Phase 4: Novel Events Extraction (Priority: Medium)
 
 | Story ID | Title                                    | Priority | Status | Link                                           |
 | -------- | ---------------------------------------- | -------- | ------ | ---------------------------------------------- |
-| 019      | Design novel events filtering logic      | Medium   | To Do  | /docs/stories/story-019-novel-events-filter.md |
-| 020      | Create background job system             | Medium   | To Do  | /docs/stories/story-020-background-jobs.md     |
-| 021      | Build email template & delivery service  | Medium   | To Do  | /docs/stories/story-021-email-service.md       |
-| 022      | Create configuration UI for novel events | Medium   | To Do  | /docs/stories/story-022-config-ui.md           |
+| 019      | Design novel events filtering logic      | Low      | Parked | /docs/stories/story-019-novel-events-filter.md |
+| 020      | Create background job system             | Low      | Parked | /docs/stories/story-020-background-jobs.md     |
+| 021      | Build email template & delivery service  | Low      | Parked | /docs/stories/story-021-email-service.md       |
+| 022      | Create configuration UI for novel events | Low      | Parked | /docs/stories/story-022-config-ui.md           |
 
 ### Phase 5: UI/UX & Polish (Priority: Low-Medium)
 
-| Story ID | Title                                   | Priority | Status | Link                                         |
-| -------- | --------------------------------------- | -------- | ------ | -------------------------------------------- |
-| 023      | Implement main dashboard layout         | Medium   | To Do  | /docs/stories/story-023-dashboard-layout.md  |
-| 024      | Add JSON export & API integration       | Low      | To Do  | /docs/stories/story-024-json-export.md       |
-| 025      | Create user settings & preferences      | Low      | To Do  | /docs/stories/story-025-advanced-settings.md |
-| 033      | Update About page with project overview | Medium   | To Do  | /docs/stories/story-033-update-about-page.md |
+| Story ID | Title                                   | Priority | Status    | Link                                         |
+| -------- | --------------------------------------- | -------- | --------- | -------------------------------------------- |
+| 023      | Implement main dashboard layout         | Medium   | Done      | /docs/stories/story-023-dashboard-layout.md  |
+| 024      | Add JSON export & API integration       | Low      | Cancelled | /docs/stories/story-024-json-export.md       |
+| 025      | Create user settings & preferences      | Low      | Cancelled | /docs/stories/story-025-advanced-settings.md |
+| 033      | Update About page with project overview | Medium   | To Do     | /docs/stories/story-033-update-about-page.md |
 
 ### Phase 6: Testing & Deployment (Priority: Medium)
 
-| Story ID | Title                                     | Priority | Status   | Link                                  |
-| -------- | ----------------------------------------- | -------- | -------- | ------------------------------------- |
-| 026      | Write unit tests for core functionality   | Medium   | Done     | /docs/stories/story-026-unit-tests.md |
-| 027      | Implement E2E testing with Playwright     | Medium   | Done     | /docs/stories/story-027-e2e-tests.md  |
-| 028      | Set up fly.io deployment pipeline         | Medium   | Done     | /docs/stories/story-028-deployment.md |
-| 029      | Configure monitoring & error tracking     | Low      | To Do    | /docs/stories/story-029-monitoring.md |
-| 037      | Fix production profile auth/session issue | Critical | Planning | /docs/stories/story-037-auth-bug.md   |
+| Story ID | Title                                     | Priority | Status | Link                                  |
+| -------- | ----------------------------------------- | -------- | ------ | ------------------------------------- |
+| 026      | Write unit tests for core functionality   | Medium   | Done   | /docs/stories/story-026-unit-tests.md |
+| 027      | Implement E2E testing with Playwright     | Medium   | Done   | /docs/stories/story-027-e2e-tests.md  |
+| 028      | Set up fly.io deployment pipeline         | Medium   | Done   | /docs/stories/story-028-deployment.md |
+| 029      | Configure monitoring & error tracking     | Low      | To Do  | /docs/stories/story-029-monitoring.md |
+| 037      | Fix production profile auth/session issue | Critical | Done   | /docs/stories/story-037-auth-bug.md   |
 
 ### Phase 7: Optimization & Research (Priority: Medium)
 

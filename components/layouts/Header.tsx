@@ -8,6 +8,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import InfoIcon from '@mui/icons-material/Info';
 import UserProfile from '@/components/auth/UserProfile';
 import ThemeToggle from '@/components/ui/ThemeToggle';
+import TimezoneSelector from '@/components/ui/TimezoneSelector';
 import LoginIcon from '@mui/icons-material/Login';
 import MobileNavigation from './MobileNavigation';
 import DesktopNavigation from './DesktopNavigation';
@@ -39,6 +40,10 @@ interface AuthSectionProps {
 const AuthSection: React.FC<AuthSectionProps> = ({ status }) => (
   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
     <ThemeToggle />
+    {/* Timezone selector shown on desktop; hides on very small widths with CSS if needed */}
+    <Box sx={{ minWidth: 160 }}>
+      <TimezoneSelector dense />
+    </Box>
     {status === 'loading' && (
       <Box sx={{ width: 100, textAlign: 'center' }}>{/* Optional loading indicator */}</Box>
     )}
