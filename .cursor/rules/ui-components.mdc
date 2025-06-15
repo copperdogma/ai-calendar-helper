@@ -1,0 +1,623 @@
+---
+globs: ["components/**", "**/*.tsx", "app/**/page.tsx", "app/**/layout.tsx"]
+alwaysApply: false
+---
+
+---
+description:
+globs:
+alwaysApply: false
+---
+# UI Components Development Guide
+
+## Quick Commands
+
+```bash
+# Component testing
+npm test tests/unit/components/  # Run component unit tests
+npm run test:coverage -- tests/unit/components/
+
+# Development server
+npm run ai:start                 # Start PM2-managed dev server
+npm run ai:logs                  # View component logs
+
+# UI testing
+npm run test:e2e:ui-only        # Run UI-specific E2E tests
+npm run test:e2e:headed         # Run with visible browser
+```
+
+## Component Architecture
+
+```
+components/
+├── ui/                         # Base UI components (MUI based)
+│   ├── Button.tsx             # Button with variants
+│   ├── Card.tsx               # Card with subcomponents
+│   ├── Dialog.tsx             # Modal dialogs
+│   ├── Input.tsx              # Form inputs
+│   └── ...
+├── auth/                       # Authentication components
+│   ├── SignInButton.tsx       # Sign-in/sign-out functionality
+│   └── UserProfile.tsx        # User profile display
+├── forms/                      # Form components
+└── layouts/                    # Layout components
+```
+
+## Component Implementation Patterns
+
+### Base UI Component Structure
+
+```typescript
+'use client'
+
+import React, { forwardRef } from 'react'
+import { cn } from '@/lib/utils'
+import { VariantProps, cva } from 'class-variance-authority'
+
+const componentVariants = cva(
+  "base-styles", // Base styles
+  {
+    variants: {
+      variant: {
+        default: "variant-styles",
+        destructive: "destructive-styles",
+      },
+      size: {
+        default: "size-styles",
+        sm: "small-styles",
+        lg: "large-styles",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)
+
+export interface ComponentProps
+  extends React.HTMLAttributes<HTMLElement>,
+    VariantProps<typeof componentVariants> {
+  // Component-specific props
+}
+
+const Component = forwardRef<HTMLElement, ComponentProps>(
+  ({ className, variant, size, ...props }, ref) => {
+    return (
+      <element
+        className={cn(componentVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
+Component.displayName = "Component"
+
+export { Component, componentVariants }
+```
+
+### Authentication Components
+
+```typescript
+// SignInButton component
+'use client'
+
+import { signIn, signOut, useSession } from 'next-auth/react'
+import { Button } from '@/components/ui/Button'
+
+export function SignInButton() {
+  const { data: session, status } = useSession()
+
+  if (status === 'loading') {
+    return <Button disabled>Loading...</Button>
+  }
+
+  if (session) {
+    return (
+      <Button variant="outline" onClick={() => signOut()}>
+        Sign Out
+      </Button>
+    )
+  }
+
+  return (
+    <Button onClick={() => signIn()}>
+      Sign In
+    </Button>
+  )
+}
+
+// UserProfile component
+export function UserProfile() {
+  const { data: session } = useSession()
+
+  if (!session) return null
+
+  return (
+    <div className="flex items-center space-x-2">
+      {session.user?.image && (
+        <img
+          src={session.user.image}
+          alt="Profile"
+          className="h-8 w-8 rounded-full"
+        />
+      )}
+      <span>{session.user?.name}</span>
+    </div>
+  )
+}
+```
+
+### Form Components with Validation
+
+```typescript
+'use client'
+
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Label } from '@/components/ui/Label'
+
+const formSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+})
+
+type FormData = z.infer<typeof formSchema>
+
+export function LoginForm() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm<FormData>({
+    resolver: zodResolver(formSchema)
+  })
+
+  const onSubmit = async (data: FormData) => {
+    try {
+      // Handle form submission
+      console.log(data)
+    } catch (error) {
+      console.error('Form submission error:', error)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div>
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          type="email"
+          {...register('email')}
+          error={!!errors.email}
+        />
+        {errors.email && (
+          <span className="text-red-500 text-sm">{errors.email.message}</span>
+        )}
+      </div>
+
+      <div>
+        <Label htmlFor="password">Password</Label>
+        <Input
+          id="password"
+          type="password"
+          {...register('password')}
+          error={!!errors.password}
+        />
+        {errors.password && (
+          <span className="text-red-500 text-sm">{errors.password.message}</span>
+        )}
+      </div>
+
+      <Button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'Signing in...' : 'Sign In'}
+      </Button>
+    </form>
+  )
+}
+```
+
+### Modal Dialog Pattern
+
+```typescript
+'use client'
+
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog'
+import { Button } from '@/components/ui/Button'
+
+interface ConfirmDialogProps {
+  open: boolean
+  onClose: () => void
+  onConfirm: () => void
+  title: string
+  children: React.ReactNode
+}
+
+export function ConfirmDialog({
+  open,
+  onClose,
+  onConfirm,
+  title,
+  children
+}: ConfirmDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        <div className="py-4">
+          {children}
+        </div>
+        <div className="flex justify-end space-x-2">
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button onClick={onConfirm}>
+            Confirm
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+```
+
+## Component Testing Patterns
+
+### Unit Testing Components
+
+```typescript
+import { render, screen, fireEvent } from '@testing-library/react'
+import { Button } from '@/components/ui/Button'
+
+describe('Button', () => {
+  it('renders with correct text', () => {
+    render(<Button>Click me</Button>)
+    expect(screen.getByRole('button')).toHaveTextContent('Click me')
+  })
+
+  it('handles click events', () => {
+    const handleClick = jest.fn()
+    render(<Button onClick={handleClick}>Click me</Button>)
+    
+    fireEvent.click(screen.getByRole('button'))
+    expect(handleClick).toHaveBeenCalledTimes(1)
+  })
+
+  it('applies variant styles correctly', () => {
+    render(<Button variant="destructive">Delete</Button>)
+    const button = screen.getByRole('button')
+    expect(button).toHaveClass('destructive-styles')
+  })
+
+  it('is disabled when loading', () => {
+    render(<Button disabled>Loading...</Button>)
+    expect(screen.getByRole('button')).toBeDisabled()
+  })
+})
+```
+
+### Testing Forms
+
+```typescript
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { LoginForm } from '@/components/auth/LoginForm'
+
+describe('LoginForm', () => {
+  it('validates email field', async () => {
+    render(<LoginForm />)
+    
+    const emailInput = screen.getByLabelText(/email/i)
+    await userEvent.type(emailInput, 'invalid-email')
+    
+    const submitButton = screen.getByRole('button', { name: /sign in/i })
+    fireEvent.click(submitButton)
+    
+    await waitFor(() => {
+      expect(screen.getByText(/invalid email address/i)).toBeInTheDocument()
+    })
+  })
+
+  it('submits valid form data', async () => {
+    const mockSubmit = jest.fn()
+    render(<LoginForm onSubmit={mockSubmit} />)
+    
+    await userEvent.type(screen.getByLabelText(/email/i), 'test@example.com')
+    await userEvent.type(screen.getByLabelText(/password/i), 'password123')
+    
+    fireEvent.click(screen.getByRole('button', { name: /sign in/i }))
+    
+    await waitFor(() => {
+      expect(mockSubmit).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        password: 'password123'
+      })
+    })
+  })
+})
+```
+
+## State Management Patterns
+
+### Local Component State
+
+```typescript
+'use client'
+
+import { useState } from 'react'
+import { Button } from '@/components/ui/Button'
+
+export function Counter() {
+  const [count, setCount] = useState(0)
+
+  return (
+    <div className="flex items-center space-x-2">
+      <Button onClick={() => setCount(count - 1)}>-</Button>
+      <span className="font-mono">{count}</span>
+      <Button onClick={() => setCount(count + 1)}>+</Button>
+    </div>
+  )
+}
+```
+
+### Custom Hooks for State Logic
+
+```typescript
+import { useState, useCallback } from 'react'
+
+export function useToggle(initialValue = false) {
+  const [value, setValue] = useState(initialValue)
+
+  const toggle = useCallback(() => setValue(v => !v), [])
+  const setTrue = useCallback(() => setValue(true), [])
+  const setFalse = useCallback(() => setValue(false), [])
+
+  return {
+    value,
+    toggle,
+    setTrue,
+    setFalse,
+    setValue
+  }
+}
+
+// Usage in component
+export function ToggleExample() {
+  const { value: isOpen, toggle, setFalse } = useToggle()
+
+  return (
+    <div>
+      <Button onClick={toggle}>
+        {isOpen ? 'Close' : 'Open'}
+      </Button>
+      {isOpen && (
+        <Dialog open={isOpen} onClose={setFalse}>
+          <p>Dialog content</p>
+        </Dialog>
+      )}
+    </div>
+  )
+}
+```
+
+## Accessibility Patterns
+
+### ARIA Labels and Roles
+
+```typescript
+export function SearchInput() {
+  return (
+    <div role="search">
+      <Label htmlFor="search" className="sr-only">
+        Search
+      </Label>
+      <Input
+        id="search"
+        type="search"
+        placeholder="Search..."
+        aria-label="Search input"
+      />
+    </div>
+  )
+}
+```
+
+### Keyboard Navigation
+
+```typescript
+'use client'
+
+import { useRef, KeyboardEvent } from 'react'
+
+export function DropdownMenu() {
+  const itemRefs = useRef<(HTMLButtonElement | null)[]>([])
+
+  const handleKeyDown = (event: KeyboardEvent, index: number) => {
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault()
+        const nextIndex = (index + 1) % itemRefs.current.length
+        itemRefs.current[nextIndex]?.focus()
+        break
+      case 'ArrowUp':
+        event.preventDefault()
+        const prevIndex = index === 0 ? itemRefs.current.length - 1 : index - 1
+        itemRefs.current[prevIndex]?.focus()
+        break
+      case 'Escape':
+        // Close menu
+        break
+    }
+  }
+
+  return (
+    <div role="menu">
+      {items.map((item, index) => (
+        <button
+          key={item.id}
+          ref={el => itemRefs.current[index] = el}
+          role="menuitem"
+          onKeyDown={(e) => handleKeyDown(e, index)}
+        >
+          {item.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+```
+
+## Error Handling in Components
+
+### Error Boundaries
+
+```typescript
+'use client'
+
+import { Component, ErrorInfo, ReactNode } from 'react'
+
+interface Props {
+  children: ReactNode
+}
+
+interface State {
+  hasError: boolean
+  error?: Error
+}
+
+export class ErrorBoundary extends Component<Props, State> {
+  public state: State = {
+    hasError: false
+  }
+
+  public static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error }
+  }
+
+  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('Component error:', error, errorInfo)
+  }
+
+  public render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-4 border border-red-300 rounded bg-red-50">
+          <h2 className="text-red-800 font-semibold">Something went wrong</h2>
+          <p className="text-red-600">Please try refreshing the page.</p>
+        </div>
+      )
+    }
+
+    return this.props.children
+  }
+}
+```
+
+### Loading and Error States
+
+```typescript
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/Button'
+
+interface DataComponentProps {
+  userId: string
+}
+
+export function DataComponent({ userId }: DataComponentProps) {
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true)
+        setError(null)
+        const response = await fetch(`/api/users/${userId}`)
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch data')
+        }
+        
+        const result = await response.json()
+        setData(result)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unknown error')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [userId])
+
+  if (loading) {
+    return <div className="animate-pulse">Loading...</div>
+  }
+
+  if (error) {
+    return (
+      <div className="text-red-600">
+        <p>Error: {error}</p>
+        <Button onClick={() => window.location.reload()}>
+          Retry
+        </Button>
+      </div>
+    )
+  }
+
+  return <div>{/* Render data */}</div>
+}
+```
+
+## Performance Optimization
+
+### Memoization
+
+```typescript
+import { memo, useMemo, useCallback } from 'react'
+
+interface ExpensiveComponentProps {
+  items: Item[]
+  onItemClick: (id: string) => void
+}
+
+export const ExpensiveComponent = memo(function ExpensiveComponent({
+  items,
+  onItemClick
+}: ExpensiveComponentProps) {
+  const sortedItems = useMemo(() => {
+    return items.sort((a, b) => a.name.localeCompare(b.name))
+  }, [items])
+
+  const handleClick = useCallback((id: string) => {
+    onItemClick(id)
+  }, [onItemClick])
+
+  return (
+    <div>
+      {sortedItems.map(item => (
+        <div key={item.id} onClick={() => handleClick(item.id)}>
+          {item.name}
+        </div>
+      ))}
+    </div>
+  )
+})
+```
+
+## References
+
+- @components - All component implementations
+- @app/page.tsx - App router pages
+- @app/layout.tsx - Root layout
+- @tests/unit/components - Component unit tests

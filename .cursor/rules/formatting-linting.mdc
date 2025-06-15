@@ -1,0 +1,10 @@
+---
+globs: ["eslint.config.*", "prettier.config.*", "**/.prettierrc*", "**/.lintstagedrc*", ".husky/**"]
+alwaysApply: false
+---
+
+---
+description:
+globs:
+alwaysApply: false
+---

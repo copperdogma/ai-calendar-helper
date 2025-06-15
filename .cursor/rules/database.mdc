@@ -1,0 +1,677 @@
+---
+globs: ["prisma/**", "lib/prisma*", "**/*migration*", "**/*seed*"]
+alwaysApply: false
+---
+
+---
+description:
+globs:
+alwaysApply: false
+---
+# Database Operations
+
+## Quick Commands
+
+### Schema Management
+```bash
+# Generate Prisma client
+npx prisma generate
+
+# Create and apply migration
+npx prisma migrate dev --name description
+
+# Reset database (destructive)
+npx prisma migrate reset
+
+# Deploy migrations to production
+npx prisma migrate deploy
+
+# Check migration status
+npx prisma migrate status
+```
+
+### Database Development
+```bash
+# Open Prisma Studio (database GUI)
+npx prisma studio
+
+# Seed database with test data
+npx prisma db seed
+
+# Pull schema from database
+npx prisma db pull
+
+# Push schema changes without migration
+npx prisma db push
+
+# Validate schema file
+npx prisma validate
+```
+
+### Database Testing
+```bash
+# Test database connection
+npm run db:ping
+
+# Run database-related tests
+npm test -- --testPathPattern="prisma|database"
+
+# Check database with health endpoint
+curl http://localhost:3000/api/health
+```
+
+## Prisma Schema Patterns
+
+### Model Definition
+```prisma
+model User {
+  id             String    @id @default(uuid())
+  name           String?
+  email          String?   @unique
+  emailVerified  DateTime?
+  image          String?
+  hashedPassword String?
+  role           UserRole  @default(USER)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  lastSignedInAt DateTime?
+  
+  // Relations
+  accounts       Account[]
+  sessions       Session[]
+  events         Event[]
+  
+  // Indexes for performance
+  @@index([role])
+  @@index([createdAt])
+  @@index([email])
+}
+```
+
+### Relationships
+```prisma
+// One-to-Many
+model User {
+  id       String    @id @default(uuid())
+  events   Event[]
+}
+
+model Event {
+  id       String @id @default(uuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+}
+
+// Many-to-Many
+model User {
+  id       String         @id @default(uuid())
+  projects UserProject[]
+}
+
+model Project {
+  id    String         @id @default(uuid())
+  users UserProject[]
+}
+
+model UserProject {
+  userId    String
+  projectId String
+  role      String
+  user      User    @relation(fields: [userId], references: [id])
+  project   Project @relation(fields: [projectId], references: [id])
+  
+  @@id([userId, projectId])
+}
+```
+
+### Enums and Advanced Types
+```prisma
+enum UserRole {
+  ADMIN
+  USER
+  MODERATOR
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+}
+
+model Event {
+  id          String      @id @default(uuid())
+  status      EventStatus @default(DRAFT)
+  metadata    Json?       // JSON field for flexible data
+  tags        String[]    // Array field
+}
+```
+
+## Prisma Client Usage
+
+### Basic CRUD Operations
+```typescript
+import { prisma } from '@/lib/prisma';
+
+// Create
+const user = await prisma.user.create({
+  data: {
+    email: 'user@example.com',
+    name: 'John Doe',
+    role: 'USER',
+  },
+});
+
+// Read
+const users = await prisma.user.findMany({
+  where: {
+    role: 'USER',
+  },
+  include: {
+    events: true,
+  },
+  orderBy: {
+    createdAt: 'desc',
+  },
+});
+
+// Update
+const updatedUser = await prisma.user.update({
+  where: { id: userId },
+  data: { lastSignedInAt: new Date() },
+});
+
+// Delete
+await prisma.user.delete({
+  where: { id: userId },
+});
+```
+
+### Advanced Queries
+```typescript
+// Complex filtering
+const events = await prisma.event.findMany({
+  where: {
+    AND: [
+      { status: 'PUBLISHED' },
+      { startDate: { gte: new Date() } },
+      {
+        OR: [
+          { userId: currentUserId },
+          { public: true },
+        ],
+      },
+    ],
+  },
+  include: {
+    user: {
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    },
+  },
+});
+
+// Aggregations
+const stats = await prisma.event.aggregate({
+  where: { userId: currentUserId },
+  _count: { id: true },
+  _avg: { duration: true },
+  _max: { startDate: true },
+});
+
+// Group by
+const eventsByStatus = await prisma.event.groupBy({
+  by: ['status'],
+  _count: { id: true },
+  where: { userId: currentUserId },
+});
+```
+
+### Transactions
+```typescript
+// Transaction with multiple operations
+const result = await prisma.$transaction(async (tx) => {
+  // Update user
+  const user = await tx.user.update({
+    where: { id: userId },
+    data: { lastSignedInAt: new Date() },
+  });
+
+  // Create event
+  const event = await tx.event.create({
+    data: {
+      title: 'New Event',
+      userId: userId,
+      startDate: new Date(),
+    },
+  });
+
+  return { user, event };
+});
+
+// Transaction with rollback
+try {
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: userId },
+      data: { role: 'ADMIN' },
+    }),
+    prisma.auditLog.create({
+      data: {
+        action: 'ROLE_CHANGE',
+        userId: userId,
+        timestamp: new Date(),
+      },
+    }),
+  ]);
+} catch (error) {
+  console.error('Transaction failed:', error);
+  // Automatic rollback on error
+}
+```
+
+## Migration Management
+
+### Creating Migrations
+```bash
+# Create migration with descriptive name
+npx prisma migrate dev --name add_user_preferences
+
+# Create migration for specific changes
+npx prisma migrate dev --name update_event_schema
+
+# Create migration with SQL preview
+npx prisma migrate diff --preview-feature
+```
+
+### Migration File Structure
+```sql
+-- CreateTable
+CREATE TABLE "Event" (
+    "id" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "description" TEXT,
+    "startDate" TIMESTAMP(3) NOT NULL,
+    "endDate" TIMESTAMP(3),
+    "userId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Event_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE INDEX "Event_userId_idx" ON "Event"("userId");
+CREATE INDEX "Event_startDate_idx" ON "Event"("startDate");
+
+-- AddForeignKey
+ALTER TABLE "Event" ADD CONSTRAINT "Event_userId_fkey" 
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+```
+
+### Custom Migration SQL
+```sql
+-- Custom migration for data transformation
+UPDATE "User" SET "role" = 'USER' WHERE "role" IS NULL;
+
+-- Add custom constraints
+ALTER TABLE "Event" ADD CONSTRAINT "Event_date_check" 
+    CHECK ("endDate" > "startDate");
+
+-- Create custom indexes
+CREATE INDEX CONCURRENTLY "Event_search_idx" ON "Event" 
+    USING gin(to_tsvector('english', "title" || ' ' || COALESCE("description", '')));
+```
+
+## Connection Management
+
+### Prisma Client Setup
+```typescript
+// lib/prisma.ts
+import { PrismaClient } from '@prisma/client';
+
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
+
+export const prisma = globalForPrisma.prisma ?? new PrismaClient({
+  log: ['query', 'error', 'warn'],
+});
+
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
+}
+
+// Connection lifecycle
+export async function connectDatabase() {
+  try {
+    await prisma.$connect();
+    console.log('Database connected successfully');
+  } catch (error) {
+    console.error('Database connection failed:', error);
+    throw error;
+  }
+}
+
+export async function disconnectDatabase() {
+  await prisma.$disconnect();
+}
+```
+
+### Connection Pooling
+```typescript
+// DATABASE_URL configuration for connection pooling
+// postgresql://user:password@host:port/database?schema=public&connection_limit=20&pool_timeout=10
+
+// Connection testing utility
+export async function testDatabaseConnection(): Promise<boolean> {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    return true;
+  } catch (error) {
+    console.error('Database connection test failed:', error);
+    return false;
+  }
+}
+```
+
+## Database Seeding
+
+### Seed Script
+```typescript
+// prisma/seed.ts
+import { PrismaClient } from '@prisma/client';
+import { hash } from 'bcryptjs';
+
+const prisma = new PrismaClient();
+
+async function main() {
+  // Create admin user
+  const adminUser = await prisma.user.upsert({
+    where: { email: 'admin@example.com' },
+    update: {},
+    create: {
+      email: 'admin@example.com',
+      name: 'Admin User',
+      role: 'ADMIN',
+      hashedPassword: await hash('admin123', 12),
+    },
+  });
+
+  // Create sample events
+  await prisma.event.createMany({
+    data: [
+      {
+        title: 'Team Meeting',
+        description: 'Weekly team sync',
+        startDate: new Date('2024-01-15T10:00:00Z'),
+        endDate: new Date('2024-01-15T11:00:00Z'),
+        userId: adminUser.id,
+      },
+      {
+        title: 'Project Review',
+        description: 'Monthly project review',
+        startDate: new Date('2024-01-20T14:00:00Z'),
+        endDate: new Date('2024-01-20T16:00:00Z'),
+        userId: adminUser.id,
+      },
+    ],
+  });
+
+  console.log('Database seeded successfully');
+}
+
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
+```
+
+## Performance Optimization
+
+### Indexing Strategies
+```prisma
+model Event {
+  id          String   @id @default(uuid())
+  title       String
+  startDate   DateTime
+  endDate     DateTime?
+  userId      String
+  location    String?
+  
+  // Single column indexes
+  @@index([userId])
+  @@index([startDate])
+  
+  // Composite indexes
+  @@index([userId, startDate])
+  @@index([startDate, endDate])
+  
+  // Unique constraints
+  @@unique([userId, title, startDate])
+}
+```
+
+### Query Optimization
+```typescript
+// ✅ CORRECT: Include only needed relations
+const user = await prisma.user.findUnique({
+  where: { id: userId },
+  include: {
+    events: {
+      where: { startDate: { gte: new Date() } },
+      orderBy: { startDate: 'asc' },
+      take: 10,
+    },
+  },
+});
+
+// ✅ CORRECT: Use select for specific fields
+const users = await prisma.user.findMany({
+  select: {
+    id: true,
+    name: true,
+    email: true,
+    _count: {
+      select: { events: true },
+    },
+  },
+});
+
+// ✅ CORRECT: Batch queries
+const userIds = ['id1', 'id2', 'id3'];
+const users = await prisma.user.findMany({
+  where: { id: { in: userIds } },
+});
+```
+
+## Error Handling
+
+### Common Database Errors
+```typescript
+import { Prisma } from '@prisma/client';
+
+export async function handleDatabaseOperation<T>(
+  operation: () => Promise<T>
+): Promise<T> {
+  try {
+    return await operation();
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      switch (error.code) {
+        case 'P2002':
+          throw new Error('Unique constraint violation');
+        case 'P2025':
+          throw new Error('Record not found');
+        case 'P2003':
+          throw new Error('Foreign key constraint violation');
+        default:
+          throw new Error(`Database error: ${error.message}`);
+      }
+    }
+    throw error;
+  }
+}
+
+// Usage
+const createUser = async (userData: CreateUserData) => {
+  return handleDatabaseOperation(async () => {
+    return prisma.user.create({ data: userData });
+  });
+};
+```
+
+## Testing with Database
+
+### Test Database Setup
+```typescript
+// tests/setup/database.ts
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.TEST_DATABASE_URL,
+    },
+  },
+});
+
+export async function resetDatabase() {
+  await prisma.$transaction([
+    prisma.event.deleteMany(),
+    prisma.session.deleteMany(),
+    prisma.account.deleteMany(),
+    prisma.user.deleteMany(),
+  ]);
+}
+
+export async function seedTestData() {
+  const testUser = await prisma.user.create({
+    data: {
+      email: 'test@example.com',
+      name: 'Test User',
+      role: 'USER',
+    },
+  });
+
+  return { testUser };
+}
+```
+
+### Database Unit Tests
+```typescript
+import { prisma } from '@/lib/prisma';
+import { resetDatabase, seedTestData } from '@/tests/setup/database';
+
+describe('User Model', () => {
+  beforeEach(async () => {
+    await resetDatabase();
+  });
+
+  it('should create user with default role', async () => {
+    const user = await prisma.user.create({
+      data: {
+        email: 'user@example.com',
+        name: 'Test User',
+      },
+    });
+
+    expect(user.role).toBe('USER');
+    expect(user.createdAt).toBeInstanceOf(Date);
+  });
+
+  it('should enforce unique email constraint', async () => {
+    await prisma.user.create({
+      data: { email: 'test@example.com', name: 'User 1' },
+    });
+
+    await expect(
+      prisma.user.create({
+        data: { email: 'test@example.com', name: 'User 2' },
+      })
+    ).rejects.toThrow();
+  });
+});
+```
+
+## Troubleshooting
+
+### Connection Issues
+```bash
+# Check database connection
+npx prisma db pull
+
+# Test connection with raw query
+npx prisma studio
+
+# Check environment variables
+echo $DATABASE_URL
+
+# Reset connection
+npx prisma generate && npx prisma db push
+```
+
+### Migration Issues
+```bash
+# Check migration status
+npx prisma migrate status
+
+# Resolve failed migration
+npx prisma migrate resolve --applied 20240101000000_migration_name
+
+# Reset and reapply all migrations
+npx prisma migrate reset
+
+# Force migration deployment
+npx prisma migrate deploy --force
+```
+
+### Common Schema Errors
+```prisma
+// ❌ INCORRECT: Missing @id
+model User {
+  name String
+}
+
+// ✅ CORRECT: Proper model definition
+model User {
+  id   String @id @default(uuid())
+  name String
+}
+
+// ❌ INCORRECT: Circular relation without proper setup
+model User {
+  id       String @id @default(uuid())
+  posts    Post[]
+}
+
+// ✅ CORRECT: Proper relation setup
+model User {
+  id       String @id @default(uuid())
+  posts    Post[]
+}
+
+model Post {
+  id       String @id @default(uuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+}
+```
+
+## File References
+
+- `@prisma/schema.prisma` - Database schema definition
+- `@lib/prisma.ts` - Prisma client configuration
+- `@prisma/migrations/` - Database migration files
+- `@prisma/seed.ts` - Database seeding script
+- `@types/prisma.ts` - TypeScript types for database models

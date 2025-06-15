@@ -1,0 +1,128 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Project-Reference Maintenance Prompt
+
+You are tasked with conducting a comprehensive audit of all project documentation and ensuring the project-reference.mdc file is complete, accurate, and optimally organized as a comprehensive quick-start guide for AI agents.
+
+**IMPORTANT**: You will READ and analyze all other documentation files, but you will ONLY modify `.cursor/rules/project-reference.mdc`. Your job is to ensure project-reference.mdc perfectly represents and references the entire project ecosystem.
+
+**AI AGENT OPTIMIZATION**: When updating project-reference.mdc, prioritize AI agent comprehension:
+- Remove explanatory prose that would be obvious to AI agents
+- Use structured, parseable information formats
+- Prioritize actionable commands and precise syntax over explanatory text
+- Focus on hierarchical relationships and clear categorization
+- Eliminate redundant human-centric context
+- Maximize information density while maintaining clarity
+
+## Phase 1: Documentation Discovery & Analysis
+
+1. **Scan the entire project** for all documentation files:
+   - List all `.md` files in the project using file search and directory listing
+   - Check `/docs/` directory structure comprehensively
+   - Identify any documentation in other formats (`.txt`, inline code comments with significant docs, etc.)
+   - Check for any documentation in root directory (README.md, SETUP.md, etc.)
+
+2. **Categorize documentation** by type and purpose:
+   - **Core Project Docs**: requirements.md, design.md, architecture.md, etc.
+   - **Development Guides**: TESTING.md, formatting.md, solid-principles.md, etc.
+   - **Operational Docs**: ai-agent-guide.md, deployment guides, etc.
+   - **Story/Task Management**: stories.md, individual story files
+   - **Specialized Topics**: authentication, logging, specific technical areas
+   - **Configuration**: Setup guides, environment configuration, etc.
+
+3. **Extract essential AI-actionable information from each document**:
+   - Core purpose and scope (1-2 sentences max)
+   - Key commands, configurations, or procedures
+   - Critical dependencies or prerequisites
+   - Relationship to other system components
+   - When an AI agent should consult this doc (specific triggers/scenarios)
+
+## Phase 2: Current State Analysis
+
+4. **Analyze current project-reference.mdc for AI agent optimization**:
+   - What documentation files are already referenced?
+   - Are references structured for quick AI parsing?
+   - Do descriptions focus on actionable information vs explanatory prose?
+   - Are command examples precise and copy-pasteable?
+   - Are hierarchies and relationships clearly defined?
+
+5. **Check project-reference.mdc accuracy against actual project state**:
+   - Do CLI commands match exact syntax in package.json?
+   - Do tech stack versions match package.json and other config files?
+   - Do file paths use correct relative/absolute syntax?
+   - Are component descriptions focused on usage patterns vs theoretical explanations?
+   - Do environment variables match exact key names from .env.example?
+
+## Phase 3: CLI Command Comprehensive Audit
+
+6. **Extract and verify ALL CLI commands for AI agent usage**:
+   - Read package.json to get complete list of npm scripts with exact syntax
+   - Compare against what's documented in project-reference.mdc
+   - Identify missing commands and their exact parameters
+   - Verify command descriptions focus on what they DO, not why they exist
+   - Remove deprecated commands and outdated syntax
+   - Group commands by function (testing, development, deployment) for AI decision-making
+   - Include parameter options and flags where relevant
+
+## Phase 4: Project-Reference AI Agent Optimization
+
+7. **Assess completeness for AI agent decision-making**:
+   - Does project-reference.mdc link to EVERY significant documentation file?
+   - Do summaries enable AI agents to determine relevance without reading full docs?
+   - Are all major system components and their relationships mapped?
+   - Can an AI agent understand the complete development workflow from this doc alone?
+
+8. **Assess structure for AI parsing and navigation**:
+   - Is information hierarchically organized with clear section boundaries?
+   - Are commands grouped logically for AI decision trees?
+   - Are file paths and references structured consistently?
+   - Can AI agents quickly locate specific information types?
+   - Are cross-references and dependencies explicitly mapped?
+
+9. **Assess content optimization for AI agents**:
+   - Remove human motivational language and explanatory prose
+   - Focus on factual, actionable statements
+   - Use consistent terminology and naming conventions
+   - Prioritize structured lists over paragraph explanations
+   - Ensure command syntax is precise and executable
+   - Include error conditions and troubleshooting commands where relevant
+
+## Phase 5: Implementation
+
+10. **Update project-reference.mdc with AI agent optimizations**:
+    - Add missing documentation references with precise, action-oriented summaries
+    - Update CLI command sections with exact syntax and parameters
+    - Remove human-centric explanations and motivational content
+    - Restructure information for hierarchical AI parsing
+    - Ensure all commands are copy-pasteable and immediately executable
+    - Organize content by AI decision-making patterns (what to do when)
+    - Add conditional logic indicators where commands depend on context
+    - Include precise file paths and environment requirements
+
+## Success Criteria
+
+By the end of this audit, ensure project-reference.mdc:
+- ✅ Enables AI agents to understand and operate the project without human guidance
+- ✅ Contains no redundant explanatory prose aimed at humans
+- ✅ Provides precise, executable commands with exact syntax
+- ✅ Maps all system relationships and dependencies clearly
+- ✅ Uses structured, parseable information hierarchies
+- ✅ References every significant documentation file with actionable summaries
+- ✅ Allows AI agents to make informed decisions about when to consult detailed docs
+- ✅ Contains no human-centric context or motivational language
+- ✅ Maintains maximum information density with minimal explanatory overhead
+
+## Output Format
+
+Provide:
+1. **Executive Summary**: Assessment of AI agent optimization improvements made
+2. **Documentation Inventory**: All docs with AI-focused summaries showing when to consult each
+3. **CLI Command Optimization**: Commands restructured for AI execution with exact syntax
+4. **AI Agent Usability Improvements**: Specific changes made to optimize for AI comprehension
+5. **Information Density Analysis**: How redundancy was eliminated while preserving essential data
+
+**Remember**: Your goal is to make project-reference.mdc the optimal tool for AI agents to rapidly understand, navigate, and operate this project with maximum efficiency and minimal human intervention.
+

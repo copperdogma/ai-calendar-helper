@@ -1,0 +1,391 @@
+---
+globs: ["app/api/**", "**/*route.ts", "lib/api*"]
+alwaysApply: false
+---
+
+---
+description:
+globs:
+alwaysApply: false
+---
+# API Development Guide
+
+## Quick Commands
+
+```bash
+# API testing
+npm test tests/unit/api/        # Run API unit tests
+npm run test:coverage -- tests/unit/api/
+
+# API development server
+npm run ai:start               # Start PM2-managed dev server
+npm run ai:health             # Check API health endpoint
+npm run ai:logs               # View API logs
+
+# Database operations for APIs
+npx prisma db push            # Update database schema
+npx prisma studio             # View database data
+```
+
+## API Route Structure
+
+```
+app/api/
+├── auth/                     # NextAuth.js routes (auto-managed)
+├── health/                   # Health check endpoint
+├── user/                     # User management APIs
+└── [feature]/               # Feature-specific APIs
+```
+
+## API Route Implementation Patterns
+
+### Basic API Route (App Router)
+
+```typescript
+// app/api/example/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@/lib/auth-node'
+
+export async function GET(request: NextRequest) {
+  try {
+    // Authentication check
+    const session = await auth()
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Your API logic here
+    const data = await fetchData()
+    
+    return NextResponse.json({ data })
+  } catch (error) {
+    console.error('API Error:', error)
+    return NextResponse.json(
+      { error: 'Internal Server Error' }, 
+      { status: 500 }
+    )
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await auth()
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    // Validate input
+    if (!body.requiredField) {
+      return NextResponse.json(
+        { error: 'Missing required field' }, 
+        { status: 400 }
+      )
+    }
+
+    // Process request
+    const result = await processData(body)
+    
+    return NextResponse.json({ result }, { status: 201 })
+  } catch (error) {
+    console.error('API Error:', error)
+    return NextResponse.json(
+      { error: 'Internal Server Error' }, 
+      { status: 500 }
+    )
+  }
+}
+```
+
+### Protected API Route Pattern
+
+```typescript
+import { auth } from '@/lib/auth-node'
+import { NextRequest, NextResponse } from 'next/server'
+
+async function requireAuth() {
+  const session = await auth()
+  if (!session) {
+    throw new Error('Unauthorized')
+  }
+  return session
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const session = await requireAuth()
+    // Protected logic here
+    return NextResponse.json({ data: 'protected data' })
+  } catch (error) {
+    if (error.message === 'Unauthorized') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    return NextResponse.json({ error: 'Server Error' }, { status: 500 })
+  }
+}
+```
+
+### Database API Operations
+
+```typescript
+import { prisma } from '@/lib/prisma'
+
+export async function GET() {
+  try {
+    const session = await auth()
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const users = await prisma.user.findMany({
+      where: { id: session.user.id },
+      select: { id: true, name: true, email: true }
+    })
+
+    return NextResponse.json({ users })
+  } catch (error) {
+    console.error('Database error:', error)
+    return NextResponse.json(
+      { error: 'Database operation failed' }, 
+      { status: 500 }
+    )
+  }
+}
+```
+
+## Request Validation Patterns
+
+### Input Validation
+
+```typescript
+import { z } from 'zod'
+
+const CreateUserSchema = z.object({
+  name: z.string().min(1, 'Name required'),
+  email: z.string().email('Invalid email'),
+  age: z.number().min(18, 'Must be 18+').optional()
+})
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    
+    // Validate input
+    const validatedData = CreateUserSchema.parse(body)
+    
+    // Process validated data
+    const user = await createUser(validatedData)
+    
+    return NextResponse.json({ user }, { status: 201 })
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: error.errors }, 
+        { status: 400 }
+      )
+    }
+    return NextResponse.json({ error: 'Server Error' }, { status: 500 })
+  }
+}
+```
+
+### Query Parameter Handling
+
+```typescript
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url)
+  
+  const page = parseInt(searchParams.get('page') || '1')
+  const limit = parseInt(searchParams.get('limit') || '10')
+  const search = searchParams.get('search') || ''
+
+  // Validate parameters
+  if (page < 1 || limit < 1 || limit > 100) {
+    return NextResponse.json(
+      { error: 'Invalid pagination parameters' }, 
+      { status: 400 }
+    )
+  }
+
+  const results = await fetchPaginatedData({ page, limit, search })
+  return NextResponse.json(results)
+}
+```
+
+## Error Handling Standards
+
+### Standard Error Responses
+
+```typescript
+// Success responses
+return NextResponse.json({ data }, { status: 200 })
+return NextResponse.json({ message: 'Created' }, { status: 201 })
+
+// Error responses
+return NextResponse.json({ error: 'Bad Request' }, { status: 400 })
+return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+return NextResponse.json({ error: 'Not Found' }, { status: 404 })
+return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+```
+
+### Global Error Handler
+
+```typescript
+// lib/api-error-handler.ts
+export function handleApiError(error: unknown) {
+  console.error('API Error:', error)
+  
+  if (error instanceof z.ZodError) {
+    return NextResponse.json(
+      { error: 'Validation failed', details: error.errors }, 
+      { status: 400 }
+    )
+  }
+  
+  if (error instanceof PrismaClientKnownRequestError) {
+    if (error.code === 'P2002') {
+      return NextResponse.json(
+        { error: 'Resource already exists' }, 
+        { status: 409 }
+      )
+    }
+  }
+  
+  return NextResponse.json(
+    { error: 'Internal Server Error' }, 
+    { status: 500 }
+  )
+}
+```
+
+## Testing API Routes
+
+### Unit Test Pattern
+
+```typescript
+// tests/unit/api/example.test.ts
+import { NextRequest } from 'next/server'
+import { GET, POST } from '@/app/api/example/route'
+
+// Mock auth
+jest.mock('@/lib/auth-node', () => ({
+  auth: jest.fn()
+}))
+
+describe('/api/example', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  it('returns 401 when not authenticated', async () => {
+    (auth as jest.Mock).mockResolvedValue(null)
+    
+    const request = new NextRequest('http://localhost/api/example')
+    const response = await GET(request)
+    
+    expect(response.status).toBe(401)
+    const data = await response.json()
+    expect(data.error).toBe('Unauthorized')
+  })
+
+  it('returns data when authenticated', async () => {
+    (auth as jest.Mock).mockResolvedValue({ user: { id: '1' } })
+    
+    const request = new NextRequest('http://localhost/api/example')
+    const response = await GET(request)
+    
+    expect(response.status).toBe(200)
+    const data = await response.json()
+    expect(data).toHaveProperty('data')
+  })
+})
+```
+
+## CORS Configuration
+
+```typescript
+// For API routes that need CORS
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  })
+}
+```
+
+## Rate Limiting
+
+```typescript
+// lib/rate-limit.ts
+import { redis } from '@/lib/redis'
+
+export async function rateLimit(identifier: string, limit: number, window: number) {
+  if (!redis) return true // Fail open if Redis unavailable
+  
+  const key = `rate_limit:${identifier}`
+  const current = await redis.incr(key)
+  
+  if (current === 1) {
+    await redis.expire(key, window)
+  }
+  
+  return current <= limit
+}
+
+// In API route
+const clientIP = request.headers.get('x-forwarded-for') || 'unknown'
+const allowed = await rateLimit(clientIP, 100, 3600) // 100 requests per hour
+
+if (!allowed) {
+  return NextResponse.json(
+    { error: 'Too many requests' }, 
+    { status: 429 }
+  )
+}
+```
+
+## Health Check Implementation
+
+```typescript
+// app/api/health/route.ts
+import { NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+
+export async function GET() {
+  try {
+    // Check database connection
+    await prisma.$queryRaw`SELECT 1`
+    
+    return NextResponse.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      services: {
+        database: 'healthy'
+      }
+    })
+  } catch (error) {
+    return NextResponse.json(
+      {
+        status: 'error',
+        timestamp: new Date().toISOString(),
+        services: {
+          database: 'unhealthy'
+        }
+      },
+      { status: 503 }
+    )
+  }
+}
+```
+
+## References
+
+- @app/api - API route implementations
+- @lib/prisma.ts - Database client
+- @lib/auth-node.ts - Server-side authentication
+- @tests/unit/api - API unit tests

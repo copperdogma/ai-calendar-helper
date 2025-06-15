@@ -1,0 +1,277 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Project Documentation Optimization with Cursor Rules Strategy
+
+You are tasked with conducting a comprehensive audit of all project documentation and implementing a strategic split between **Cursor Rules** (auto-injected AI context) and **Reference Documentation** (comprehensive guides).
+
+**CRITICAL: USE @scratchpad.md FOR TASK MANAGEMENT**
+
+This is a complex, multi-phase project with potentially MANY documents to process. You MUST:
+- Write your complete action plan in `@scratchpad.md` under a "Documentation Optimization" section
+- Create detailed checklists for each phase (discovery, analysis, cursor rules creation, reference docs optimization)
+- Check off items as you complete them in `@scratchpad.md`
+- Update progress regularly so you can resume if interrupted
+- Document decisions and rationale in `@scratchpad.md` for reference
+
+**Example scratchpad structure:**
+```
+## Documentation Optimization Project
+
+### Phase 1: Discovery ✅ COMPLETE
+- [x] List all technical documentation files
+- [x] Categorize by cursor rules vs reference docs
+- [x] Identify glob patterns for auto-attached rules
+
+### Phase 2: Cursor Rules Creation 🔄 IN PROGRESS
+- [x] Create testing.mdc with auto-attach globs
+- [ ] Create authentication.mdc rule
+- [ ] Create api-development.mdc rule
+...
+```
+
+## Strategic Framework: Cursor Rules vs Reference Documentation
+
+### Understanding Cursor Rule Types
+Cursor supports 4 rule types in `.cursor/rules/` directory:
+
+1. **Always Rules** (`alwaysApply: true`): Auto-injected into every context
+2. **Auto Attached Rules** (`globs: ["pattern"]`): Injected when files matching glob patterns are referenced  
+3. **Agent Requested Rules** (`description: "..."`): AI decides when to fetch based on description
+4. **Manual Rules** (no metadata): Only when explicitly called with @ruleName
+
+### What Should Become Cursor Rules (.cursor/rules/)
+
+**Always Rules:**
+- Core development constraints and safety rules
+- Critical workflow procedures
+- Project-specific conventions that apply everywhere
+
+**Auto Attached Rules (with appropriate globs):**
+- `testing.mdc` - globs: `["**/*.test.*", "**/*.spec.*", "tests/**", "**/jest.config.*", "**/playwright.config.*"]`
+- `authentication.mdc` - globs: `["**/auth/**", "**/login/**", "lib/auth*", "middleware.ts"]`
+- `api-development.mdc` - globs: `["app/api/**", "**/*route.ts", "lib/api*"]`
+- `ui-components.mdc` - globs: `["components/**", "**/*.tsx", "app/**/page.tsx"]`
+- `database.mdc` - globs: `["prisma/**", "lib/prisma*", "**/*migration*"]`
+- `deployment.mdc` - globs: `["fly.toml", "Dockerfile", "ecosystem.config.js", "scripts/deploy*"]`
+- `formatting-linting.mdc` - globs: `["eslint.config.*", "prettier.config.*", "**/.prettierrc*"]`
+
+**Agent Requested Rules:**
+- `debugging.mdc` - description: "Debugging procedures and troubleshooting steps"
+- `performance.mdc` - description: "Performance optimization guidelines and profiling"
+- `security.mdc` - description: "Security best practices and vulnerability fixes"
+
+### What Should Stay as Reference Documentation (docs/)
+
+**Project Management & Architecture:**
+- `requirements.md`, `design.md`, `architecture.md` - Strategic decisions and system design
+- `stories.md` + `stories/` - Project management and feature tracking
+- `build-log/` - Historical tracking and development progress
+
+**Comprehensive Guides for Human Developers:**
+- Detailed implementation tutorials and examples
+- Complete configuration explanations
+- Background context and architectural reasoning
+- Troubleshooting guides too extensive for cursor rules
+
+## Cursor Rule Creation Guidelines
+
+### MDC Format Structure
+```mdc
+---
+description: "Brief description for Agent Requested rules"
+globs: ["pattern1", "pattern2"] # For Auto Attached rules
+alwaysApply: false # true only for Always rules
+---
+
+# Rule Content
+
+## Quick Commands
+List essential commands and shortcuts
+
+## Procedures
+Step-by-step actionable procedures
+
+## Common Patterns
+Code patterns and conventions to follow
+
+## Error Handling
+Common issues and immediate solutions
+
+## References
+@filename.ts for additional context files
+```
+
+### How to Create/Update Cursor Rules
+
+**Quick Process:**
+1. Use `edit_file` tool targeting `.cursor/rules/rule-name.mdc`
+2. Add content only (Cursor auto-adds YAML frontmatter)
+3. Verify in Cursor editor (not terminal)
+
+**For complete details:** See @cursor-rules.mdc
+
+### Content Guidelines for Cursor Rules
+- **Actionable Only**: Focus on "what to do now" vs comprehensive explanations
+- **Concise**: Under 500 lines, focused on immediate procedural guidance
+- **Structured**: Use consistent headings and bullet points for AI parsing
+- **Current**: Include exact command syntax, file paths, error patterns
+- **Context-Aware**: Reference specific project files with @filename when relevant
+
+### Content Guidelines for Reference Docs
+- **Comprehensive**: Detailed explanations and background context
+- **Educational**: Include "why" explanations and architectural reasoning
+- **Examples**: Complete code examples and tutorials
+- **Troubleshooting**: Extensive problem-solving guides
+- **History**: Design decisions and evolution of patterns
+
+**SCOPE**: Transform ALL technical documentation. Do NOT modify:
+- Project management docs (stories.md, scratchpad.md, individual story files)
+- Build logs or historical tracking
+- Template files used for generating new content
+
+## Phase 1: Documentation Discovery & Strategic Categorization
+
+1. **Scan for all technical documentation**:
+   - List all `.md` files in project root and `/docs/` directory
+   - Identify configuration files (eslint, prettier, jest, playwright configs)
+   - Check for existing cursor rules in `.cursor/rules/`
+   - Map file patterns for potential glob matching
+
+2. **Categorize for Cursor Rules vs Reference Documentation**:
+
+   **For Cursor Rules Creation:**
+   - **Testing procedures** (TESTING.md → testing.mdc)
+   - **Authentication flows** (AUTHENTICATION.md → authentication.mdc)  
+   - **Development standards** (formatting.md, solid-principles.md → formatting-linting.mdc)
+   - **TypeScript rules** (typescript-eslint-rules.md → integrate into existing rules)
+   - **Logging conventions** (logging.md → debugging.mdc)
+   - **Deployment procedures** (deployment/* → deployment.mdc)
+
+   **Keep as Reference Documentation:**
+   - **Architecture & Design** (requirements.md, design.md, architecture.md)
+   - **Project Management** (stories.md, stories/*, build-log/*)
+   - **Comprehensive Guides** (detailed tutorials, extensive troubleshooting)
+   - **Examples & Templates** (examples/*, templates/*)
+
+3. **Map glob patterns for auto-attached rules**:
+   - Testing: `["**/*.test.*", "**/*.spec.*", "tests/**", "**/jest.config.*", "**/playwright.config.*"]`
+   - Authentication: `["**/auth/**", "**/login/**", "lib/auth*", "middleware.ts", "app/api/auth/**"]`
+   - API Development: `["app/api/**", "**/*route.ts", "lib/api*"]`
+   - Components: `["components/**", "**/*.tsx", "app/**/page.tsx", "app/**/layout.tsx"]`
+   - Database: `["prisma/**", "lib/prisma*", "**/*migration*", "**/*seed*"]`
+   - Deployment: `["fly.toml", "Dockerfile", "ecosystem.config.js", "scripts/deploy*"]`
+
+## Phase 2: Cursor Rules Creation & Content Extraction
+
+4. **Create auto-attached cursor rules from existing documentation**:
+   - **Extract actionable procedures** from comprehensive docs into focused rules
+   - **Strip explanatory context** - focus on "what to do" not "why"
+   - **Structure for AI parsing** - use consistent headings and bullet points
+   - **Include specific commands** - exact syntax, file paths, error patterns
+   - **Add glob patterns** - ensure rules activate in relevant contexts
+
+5. **Transform content for cursor rules**:
+   - **Commands Section**: List essential CLI commands and shortcuts
+   - **Procedures Section**: Step-by-step actionable instructions  
+   - **Patterns Section**: Code conventions and standards to follow
+   - **Error Handling Section**: Common issues and immediate solutions
+   - **References Section**: Use @filename.ts for context files
+
+6. **Verify technical accuracy and currency**:
+   - Check CLI commands against package.json scripts
+   - Verify file paths match actual project structure  
+   - Confirm glob patterns will match intended files
+   - Test that referenced files (@filename) actually exist
+   - Ensure commands work in current environment
+
+## Phase 3: Reference Documentation Optimization
+
+7. **Optimize remaining reference documentation**:
+   - **Keep comprehensive guides** for complex topics requiring detailed explanation
+   - **Preserve architectural context** that helps understand system design decisions
+   - **Maintain human-readable tutorials** and step-by-step implementation guides
+   - **Retain troubleshooting sections** too extensive for cursor rules
+   - **Update cross-references** to point to new cursor rules where appropriate
+
+8. **Eliminate redundancy between cursor rules and reference docs**:
+   - Remove procedural content now covered by cursor rules
+   - Add references to cursor rules in comprehensive guides
+   - Focus reference docs on "why" explanations and background context
+   - Ensure no conflicting information between rule and doc versions
+
+## Phase 4: Implementation & Integration Strategy
+
+9. **Implement cursor rules systematically**:
+   - Start with highest-impact rules (testing, authentication)
+   - Test glob patterns match intended files
+   - Verify rules activate in expected contexts
+   - Ensure MDC frontmatter is properly formatted
+   - Add cursor rules directory to `.gitignore` and `.cursorindexingignore`
+
+10. **Update reference documentation**:
+    - Streamline comprehensive guides by removing now-redundant procedural content
+    - Add clear references to related cursor rules
+    - Focus on architectural explanations and design rationale
+    - Maintain examples and tutorials that provide educational value
+
+## Phase 5: Validation & Quality Assurance
+
+11. **Test cursor rules effectiveness**:
+    - Verify auto-attached rules activate when working on relevant files
+    - Test that glob patterns correctly match intended file types
+    - Ensure rules provide sufficient context without overwhelming content
+    - Confirm rule descriptions help agent-requested rules get selected appropriately
+    - Validate that essential procedures are easily accessible
+
+12. **Validate reference documentation**:
+    - Ensure comprehensive guides still provide complete context
+    - Verify cross-references to cursor rules are accurate
+    - Confirm no essential information was lost in the conversion
+    - Test that troubleshooting guides remain comprehensive
+    - Validate examples and tutorials still work correctly
+
+13. **Final integration and cleanup**:
+    - Update any remaining cross-references between documents
+    - Ensure consistent formatting across cursor rules
+    - Add `.cursor/rules/` to appropriate ignore files
+    - Remove any redundant or superseded documentation files
+    - Create summary documentation of the new organization
+
+## Success Criteria
+
+By the end of this transformation, ensure:
+
+**Cursor Rules (.cursor/rules/):**
+- ✅ Auto-attached rules activate precisely when working on relevant files
+- ✅ Rules contain actionable, procedural guidance focused on "what to do"
+- ✅ Content is concise (under 500 lines), structured, and AI-parseable
+- ✅ Commands include exact syntax and current file paths
+- ✅ Glob patterns accurately target intended file types
+
+**Reference Documentation (docs/):**
+- ✅ Comprehensive guides provide architectural context and reasoning
+- ✅ Content focuses on "why" explanations and design decisions
+- ✅ Tutorials and examples remain complete and educational
+- ✅ No redundant procedural content that's covered by cursor rules
+- ✅ Cross-references to cursor rules are accurate and helpful
+
+**Overall System:**
+- ✅ Clear separation between operational guidance (rules) and comprehensive reference (docs)
+- ✅ No conflicting information between cursor rules and reference docs
+- ✅ AI agents get relevant context automatically when working in specific areas
+- ✅ Human developers can still access comprehensive guides for learning and troubleshooting
+
+## Output Format
+
+Provide:
+1. **Cursor Rules Implementation Summary**: List of created/updated rules with their types and glob patterns
+2. **Reference Documentation Optimization Report**: Changes made to streamline and focus remaining docs
+3. **Strategic Transformation Summary**: How the split between cursor rules and reference docs improves AI assistance
+4. **Validation Results**: Testing of cursor rules activation and reference doc completeness
+5. **Organization Benefits**: Specific improvements in AI context efficiency and developer experience
+6. **Maintenance Guidelines**: How to maintain this separation going forward
+
+**Remember**: Your goal is to create a strategic split where cursor rules provide just-in-time operational guidance to AI agents, while reference documentation serves as comprehensive guides for human developers and complex troubleshooting scenarios.

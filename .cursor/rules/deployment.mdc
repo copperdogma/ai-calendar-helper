@@ -1,0 +1,324 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Deployment Procedures
+
+## Quick Commands
+
+### PM2 Server Management (Development)
+```bash
+# Start AI agent server (background PM2 process)
+npm run ai:start
+
+# Health check
+npm run ai:health
+
+# Check server status and port
+npm run ai:status
+npm run ai:port
+
+# View logs (last 100 lines)
+npm run ai:logs
+
+# Restart server
+npm run ai:restart
+
+# Stop server
+npm run ai:stop
+
+# Verify port availability
+npm run ai:verify-port
+```
+
+### Fly.io Deployment
+```bash
+# Deploy to production
+npm run deploy:fly
+
+# Check deployment status
+fly status --app ai-calendar-helper
+
+# View production logs
+fly logs --app ai-calendar-helper
+
+# Scale application
+fly scale count 1 --app ai-calendar-helper
+
+# SSH into production
+fly ssh console --app ai-calendar-helper
+
+# Check app info
+fly info --app ai-calendar-helper
+```
+
+### Build & Validation
+```bash
+# Full build validation before deploy
+npm run build:clean
+
+# Run complete test suite
+npm run test:ci
+
+# Check for linting issues
+npm run validate
+
+# Bundle analysis
+npm run build:analyze
+```
+
+## PM2 Configuration
+
+### Local Development Server (`ecosystem.config.js`)
+```javascript
+module.exports = {
+  apps: [{
+    name: 'ai-calendar-helper',
+    script: 'node_modules/.bin/next',
+    args: 'start -p 3777',
+    cwd: '/Users/cam/Documents/Projects/ai-calendar-helper',
+    env: {
+      NODE_ENV: 'production',
+      PORT: '3777',
+    },
+    instances: 1,
+    exec_mode: 'fork',
+    watch: false,
+    max_memory_restart: '1G',
+    error_file: './logs/err.log',
+    out_file: './logs/out.log',
+    log_file: './logs/combined.log',
+    time: true
+  }]
+};
+```
+
+### PM2 Troubleshooting
+**Server won't start**:
+```bash
+# Check PM2 process list
+pm2 list
+
+# Delete stuck processes
+pm2 delete ai-calendar-helper
+
+# Start with verbose logging
+PM2_DEBUG=true npm run ai:start
+
+# Check port conflicts
+lsof -i :3777
+```
+
+**Memory issues**:
+```bash
+# Monitor resource usage
+pm2 monit
+
+# Check memory restart events
+pm2 logs --lines 50
+
+# Restart with increased memory
+pm2 restart ai-calendar-helper --max-memory-restart 2G
+```
+
+## Fly.io Configuration
+
+### App Configuration (`fly.toml`)
+```toml
+app = "ai-calendar-helper"
+primary_region = "sea"
+
+[build]
+  builder = "heroku/buildpacks:20"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "8080"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[statics]]
+  guest_path = "/app/public"
+  url_prefix = "/static/"
+```
+
+### Environment Variables Management
+```bash
+# Set production environment variables
+fly secrets set NEXTAUTH_SECRET="$(openssl rand -base64 32)" --app ai-calendar-helper
+fly secrets set DATABASE_URL="postgresql://..." --app ai-calendar-helper
+fly secrets set GOOGLE_CLIENT_ID="..." --app ai-calendar-helper
+fly secrets set GOOGLE_CLIENT_SECRET="..." --app ai-calendar-helper
+fly secrets set OPENAI_API_KEY="..." --app ai-calendar-helper
+
+# List current secrets
+fly secrets list --app ai-calendar-helper
+
+# Remove a secret
+fly secrets unset SECRET_NAME --app ai-calendar-helper
+```
+
+### Database Management
+```bash
+# Create Postgres database
+fly postgres create --name ai-calendar-helper-db --region sea
+
+# Get database URL
+fly postgres connect --app ai-calendar-helper-db
+
+# Run migrations on production
+fly ssh console --app ai-calendar-helper
+npx prisma migrate deploy
+```
+
+## Deployment Workflows
+
+### Pre-deployment Checklist
+- [ ] All tests passing: `npm run test:ci`
+- [ ] No linting errors: `npm run validate`
+- [ ] Environment variables set in Fly.io
+- [ ] Database migrations ready
+- [ ] Production build successful: `npm run build`
+
+### Standard Deployment Process
+```bash
+# 1. Validate locally
+npm run validate && npm test && npm run test:e2e
+
+# 2. Build production bundle
+npm run build
+
+# 3. Deploy to Fly.io
+npm run deploy:fly
+
+# 4. Verify deployment
+fly status --app ai-calendar-helper
+curl -I https://ai-calendar-helper.fly.dev/api/health
+
+# 5. Check application logs
+fly logs --app ai-calendar-helper
+```
+
+### Emergency Rollback
+```bash
+# List recent releases
+fly releases --app ai-calendar-helper
+
+# Rollback to previous version
+fly releases rollback v2 --app ai-calendar-helper
+
+# Check rollback status
+fly status --app ai-calendar-helper
+```
+
+## Production Troubleshooting
+
+### Application Not Starting
+**Check deployment logs**:
+```bash
+fly logs --app ai-calendar-helper | tail -50
+```
+
+**Common issues**:
+1. Missing environment variables → Check `fly secrets list`
+2. Database connection → Verify `DATABASE_URL` secret
+3. Build failures → Check `fly logs` during deployment
+4. Port binding → Ensure app listens on `$PORT` or 8080
+
+### Performance Issues
+**Monitor resource usage**:
+```bash
+fly status --app ai-calendar-helper
+fly logs --app ai-calendar-helper | grep -E "(memory|cpu)"
+```
+
+**Scale resources**:
+```bash
+# Increase machine size
+fly scale vm shared-cpu-2x --app ai-calendar-helper
+
+# Add more instances
+fly scale count 2 --app ai-calendar-helper
+```
+
+### Database Connection Issues
+**Check connection**:
+```bash
+fly ssh console --app ai-calendar-helper
+node -e "require('./lib/prisma').prisma.\$queryRaw\`SELECT 1\`.then(console.log)"
+```
+
+**Reset connections**:
+```bash
+# Restart application
+fly apps restart ai-calendar-helper
+
+# Check database status
+fly postgres list
+```
+
+### SSL/HTTPS Issues
+**Force HTTPS redirect** (already configured in fly.toml):
+```toml
+[http_service]
+  force_https = true
+```
+
+**Certificate problems**:
+```bash
+# Check certificate status
+fly certs list --app ai-calendar-helper
+
+# Add custom domain certificate
+fly certs create yourdomain.com --app ai-calendar-helper
+```
+
+## Production Monitoring
+
+### Health Checks
+```bash
+# Application health endpoint
+curl https://ai-calendar-helper.fly.dev/api/health
+
+# Database connectivity
+curl https://ai-calendar-helper.fly.dev/api/health/db
+
+# Authentication status
+curl https://ai-calendar-helper.fly.dev/api/auth/session
+```
+
+### Log Analysis
+```bash
+# Real-time logs
+fly logs --app ai-calendar-helper -f
+
+# Filter error logs
+fly logs --app ai-calendar-helper | grep -i error
+
+# Application performance logs
+fly logs --app ai-calendar-helper | grep -E "(GET|POST|PUT|DELETE)"
+```
+
+### Backup Procedures
+```bash
+# Database backup
+fly postgres export --app ai-calendar-helper-db
+
+# Configuration backup
+fly config show --app ai-calendar-helper > config-backup.toml
+```
+
+## File References
+
+- `@fly.toml` - Fly.io app configuration
+- `@ecosystem.config.js` - PM2 local server configuration  
+- `@package.json` - NPM scripts for deployment
+- `@Dockerfile` - Container build instructions (if using Docker)
+- `@scripts/deploy*` - Custom deployment scripts
+- `@prisma/migrations/` - Database migration files

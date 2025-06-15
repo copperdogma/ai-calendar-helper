@@ -1,0 +1,10 @@
+---
+globs: ["**/auth/**", "**/login/**", "lib/auth*", "middleware.ts", "app/api/auth/**"]
+alwaysApply: false
+---
+
+---
+description:
+globs:
+alwaysApply: false
+---
