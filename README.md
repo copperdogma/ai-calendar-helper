@@ -309,3 +309,17 @@ For questions or issues:
 ---
 
 Built with ❤️ using Next.js, NextAuth.js, and modern web technologies.
+
+## Error Handling & Monitoring
+
+The application has comprehensive, centralized error management powered by **Sentry (free Developer plan)**.
+
+• **ApiError + handleApiError** – All API routes throw or wrap errors in `ApiError` which is converted into a standard JSON envelope (`{ success:false, error:{ code, message } }`) with appropriate HTTP status codes. Errors are captured in Sentry automatically.
+
+• **Client & Edge Errors** – `components/ErrorBoundary` catches React runtime errors, logs them, sends them to Sentry, and surfaces a non-intrusive Snackbar toast to the user.
+
+• **Global /404 /500 pages** – Friendly, dark-mode-aware pages located at `app/error.tsx`, `app/not-found.tsx`, and `app/global-error.tsx` provide users feedback while Sentry captures the stack trace.
+
+• **Testing** – Unit tests cover `ApiError` behavior and API envelopes; Playwright E2E test (`tests/e2e/ui/error-handling.spec.ts`) verifies that a runtime error triggers both a toast notification and an outgoing Sentry event.
+
+Configuration: set `SENTRY_DSN` in `.env.local`. The DSN can be blank in local dev; SDK auto-disables. For staging/prod, use the DSN from your Sentry project.

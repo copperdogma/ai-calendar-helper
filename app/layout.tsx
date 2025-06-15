@@ -12,6 +12,7 @@ import { CssBaseline, Box } from '@mui/material';
 import Header from '@/components/layouts/Header';
 import Footer from '@/components/layouts/Footer';
 import { SkipToContent } from '@/components/layouts/SkipToContent';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const roboto = Roboto({
   weight: ['300', '400', '500', '700'],
@@ -56,7 +57,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     id="main-content"
                     aria-label="Main application content"
                   >
-                    <BaseLayout>{children}</BaseLayout>
+                    <ErrorBoundary>
+                      <BaseLayout>{children}</BaseLayout>
+                    </ErrorBoundary>
                     <Toaster />
                   </Box>
                   <Footer />

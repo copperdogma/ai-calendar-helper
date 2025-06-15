@@ -1,55 +1,45 @@
-import Link from 'next/link';
-import PageLayout from '@/components/layouts/PageLayout';
-import { Typography, Button, Paper } from '@mui/material';
-import { ErrorOutline } from '@mui/icons-material';
-import React from 'react';
+'use client';
 
-export default function NotFound() {
+import Link from 'next/link';
+import { Typography, Button, Paper, Container } from '@mui/material';
+import { SearchOffOutlined } from '@mui/icons-material';
+
+export default function NotFoundPage() {
   return (
-    <PageLayout title="404" subtitle="Page Not Found">
+    <Container component="div" maxWidth="sm" sx={{ mt: 4, mb: 4 }}>
       <Paper
-        elevation={1}
+        elevation={3}
         sx={{
-          p: { xs: 4, sm: 6 },
-          borderRadius: 2,
+          p: { xs: 3, sm: 4 },
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
           textAlign: 'center',
-          my: 4,
-          maxWidth: 600,
-          mx: 'auto',
-          bgcolor: 'var(--mui-palette-background-paper, (theme) => theme.palette.background.paper)',
-          color: 'var(--mui-palette-text-primary, (theme) => theme.palette.text.primary)',
+          borderRadius: 2,
         }}
-        className="theme-aware-paper"
       >
-        <ErrorOutline
+        <SearchOffOutlined
           sx={{
-            fontSize: 80,
+            fontSize: 60,
             color: 'text.secondary',
-            mb: 3,
+            mb: 2,
           }}
         />
-
-        <Typography variant="h4" component="h2" gutterBottom sx={{ fontWeight: 'medium' }}>
-          Page Not Found
+        <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'medium' }}>
+          Page not found
         </Typography>
-
         <Typography
           variant="body1"
           color="text.secondary"
           paragraph
-          sx={{
-            maxWidth: 450,
-            mx: 'auto',
-            mb: 4,
-          }}
+          sx={{ maxWidth: 450, mx: 'auto', mb: 3 }}
         >
-          The page you are looking for doesn't exist or has been moved.
+          Sorry, we couldn't find the page you're looking for.
         </Typography>
-
-        <Button component={Link} href="/" variant="contained" size="large">
-          Return to Home
+        <Button variant="contained" component={Link} href="/" size="large">
+          Back to Home
         </Button>
       </Paper>
-    </PageLayout>
+    </Container>
   );
 }

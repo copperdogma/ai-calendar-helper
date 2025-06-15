@@ -32,7 +32,7 @@ AI Calendar Helper
 | 008      | Add ICS file generation & download               | Medium   | Done      | /docs/stories/story-008-ics-generation.md       |
 | 009      | Implement confidence scoring display             | Medium   | Done      | /docs/stories/story-009-confidence-scoring.md   |
 | 010      | Add batch calendar actions                       | Medium   | Cancelled | /docs/stories/story-010-batch-actions.md        |
-| 011      | Create smart defaults & preferences              | Medium   | To Do     | /docs/stories/story-011-user-preferences.md     |
+| 011      | Create smart defaults & preferences              | Medium   | Cancelled | /docs/stories/story-011-user-preferences.md     |
 | 012      | Implement timezone detection/selection           | Medium   | Done      | /docs/stories/story-012-timezone-handling.md    |
 | 035      | Enhance AI parsing for multiple events           | High     | Done      | /docs/stories/story-035-multi-event-parsing.md  |
 | 032      | Implement Calendar Parser page & default routing | High     | Done      | /docs/stories/story-032-calendar-parser-page.md |
@@ -89,6 +89,13 @@ AI Calendar Helper
 | -------- | ---------------------------------- | -------- | ------ | ---------------------------------------------------- |
 | 036      | Prompt Refinement Harness          | Medium   | Done   | /docs/stories/story-036-prompt-refinement-harness.md |
 | 038      | Event Splitting Evaluation Harness | Medium   | Done   | /docs/stories/story-038-event-splitting-eval.md      |
+
+### Phase 9: Notifications & Reporting (Priority: Medium)
+
+| Story ID | Title                                                 | Priority | Status | Link                                          |
+| -------- | ----------------------------------------------------- | -------- | ------ | --------------------------------------------- |
+| 039      | Email notification on new user sign-up                | Medium   | To Do  | /docs/stories/story-039-email-on-signup.md    |
+| 040      | Daily usage report email with top 20 users by service | Medium   | To Do  | /docs/stories/story-040-daily-usage-report.md |
 
 ## Priority Definitions
 

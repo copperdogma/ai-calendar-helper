@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { withApiLogger, createErrorResponse } from '@/lib/services/api-logger-service';
+import { withApiLogger } from '@/lib/services/api-logger-service';
 import pino from 'pino';
 import { prisma } from '@/lib/prisma';
+import { ApiError } from '@/lib/errors/ApiError';
+import { handleApiError } from '@/lib/errors/handleApiError';
 
 // Schema for validating POST request data
 const HealthCheckRequestSchema = z.object({
@@ -47,17 +49,10 @@ async function parseAndValidateRequest(
 
   if (!result.success) {
     logger.warn({ validationErrors: result.error.format() }, 'Invalid health check request format');
-
-    // Using consistent error structure with ValidationError code
     return {
       isValid: false,
-      error: NextResponse.json(
-        {
-          error: 'ValidationError',
-          message: 'Invalid health check request format',
-          details: result.error.format(),
-        },
-        { status: 400 }
+      error: handleApiError(
+        new ApiError(400, 'Invalid health check request format', 'VALIDATION_ERROR')
       ),
     };
   }
@@ -111,20 +106,8 @@ function createSuccessResponse(checkDatabase: boolean, timeout: number): NextRes
 /**
  * Handles errors with appropriate logging and response
  */
-function handleError(error: unknown, request: NextRequest, logger: pino.Logger): NextResponse {
-  logger.error({ error }, 'Health check POST request processing failed');
-
-  if (request.headers.has('x-request-id')) {
-    return createErrorResponse(error, request.headers.get('x-request-id') || 'unknown');
-  }
-
-  return NextResponse.json(
-    {
-      error: 'InternalServerError',
-      message: error instanceof Error ? error.message : String(error),
-    },
-    { status: 500 }
-  );
+function handleError(error: unknown): NextResponse {
+  return handleApiError(error);
 }
 
 /**
@@ -171,7 +154,7 @@ export const POST = withApiLogger(
       // Return success response
       return createSuccessResponse(checkDatabase, timeout);
     } catch (error) {
-      return handleError(error, request, logger);
+      return handleError(error);
     }
   }
 );

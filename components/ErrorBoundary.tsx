@@ -3,6 +3,8 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { clientLogger } from '@/lib/client-logger';
 import { getDisplayErrorMessage, shouldShowErrorDetails } from '@/lib/utils/error-display';
+import * as Sentry from '@sentry/nextjs';
+import { toast } from '@/components/ui/Toaster';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -39,6 +41,10 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     // Log the error to an error reporting service
     clientLogger.error('Error caught by ErrorBoundary', { error, errorInfo });
+    Sentry.captureException(error);
+
+    // Surface a user-friendly notification
+    toast.error('Something went wrong. Our team has been notified.', 'Unexpected error');
 
     // Call onError callback if provided
     if (this.props.onError) {

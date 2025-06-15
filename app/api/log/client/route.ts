@@ -7,6 +7,8 @@ import {
   consumeRateLimit,
   addRateLimitHeaders,
 } from '@/lib/utils/rate-limiters-middleware'; // Path to our rate limiter utils
+import { ApiError } from '@/lib/errors/ApiError';
+import { handleApiError } from '@/lib/errors/handleApiError';
 
 // Define Zod schema for expected log entry structure
 const ClientLogSchema = z.object({
@@ -34,10 +36,7 @@ async function handleLogProcessing(body: unknown): Promise<NextResponse> {
       },
       'Invalid client log entry received'
     );
-    return NextResponse.json(
-      { error: 'Invalid log entry', details: result.error.format() },
-      { status: 400 }
-    );
+    throw new ApiError(400, 'Invalid log entry', 'BAD_REQUEST');
   }
 
   const { level, message, context: clientContext, timestamp: clientTimestamp } = result.data;
@@ -70,22 +69,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const body = await request.json();
     response = await handleLogProcessing(body);
   } catch (error) {
-    // Log the error during processing on the server using the logger
-    const err = error instanceof Error ? error : new Error(String(error));
-    logger.error(
-      {
-        err: { name: err.name, message: err.message, stack: err.stack },
-        location: 'client-log-api-post-handler',
-      },
-      'Error processing client log entry in POST handler'
-    );
-    response = NextResponse.json(
-      {
-        error: err.name === 'Error' ? 'InternalServerError' : err.name,
-        message: err.message,
-      },
-      { status: 500 }
-    );
+    response = handleApiError(error);
   }
 
   // Add rate limit headers to the successful response or caught error response

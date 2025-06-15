@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { AIProcessingService } from '@/lib/ai';
 import { ExtractedEvent } from '@/types/events';
 import { z } from 'zod';
+import { ApiError } from '@/lib/errors/ApiError';
+import { handleApiError } from '@/lib/errors/handleApiError';
 
 /**
  * Request body schema for parsing calendar events
@@ -32,7 +34,8 @@ export type ParseEventsRequest = z.infer<typeof RequestSchema>;
 function validateRequest(data: unknown): ParseEventsRequest {
   const parsed = RequestSchema.safeParse(data);
   if (!parsed.success) {
-    throw new Error(parsed.error.message);
+    // Throw a validation ApiError so it propagates to the handler
+    throw new ApiError(400, parsed.error.message, 'VALIDATION_ERROR');
   }
   return parsed.data;
 }
@@ -168,43 +171,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(payload);
   } catch (error) {
     console.error(`❌ [${requestId}] AI parsing error:`, error);
-    console.error(
-      `❌ [${requestId}] Error stack:`,
-      error instanceof Error ? error.stack : 'No stack trace'
-    );
 
-    // Handle specific error types
+    // Map known error messages to ApiError instances for consistency
     if (error instanceof Error) {
       if (error.message.includes('OPENAI_API_KEY')) {
-        console.error(`❌ [${requestId}] OpenAI API key missing or invalid`);
-        return NextResponse.json({ error: 'AI service not configured properly' }, { status: 500 });
-      }
-
-      if (error.message.includes('Rate limit')) {
-        console.error(`❌ [${requestId}] Rate limit exceeded`);
-        return NextResponse.json(
-          { error: 'AI service temporarily unavailable. Please try again in a moment.' },
-          { status: 429 }
+        error = new ApiError(500, 'AI service not configured properly', 'CONFIG_ERROR');
+      } else if (error.message.includes('Rate limit')) {
+        error = new ApiError(
+          429,
+          'AI service temporarily unavailable. Please try again in a moment.',
+          'RATE_LIMIT'
         );
-      }
-
-      if (error.message.includes('Invalid response')) {
-        console.error(`❌ [${requestId}] Invalid AI response format`);
-        return NextResponse.json(
-          {
-            error:
-              'Could not parse the text. Please try rephrasing or providing more specific details.',
-          },
-          { status: 422 }
+      } else if (error.message.includes('Invalid response')) {
+        error = new ApiError(
+          422,
+          'Could not parse the text. Please try rephrasing or providing more specific details.',
+          'PARSE_ERROR'
         );
       }
     }
 
-    console.error(`❌ [${requestId}] Unhandled error, returning generic 500`);
-    return NextResponse.json(
-      { error: 'Failed to process text. Please try again.' },
-      { status: 500 }
-    );
+    // Delegate to the centralized handler
+    return handleApiError(error);
   }
 }
 

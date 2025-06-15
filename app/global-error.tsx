@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
-import { clientLogger } from '@/lib/client-logger';
+import * as Sentry from '@sentry/nextjs';
 // No PageLayout for global error as it might be too complex if layout itself fails.
 // We'll use basic MUI components for a clean, safe error display.
 import { Typography, Button, Paper, Container } from '@mui/material';
 import { ReportProblemOutlined } from '@mui/icons-material'; // A different icon for global errors
+import { useEffect } from 'react';
+import { clientLogger } from '@/lib/client-logger';
 
 let loggedError = false;
 
@@ -32,11 +33,8 @@ export default function GlobalError({
   }
 
   useEffect(() => {
-    loggedError = false;
-    return () => {
-      loggedError = false;
-    };
-  }, []);
+    Sentry.captureException(error);
+  }, [error]);
 
   // IMPORTANT: Global error page should be simple and have minimal dependencies.
   // It should still attempt to use theme colors/fonts if possible but avoid complex layouts.

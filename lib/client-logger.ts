@@ -1,5 +1,7 @@
 'use client';
 
+import * as Sentry from '@sentry/nextjs';
+
 // Define the structure matching the server endpoint expectation
 type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
 interface ClientLogEntry {
@@ -96,10 +98,18 @@ export const clientLogger = {
   },
   // Use sendBeacon for errors and fatal by default for higher chance of delivery
   error: (message: string, context?: Record<string, unknown>) => {
-    sendLog(createLogEntry('error', message, context), true);
+    const entry = createLogEntry('error', message, context);
+    sendLog(entry, true);
+    if (Sentry && process.env.NEXT_PUBLIC_SENTRY_DSN) {
+      Sentry.captureMessage(message, 'error');
+    }
   },
   fatal: (message: string, context?: Record<string, unknown>) => {
-    sendLog(createLogEntry('fatal', message, context), true);
+    const entry = createLogEntry('fatal', message, context);
+    sendLog(entry, true);
+    if (Sentry && process.env.NEXT_PUBLIC_SENTRY_DSN) {
+      Sentry.captureMessage(message, 'fatal');
+    }
   },
 };
 

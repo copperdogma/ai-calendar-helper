@@ -3,6 +3,8 @@ import { withApiLogger } from '@/lib/services/api-logger-service';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import pino from 'pino';
+import { ApiError } from '@/lib/errors/ApiError';
+import { handleApiError } from '@/lib/errors/handleApiError';
 
 /**
  * Protected User Information GET Endpoint
@@ -18,11 +20,7 @@ export const GET = withApiLogger(
 
       // Check if user is authenticated
       if (!session?.user?.id) {
-        logger.info('Unauthorized access attempt to user info endpoint');
-        return NextResponse.json(
-          { error: 'Unauthorized', message: 'You must be logged in to access this resource.' },
-          { status: 401 }
-        );
+        throw new ApiError(401, 'You must be logged in to access this resource.', 'UNAUTHORIZED');
       }
 
       // Fetch user details from database (excluding sensitive fields)
@@ -44,20 +42,13 @@ export const GET = withApiLogger(
       // Handle case where user is not found in database
       if (!user) {
         logger.warn({ userId: session.user.id }, 'User found in session but not in database');
-        return NextResponse.json(
-          { error: 'UserNotFound', message: 'User not found in database.' },
-          { status: 404 }
-        );
+        throw new ApiError(404, 'User not found in database.', 'USER_NOT_FOUND');
       }
 
       // Return user data
       return NextResponse.json(user);
     } catch (error) {
-      logger.error({ error }, 'Error fetching user information');
-      return NextResponse.json(
-        { error: 'ServerError', message: 'Failed to fetch user information' },
-        { status: 500 }
-      );
+      return handleApiError(error);
     }
   }
 );
