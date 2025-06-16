@@ -80,6 +80,7 @@ const sharedConfig = {
   collectCoverageFrom: [
     'app/**/*.{js,jsx,ts,tsx}',
     'lib/**/*.{js,jsx,ts,tsx}',
+    '!lib/ai.ts',
     'components/**/*.{js,jsx,ts,tsx}',
     'middleware.ts',
     '__mocks__/app/api/**/*.ts',
@@ -125,6 +126,7 @@ const customJestConfig = {
         '<rootDir>/tests/unit/api/**/*.test.ts?(x)',
         '<rootDir>/tests/unit/db/**/*.test.ts?(x)',
         '<rootDir>/tests/unit/auth/**/*.test.ts?(x)',
+        '<rootDir>/tests/unit/ai/**/*.test.ts?(x)',
         '<rootDir>/tests/unit/swc/**/*.test.ts?(x)',
         '<rootDir>/tests/unit/middleware/**/*.test.ts?(x)',
         '<rootDir>/tests/unit/profile/**/*.test.ts?(x)',

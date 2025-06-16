@@ -1,0 +1,14 @@
+- name: identify_events
+  description: Return summaries for all distinct calendar events found in the text
+  parameters:
+    type: object
+    properties:
+      events:
+        type: array
+        items:
+          type: object
+          properties:
+            summary:
+              type: string
+          required: [summary]
+    required: [events]

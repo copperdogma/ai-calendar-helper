@@ -1,0 +1,20 @@
+providers:
+  - id: openai:gpt-4.1-nano
+    config:
+      response_format:
+        type: json_object
+      function_call:
+        name: start_lines
+      functions: file://functions/start_lines.yaml
+
+prompts: file://prompts/start-lines.js
+
+tests: file://fixtures/split-lines-dataset-summaries.jsonl
+
+assert:
+  - type: javascript
+    description: 'Valid JSON?'
+    value: |
+      try { JSON.parse(llmOutput); true; } catch { false; }
+  - type: javascript
+    value: file://scorers/event-lines-accuracy.js

@@ -15,7 +15,22 @@ module.exports = (output, context) => {
     }
 
     const ideal = expected;
-    const actual = typeof output === 'string' ? JSON.parse(output) : output;
+    let actual = typeof output === 'string' ? JSON.parse(output) : output;
+
+    // unwrap function-call if needed
+    if (
+      actual &&
+      typeof actual === 'object' &&
+      actual.name === 'extract_events' &&
+      typeof actual.arguments === 'string'
+    ) {
+      try {
+        const inner = JSON.parse(actual.arguments);
+        actual = inner.events ?? inner; // expect inner to be {events:[...]}
+      } catch (e) {
+        return { pass: false, score: 0, reason: 'arguments JSON invalid' };
+      }
+    }
 
     const compareEvent = (idealEvent, actualEvent) => {
       const fields = ['title', 'startDate', 'endDate', 'location'];

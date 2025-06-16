@@ -1,0 +1,20 @@
+providers:
+  - id: openai:gpt-4.1-nano
+    config:
+      response_format:
+        type: json_object
+      function_call:
+        name: extract_events
+      functions: file://functions/extract_events.yaml
+
+prompts: file://prompts/calendar-extract.js
+
+tests: file://fixtures/events-dataset.jsonl
+
+assert:
+  - type: javascript
+    description: 'Valid JSON?'
+    value: |
+      try { JSON.parse(llmOutput); true; } catch { false; }
+  - type: javascript
+    value: file://scorers/event-json-accuracy.js

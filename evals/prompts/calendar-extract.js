@@ -60,5 +60,8 @@ Return guidelines addition:
 • Produce multiple events only when the text clearly describes different times or dates (e.g., "Breakfast at 8 then meeting at 10").
 
 ---
-${vars.input}`;
+${vars.input}
+
+Return JSON in the following structure:
+`;
 };

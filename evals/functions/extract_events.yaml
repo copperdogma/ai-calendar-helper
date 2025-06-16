@@ -1,0 +1,20 @@
+- name: extract_events
+  description: Return structured calendar events extracted from text
+  parameters:
+    type: object
+    properties:
+      events:
+        type: array
+        items:
+          type: object
+          properties:
+            title:
+              type: string
+            startDate:
+              type: string
+            endDate:
+              type: string
+            location:
+              type: string
+          required: [title, startDate, endDate, location]
+    required: [events]

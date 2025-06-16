@@ -10,6 +10,21 @@ module.exports = (output, context) => {
   } catch {
     return { pass: false, score: 0, reason: 'Output is not valid JSON' };
   }
+
+  // Handle function-call shape {name, arguments}
+  if (
+    parsed &&
+    typeof parsed === 'object' &&
+    parsed.name === 'start_lines' &&
+    typeof parsed.arguments === 'string'
+  ) {
+    try {
+      parsed = JSON.parse(parsed.arguments);
+    } catch {
+      return { pass: false, score: 0, reason: 'arguments JSON invalid' };
+    }
+  }
+
   if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.starts)) {
     return { pass: false, score: 0, reason: 'Output missing starts array' };
   }

@@ -1,15 +1,52 @@
-# Promptfoo evaluation config (v0.115+) for calendar extraction
+# Promptfoo evaluation config – unified
 
 providers:
-  - openai:gpt-4o-mini
-
-defaultTest:
-  assert:
-    - type: javascript
-      value: file://scorers/event-json-accuracy.js
-
-# Load test cases
-tests: file://fixtures/events-dataset.jsonl
+  - id: openai:gpt-4.1-nano
+    config:
+      response_format:
+        type: json_object
 
 prompts:
-  - file://prompts/calendar-extract.js
+  # 1) Identification – counts how many events exist in free-form text
+  - label: identify-events
+    file: file://prompts/identification.js
+    tests: file://fixtures/identification-dataset.jsonl
+    assert:
+      - type: javascript
+        description: 'Valid JSON?'
+        value: |
+          try { JSON.parse(llmOutput); true; } catch { false; }
+      - type: javascript
+        value: file://scorers/event-count-accuracy.js
+
+  # 2) Line-start identification – map each event to its starting line number
+  - label: start-lines
+    file: file://prompts/start-lines.js
+    tests: file://fixtures/split-lines-dataset-summaries.jsonl
+    config:
+      function_call:
+        name: start_lines
+      functions: file://functions/start_lines.yaml
+    assert:
+      - type: javascript
+        description: 'Valid JSON?'
+        value: |
+          try { JSON.parse(llmOutput); true; } catch { false; }
+      - type: javascript
+        value: file://scorers/event-lines-accuracy.js
+
+  # 3) End-to-end extraction of full structured events (JSON)
+  - label: extract-events
+    file: file://prompts/calendar-extract.js
+    tests: file://fixtures/events-dataset.jsonl
+    config:
+      function_call:
+        name: extract_events
+      functions: file://functions/extract_events.yaml
+    assert:
+      - type: javascript
+        description: 'Valid JSON?'
+        value: |
+          try { JSON.parse(llmOutput); true; } catch { false; }
+      - type: javascript
+        value: file://scorers/event-json-accuracy.js

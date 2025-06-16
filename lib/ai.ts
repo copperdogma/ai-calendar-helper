@@ -1,6 +1,14 @@
 import OpenAI from 'openai';
+import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import { SegmentChunk } from '@/types/events';
-import { SEGMENTATION_PROMPT } from './prompts/segmentationPrompt';
+import { buildIdentificationMessages } from './prompts/identificationPrompt';
+import { buildStartLinesMessages } from './prompts/startLinesPrompt';
+import { buildExtractEventMessages } from './prompts/extractEventPrompt';
+import {
+  IDENTIFY_EVENTS_FUNCTION,
+  START_LINES_FUNCTION,
+  EXTRACT_EVENTS_FUNCTION,
+} from './prompts/schemas';
 
 /**
  * Interface for confidence scores on extracted event data fields
@@ -395,10 +403,8 @@ ${multi ? '- If more than 10 events are found, include only the 10 most salient 
   }
 
   /* -------------------------------- Segmentation ------------------------------ */
-
-  private buildSegmentationPrompt(_: AIProcessingOptions): string {
-    return SEGMENTATION_PROMPT;
-  }
+  // Legacy prompt retained in `SEGMENTATION_PROMPT`, but the new multi-stage
+  // pipeline no longer calls it directly.
 
   /**
    * Public wrapper for segmenting raw text into line-number chunks.
@@ -410,53 +416,62 @@ ${multi ? '- If more than 10 events are found, include only the 10 most salient 
     text: string,
     options: AIProcessingOptions = {}
   ): Promise<SegmentChunk[]> {
-    // Enumerate lines (1-based) and send that to the model
     const rawLines = text.trim().split(/\r?\n/);
-    const enumerated = rawLines.map((l, i) => `${i + 1}: ${l}`).join('\n');
+    if (rawLines.length === 0) {
+      return [];
+    }
 
-    const segPrompt = this.buildSegmentationPrompt({ ...options, originalLength: rawLines.length });
-
-    const response = await this.processWithRetry(
-      segPrompt,
-      enumerated,
+    // ---------- Stage 1: Identify events (no line numbers) ----------
+    const idParsed = (await this.callFunctionWithRetry(
+      buildIdentificationMessages(text),
+      IDENTIFY_EVENTS_FUNCTION,
+      'identify_events',
       options.model || this.defaultModel
+    )) as { events?: { summary: string }[] };
+
+    const eventsArray: { summary: string }[] = Array.isArray(idParsed.events)
+      ? idParsed.events
+      : [];
+
+    // Fast path: zero or one event → treat as single chunk starting at 1
+    if (eventsArray.length <= 1) {
+      return [
+        {
+          id: '0',
+          text: text.trim(),
+          startLine: 1,
+          endLine: rawLines.length,
+        },
+      ];
+    }
+
+    // ---------- Stage 2: Choose start line numbers ----------
+    const enumerated = rawLines.map((l, i) => `${i + 1}: ${l}`).join('\n');
+    const startPrompt = buildStartLinesMessages(enumerated, eventsArray);
+
+    const startsParsed = (await this.callFunctionWithRetry(
+      startPrompt,
+      START_LINES_FUNCTION,
+      'start_lines',
+      options.model || this.defaultModel
+    )) as { starts?: number[] };
+
+    const rawStarts = ((startsParsed as { starts: number[] }).starts || [])
+      .filter((n: number) => typeof n === 'number' && n >= 1 && n <= rawLines.length)
+      .map((num: number) => Math.floor(num));
+
+    if (rawStarts.length !== eventsArray.length) {
+      // Fallback: if mismatch, default to header line 1 then evenly split? For now default to old logic
+      rawStarts.push(1);
+    }
+
+    const uniqueSorted: number[] = Array.from(new Set(rawStarts)).sort(
+      (a: number, b: number) => a - b
     );
+    const indices: number[] = [...uniqueSorted, rawLines.length + 1];
 
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(response);
-    } catch {
-      throw new Error('Segmentation JSON parse error');
-    }
-
-    // Safely type the parsed JSON
-    interface SegmentationResponse {
-      starts: number[];
-    }
-
-    if (
-      !parsed ||
-      typeof parsed !== 'object' ||
-      !Array.isArray((parsed as SegmentationResponse).starts)
-    ) {
-      throw new Error('Segmentation response missing starts');
-    }
-
-    // starts are 1-based line numbers
-    const parsedResponse = parsed as SegmentationResponse;
-    const rawStarts = parsedResponse.starts
-      .filter(s => typeof s === 'number' && s >= 1 && s <= rawLines.length)
-      .map(Math.floor);
-
-    const uniqueSorted = Array.from(new Set(rawStarts))
-      .sort((a, b) => a - b)
-      .slice(0, 10);
-    if (uniqueSorted.length === 0) uniqueSorted.push(1);
-
-    const indices = [...uniqueSorted, rawLines.length + 1]; // sentinel end
-
-    const chunks: SegmentChunk[] = uniqueSorted.map((lineStart, idx) => {
-      const nextStart = indices[idx + 1];
+    const chunks: SegmentChunk[] = uniqueSorted.map((lineStart: number, idx: number) => {
+      const nextStart: number = indices[idx + 1] as number;
       const slice = rawLines.slice(lineStart - 1, nextStart - 1).join('\n');
       return {
         id: String(idx),
@@ -471,93 +486,23 @@ ${multi ? '- If more than 10 events are found, include only the 10 most salient 
 
   /* --------------------------- Chunk event extraction -------------------------- */
 
-  private buildChunkPrompt(options: AIProcessingOptions): string {
-    const tz = options.timezone || 'UTC';
-    const nowISODate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD for relative rules
-
-    // The extraction rules have been tuned in the evaluation harness (evals/prompts/calendar-extract.js)
-    // and achieved >70% pass-rate.  We embed the same guidance here so production extraction behavior
-    // matches the evaluated prompt while still returning the richer JSON structure expected by the
-    // application (description, summary, confidence, recurrence, etc.).
-
-    return `You are an expert calendar event extraction AI. The CURRENT DATE is ${nowISODate} (ISO 8601).
-
-Given a snippet that describes EXACTLY ONE calendar event, output ONLY valid minified JSON with the following keys **in this order**:
-{
-  "title": string,
-  "description": string,
-  "startDate": ISO8601 (${tz}),
-  "endDate": ISO8601 (${tz}),
-  "location": string,
-  "timezone": "${tz}",
-  "summary": string (≤20 words),
-  "confidence": number | { field: number },
-  "recurrence": string | null,
-  "isAllDay": boolean
-}
-
-Strict rules:
-1. Prefer explicit "When", "Date", "Time" lines if present; otherwise infer from context.
-2. Interpret relative words like "tomorrow", "next Friday", "this Saturday" using the CURRENT DATE above.
-3. If a time range like "9–10:30" is given, set startDate to the first time and endDate to the second.
-4. If only a start time appears, assume 1-hour duration (unless another rule overrides).
-5. Normalize times to ${tz}. If the original text lacks a timezone, assume ${tz}.
-6. Title should be concise (~5 words). Use possessive forms for birthdays (e.g., "Taylor's birthday party").
-7. Location should combine venue + address but omit redundant words like "at" or labels such as "Location:".
-8. Do NOT include any keys other than those specified above, and fill every required key (use empty string or null where appropriate).
-9. If no explicit location is mentioned, set "location" to an empty string "".
-10. Capitalization: capitalize only the first word and proper nouns. Generic nouns remain lowercase (e.g., "Team meeting").
-11. Relative weekdays:
-    • "Friday" / "this Friday" → the next occurrence of that weekday after CURRENT DATE.
-    • "next Friday" → the occurrence in the following week (skip the immediate upcoming one).
-12. NEVER hallucinate details. If a field is missing in the source text, apply defaults without inventing new information.
-13. Capitalization refinement: ONLY the first word and proper nouns may start uppercase; all others stay lowercase.
-14. Treat "online", "Zoom", "Google Meet", "Teams", or any 3-letter airport code (all caps) as valid explicit locations.
-15. Default durations:
-    • Flights with only departure time → 2-hour duration.
-    • Concerts / shows / performances without end time → 2-hour duration.
-    • Deadlines or all-day events (keywords: "deadline", "rent", "pay", "release") with no time → start 17:00, end 18:00 ${tz}.
-16. Preserve internal punctuation, e.g., keep the colon in "Webinar: AI Trends".
-17. Acronyms and airport codes (2–4 uppercase letters) must remain uppercase.
-18. Preserve any word that is uppercase in the source text (e.g., "AI", "KPI").
-19. Preserve colons exactly as in the source when separating title segments.
-20. Monthly/recurring phrases like "first of every month" or "monthly" with no time → start 00:00, end 01:00 ${tz} on that date, overriding rule 15.
-21. Multi-day explicit range rule:
-    • If the text contains an explicit date range with a dash or the word "to" (e.g., "Jan 15–17", "3-4 March 2026"), treat the FIRST date/time token as startDate and the LAST as endDate exactly as written (do NOT apply the 4-week lead-time).
-    • If the phrase uses "starts <weekday> <time> ends <weekday> <time>" (or "end"/"ending") then use those two timestamps directly, even if they occur within the next week – ignore rule 28's lead-time.
-    • When only weekdays are present without times, fall back to rule 28.
-22. Keywords "end of day" or "EOD" without an explicit time → start 17:00, end 18:00 ${tz}.
-23. If keywords "webinar", "online", "Zoom", "Teams", "Google Meet" and no end time → assume 1-hour duration.
-24. (Reserved – multi-day logic unified above.)
-25. Treat "Home", "home", "Office", "HQ" as explicit locations when preceded by "at", "in", or "location:".
-26. ALWAYS capitalize the first character of the title, even if the source is lowercase; subsequent words follow rule 13.
-27. If the title contains a colon, keep exact casing after the colon; ensure the word immediately after remains capitalized.
-28. Lead-time multi-day rule (fallback): If *both* "starts" (or "start") **and** "ends" (or "end") appear and NO numeric date/month/year is present, choose the first such weekend-style block that begins ≥ 4 weeks (28 days) after CURRENT DATE.
-29. For ordinal patterns like "2nd Tuesday" or "4th Friday", choose the next calendar occurrence of that ordinal weekday after CURRENT DATE; if multiple ordinals ("2nd & 4th Tuesday"), pick the earliest upcoming one.
-30. Recurrence single-instance rule: For patterns starting with "every", "each", "daily", "weekly", or listing multiple weekdays separated by "/" or commas (e.g., "Mon/Wed/Fri 6:30"), extract ONLY the first upcoming occurrence after CURRENT DATE as a single event. Do NOT create multiple events.
-31. Recurring monthly override clarification: Phrases like "first of every month", "last day of each month" always set startDate 00:00 ${tz} and endDate 01:00 ${tz} on that date and IGNORE ALL other default-time rules (overrides 15, 22).
-32. Black Friday special case: if text contains "Black Friday" and no end time, assume a 3-hour duration.
-
-Return nothing except the JSON object.`;
-  }
-
   private async parseEventChunk(
     chunk: SegmentChunk,
     options: AIProcessingOptions = {}
   ): Promise<ExtractedEventData | null> {
     if (!chunk.text) return null;
 
-    const response = await this.processWithRetry(
-      this.buildChunkPrompt(options),
-      chunk.text as string,
-      options.model || this.defaultModel
-    );
-
+    const messages = buildExtractEventMessages(chunk.text, options.timezone || 'UTC');
+    let obj;
     try {
-      const obj = JSON.parse(response);
-      // Attach the raw chunk text so downstream consumers can reference only the
-      // relevant portion of the multi-event input when building calendar
-      // descriptions.
+      const parsed = (await this.callFunctionWithRetry(
+        messages,
+        EXTRACT_EVENTS_FUNCTION,
+        'extract_events',
+        options.model || this.defaultModel
+      )) as { events?: unknown[] };
+
+      obj = Array.isArray(parsed.events) ? parsed.events[0] : parsed;
       return {
         ...this.validateAndEnhanceData(obj),
         originalText: (chunk.text || '').trim(),
@@ -588,6 +533,46 @@ Return nothing except the JSON object.`;
     }
 
     return events.slice(0, 10);
+  }
+
+  /**
+   * Wrapper for using OpenAI function calling with automatic retry & JSON parsing.
+   */
+  private async callFunctionWithRetry(
+    messages: ChatCompletionMessageParam[],
+    funcDef: Record<string, unknown>,
+    functionName: string,
+    model: string
+  ): Promise<unknown> {
+    let lastError: Error | null = null;
+
+    for (let attempt = 0; attempt < this.maxRetries; attempt++) {
+      try {
+        const response = await this.openai.chat.completions.create({
+          model,
+          temperature: 0.0,
+          messages,
+          functions: [funcDef],
+          function_call: { name: functionName },
+        });
+
+        const msg = response.choices[0]?.message;
+        const argStr = (msg?.function_call?.arguments || msg?.content) as string | undefined;
+        if (!argStr) {
+          throw new Error('Empty function_call arguments and content');
+        }
+        return JSON.parse(argStr);
+      } catch (error) {
+        lastError = error as Error;
+        const isRetryable = this.isRetryableError(error);
+        if (!isRetryable || attempt === this.maxRetries - 1) {
+          throw lastError;
+        }
+        const delay = this.baseDelay * Math.pow(2, attempt);
+        await this.sleep(delay);
+      }
+    }
+    throw lastError || new Error('Max retries exceeded');
   }
 }
 

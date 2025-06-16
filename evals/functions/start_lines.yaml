@@ -1,0 +1,10 @@
+- name: start_lines
+  description: Return the 1-based line start numbers for each event in the text
+  parameters:
+    type: object
+    properties:
+      starts:
+        type: array
+        items:
+          type: integer
+    required: [starts]

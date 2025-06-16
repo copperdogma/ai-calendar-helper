@@ -35,6 +35,8 @@ export default [
       'tests/e2e/fixtures/test-fixtures.ts',
       '**/*.d.ts',
       'playwright-report/**',
+      'evals/**',
+      'scripts/**',
     ],
   },
 
@@ -190,7 +192,6 @@ export default [
   {
     files: [
       '**/tests/**/*.{test,spec}.{js,jsx,ts,tsx}', // Covers all tests within any 'tests' directory (unit, e2e, integration, etc.)
-      '**/*.{test,spec}.{js,jsx,ts,tsx}', // Covers test files that might be co-located with source files
     ],
     plugins: {
       jest: jestPlugin,

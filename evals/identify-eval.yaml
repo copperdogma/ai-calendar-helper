@@ -1,0 +1,22 @@
+# Promptfoo config for identify-events only
+
+providers:
+  - id: openai:gpt-4.1-nano
+    config:
+      response_format:
+        type: json_object
+      function_call:
+        name: identify_events
+      functions: file://functions/identify_events.yaml
+
+prompts: file://prompts/identification.js
+
+tests: file://fixtures/identification-dataset.jsonl
+
+assert:
+  - type: javascript
+    description: 'Valid JSON?'
+    value: |
+      try { JSON.parse(llmOutput); true; } catch { false; }
+  - type: javascript
+    value: file://scorers/event-count-accuracy.js
