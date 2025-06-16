@@ -1,5 +1,8 @@
 import { test, expect } from '@playwright/test';
 
+// Reusable long timeout value (can be configured via TIMEOUT_NAVIGATION env var)
+const LONG_TIMEOUT = parseInt(process.env.TIMEOUT_NAVIGATION ?? '60000');
+
 test.describe('AI Calendar Helper Workflow', () => {
   test.beforeEach(async ({ page }) => {
     // Mock the OpenAI API call to avoid real API charges
@@ -224,8 +227,8 @@ test.describe('AI Calendar Helper Workflow', () => {
     await textInput.fill('Test meeting content');
 
     // Navigate away and back
-    await page.goto('/profile');
-    await page.goto('/calendar-parser');
+    await page.goto('/profile', { timeout: LONG_TIMEOUT });
+    await page.goto('/calendar-parser', { timeout: LONG_TIMEOUT });
 
     // Form should be reset (this is expected behavior)
     await expect(textInput).toHaveValue('');

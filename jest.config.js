@@ -101,6 +101,7 @@ const sharedConfig = {
     '<rootDir>/postcss.config.js',
     '<rootDir>/ecosystem.config.js',
     '<rootDir>/eslint.config.mjs',
+    '<rootDir>/instrumentation.ts',
     'components/ui/Card.tsx', // Explicitly ignore Card.tsx as it's intentionally not tested
     'tests/utils/server-component-utils.tsx', // Exclude server component utils due to testing complexity
   ],

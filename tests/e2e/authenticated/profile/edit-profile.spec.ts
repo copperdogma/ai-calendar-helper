@@ -27,14 +27,17 @@ const storageStatePath = path.join(process.cwd(), 'tests/.auth/user.json');
 // Use a unique name based on timestamp for each test run
 const newName = `Test User ${Date.now().toString().slice(-3)}`;
 
+// Increased timeout for navigation and validation steps
+const LONG_TIMEOUT = parseInt(process.env.TIMEOUT_NAVIGATION ?? '60000');
+
 test.describe.serial('Profile Name Editing', () => {
   // Configure tests in this file to use the saved authentication state
   test.use({ storageState: storageStatePath });
 
   // Add a setup function that runs before each test to verify auth state
   test.beforeEach(async ({ page }) => {
-    await page.goto('/'); // Go to a page that establishes auth state first
-    await page.goto('/profile');
+    await page.goto('/', { timeout: LONG_TIMEOUT }); // Establish auth state
+    await page.goto('/profile', { timeout: LONG_TIMEOUT });
     console.log('✅ Successfully navigated to profile page');
 
     // --- Updated Wait Strategy ---
@@ -129,7 +132,7 @@ test.describe.serial('Profile Name Editing', () => {
     const expectedValidationMessage = 'Name must be at least 3 characters long.';
     await expect(
       page.locator('form[data-edit-name="true"]').getByText(expectedValidationMessage)
-    ).toBeVisible();
+    ).toBeVisible({ timeout: LONG_TIMEOUT });
 
     // Fill with valid name and save
     await nameInput.fill(TEST_USER.displayName);

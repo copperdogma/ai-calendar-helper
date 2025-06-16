@@ -1,4 +1,4 @@
-import Redis from 'ioredis';
+import * as Redis from 'ioredis';
 import { env } from '@/lib/env';
 import { logger } from '@/lib/logger';
 import pino from 'pino';
@@ -12,7 +12,7 @@ declare const module: {
 
 // --- BEGIN Global Symbol for Singleton ---
 interface RedisGlobal {
-  redisClient?: Redis | null;
+  redisClient?: Redis.Redis | null;
   redisConnectionAttempted?: boolean;
   redisConnectionFailed?: boolean;
   redisExplicitlyDisabled?: boolean;
@@ -62,7 +62,7 @@ function _createRedisRetryStrategy(
 // --- END NEW HELPER for Redis Retry Strategy ---
 
 // --- BEGIN NEW HELPER for attaching Redis event listeners ---
-function _attachRedisEventListeners(client: Redis): void {
+function _attachRedisEventListeners(client: Redis.Redis): void {
   // Note: The original event handlers (_logRedisConnect etc.) use `moduleLogger` from their outer scope.
 
   // Detach any existing listeners from this specific client instance first to prevent duplicates
@@ -92,7 +92,10 @@ function _attemptRedisClientInstantiation(
   );
 
   try {
-    const client = new Redis(redisUrlToUse, {
+    // Handle CJS/ESM interop issues from Webpack bundling for Edge.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const RedisClient = (Redis as any).default || Redis;
+    const client = new RedisClient(redisUrlToUse, {
       maxRetriesPerRequest: 3,
       connectTimeout: 5000,
       commandTimeout: 1000, // Add command timeout for production hardening
@@ -104,6 +107,7 @@ function _attemptRedisClientInstantiation(
     redisGlobal.redisClient = client; // Set global redis instance
 
     if (
+      redisGlobal.redisClient &&
       redisGlobal.redisClient.status !== 'connecting' &&
       redisGlobal.redisClient.status !== 'ready' &&
       redisGlobal.redisClient.status !== 'connect'
@@ -151,10 +155,15 @@ function _handleNoRedisUrl(baseLogger: pino.Logger): null {
  * Initializes and returns a singleton ioredis client instance if REDIS_URL is configured.
  * Includes connection logic, error handling, and retry strategy.
  * Logs informative messages if Redis is not configured or if connection fails.
- * @returns {Redis | null} The ioredis client instance if configured and connection is attempted, otherwise null.
+ * @returns {Redis.Redis | null} The ioredis client instance if configured and connection is attempted, otherwise null.
  */
 
-function getRedisClient(): Redis | null {
+function getRedisClient(): Redis.Redis | null {
+  // This is a server-side only module. Do not attempt to run on the Edge.
+  if (process.env.NEXT_RUNTIME !== 'nodejs') {
+    return null;
+  }
+
   const redisGlobal = getRedisGlobal();
 
   // Return type can now be null
@@ -188,7 +197,10 @@ function getRedisClient(): Redis | null {
 
   if (redisGlobal.redisConnectionFailed && redisGlobal.redisClient) {
     logger.warn(
-      { status: (redisGlobal.redisClient as Redis)?.status ?? 'unknown', redisUrl: env.REDIS_URL },
+      {
+        status: (redisGlobal.redisClient as Redis.Redis)?.status ?? 'unknown',
+        redisUrl: env.REDIS_URL,
+      },
       'getRedisClient: Returning a Redis client instance that has previously indicated connection issues or is in a non-operational state. Redis features may be impaired.'
     );
   } else if (redisGlobal.redisClient && !redisGlobal.redisConnectionFailed) {
@@ -211,9 +223,9 @@ export const redisClient = getRedisClient();
  * if the initial connection attempt failed definitively, or if the client is not in a usable state.
  * This is the preferred way for features to obtain a Redis client if they can fail gracefully.
  *
- * @returns {Redis | null} The ioredis client instance or null.
+ * @returns {Redis.Redis | null} The ioredis client instance or null.
  */
-export function getOptionalRedisClient(): Redis | null {
+export function getOptionalRedisClient(): Redis.Redis | null {
   const currentClient = getRedisClient();
   const globalState = getRedisGlobal();
 
@@ -223,7 +235,9 @@ export function getOptionalRedisClient(): Redis | null {
 
   if (globalState.redisConnectionFailed) {
     const statusDetail =
-      currentClient instanceof Redis ? currentClient.status : 'unknown (client was null)';
+      currentClient && typeof currentClient.status === 'string'
+        ? currentClient.status
+        : 'unknown (client was null)';
     logger.warn(
       { redisUrl: env.REDIS_URL, status: statusDetail },
       'getOptionalRedisClient: Initial Redis connection attempt failed or client is in an error state. Returning null.'
@@ -254,7 +268,7 @@ export function getOptionalRedisClient(): Redis | null {
 }
 
 // Helper functions for logging Redis events to reduce complexity in getRedisClient
-function _logRedisConnect(this: Redis) {
+function _logRedisConnect(this: Redis.Redis) {
   const redisGlobal = getRedisGlobal();
   moduleLogger.info(
     { host: this.options.host, port: this.options.port },
@@ -263,7 +277,7 @@ function _logRedisConnect(this: Redis) {
   redisGlobal.redisConnectionFailed = false; // Reset on successful connection
 }
 
-function _logRedisError(this: Redis, err: Error) {
+function _logRedisError(this: Redis.Redis, err: Error) {
   const redisGlobal = getRedisGlobal();
   moduleLogger.error(
     {
@@ -290,7 +304,7 @@ function _logRedisError(this: Redis, err: Error) {
   }
 }
 
-function _logRedisClose(this: Redis) {
+function _logRedisClose(this: Redis.Redis) {
   // const redisGlobal = getRedisGlobal(); // Unused
   moduleLogger.warn(
     { host: this.options.host, port: this.options.port },
@@ -298,7 +312,7 @@ function _logRedisClose(this: Redis) {
   );
 }
 
-function _logRedisReconnecting(this: Redis) {
+function _logRedisReconnecting(this: Redis.Redis) {
   // const redisGlobal = getRedisGlobal(); // Unused
   moduleLogger.info(
     { host: this.options.host, port: this.options.port },
@@ -329,4 +343,34 @@ if (typeof module !== 'undefined' && module.hot && process.env.NODE_ENV === 'dev
     // You can pass data to the new module instance if needed via data object
     // _data.reloaded = true;
   });
+}
+
+function setupGracefulShutdown(client: Redis.Redis) {
+  const gracefulShutdown = (signal: string) => {
+    console.log(`Received ${signal}, shutting down gracefully...`);
+    client
+      .quit()
+      .then(() => {
+        console.log('Redis client disconnected successfully.');
+        process.exit(0);
+      })
+      .catch(err => {
+        console.error('Error during Redis disconnection:', err);
+        process.exit(1);
+      });
+  };
+
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+}
+
+/**
+ * Initializes the Redis client and sets up graceful shutdown handlers.
+ * This should be called once from the application's entry point.
+ */
+export function initializeRedis() {
+  const client = getRedisClient();
+  if (client) {
+    setupGracefulShutdown(client);
+  }
 }

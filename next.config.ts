@@ -147,33 +147,62 @@ const nextConfig: NextConfig = {
     // Let Next.js handle the rest of the configuration
     return config;
   },
+
+  sentry: {
+    // For all available options, see:
+    // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
+
+    // Upload a larger set of source maps for prettier stack traces (increases build time)
+    widenClientFileUpload: true,
+
+    // Hides source maps from generated client bundles
+    hideSourceMaps: true,
+
+    // Automatically tree-shake Sentry logger statements to reduce bundle size
+    disableLogger: true,
+
+    // Enables automatic instrumentation of Vercel Cron Monitors.
+    // See the following for more information:
+    // https://docs.sentry.io/product/crons/
+    // https://vercel.com/docs/cron-jobs
+    automaticVercelMonitors: true,
+
+    // Route Sentry events through our own backend to circumvent ad-blockers.
+    // This is disabled in the test environment to prevent E2E test failures.
+    // See: https://docs.sentry.io/platforms/javascript/guides/nextjs/troubleshooting/#using-the-tunnel-option
+    tunnelRoute: process.env.NODE_ENV === 'test' ? undefined : '/monitoring',
+  },
 };
 
-// Wrap the existing config with Sentry once
-export default withSentryConfig(bundleAnalyzer(nextConfig), {
+const sentryWebpackPluginOptions = {
   // For all available options, see:
-  // https://www.npmjs.com/package/@sentry/webpack-plugin#options
+  // https://github.com/getsentry/sentry-webpack-plugin#options
 
   org: 'none-ih3',
   project: 'ai-calendar-helper',
 
-  // Only print logs for uploading source maps in CI
+  // Suppresses source map uploading logs during build
   silent: !process.env.CI,
 
   // Upload a larger set of source maps for prettier stack traces (increases build time)
   widenClientFileUpload: true,
 
-  // Route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
-  // This can increase your server load as well as your hosting bill.
-  // Note: Check that the configured route will not match with your Next.js middleware, otherwise reporting of client-side errors will fail.
-  tunnelRoute: '/monitoring',
+  // Route Sentry events through our own backend to circumvent ad-blockers.
+  // This is disabled in the test environment to prevent E2E test failures.
+  // See: https://docs.sentry.io/platforms/javascript/guides/nextjs/troubleshooting/#using-the-tunnel-option
+  tunnelRoute: process.env.NODE_ENV === 'test' ? undefined : '/monitoring',
 
   // Automatically tree-shake Sentry logger statements to reduce bundle size
   disableLogger: true,
 
-  // Enables automatic instrumentation of Vercel Cron Monitors. (Does not yet work with App Router route handlers.)
+  // Enables automatic instrumentation of Vercel Cron Monitors.
   // See the following for more information:
   // https://docs.sentry.io/product/crons/
   // https://vercel.com/docs/cron-jobs
   automaticVercelMonitors: true,
-});
+};
+
+// Wrap the config with Sentry and then with the bundle analyzer
+const sentryConfig = withSentryConfig(nextConfig, sentryWebpackPluginOptions);
+
+module.exports = bundleAnalyzer(sentryConfig);

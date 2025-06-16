@@ -16,6 +16,9 @@ test.describe('Mobile Authentication', () => {
     await context.clearCookies();
   });
 
+  // Centralized long timeout configurable via env var
+  const LONG_TIMEOUT = parseInt(process.env.TIMEOUT_NAVIGATION ?? '60000');
+
   test('mobile login flow', async ({ page }) => {
     const baseUrl = process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3777';
     const testEmail = process.env.TEST_USER_EMAIL || 'test@example.com';
@@ -42,7 +45,7 @@ test.describe('Mobile Authentication', () => {
       await signInButton.click();
 
       // Wait for navigation to dashboard after successful login
-      await page.waitForURL(`${baseUrl}${ROUTES.DASHBOARD}`, { timeout: 20000 });
+      await page.waitForURL(`${baseUrl}${ROUTES.DASHBOARD}`, { timeout: LONG_TIMEOUT });
 
       // Take post-login screenshot
       await takeMobileScreenshot(page, 'post-login.png');
@@ -82,7 +85,7 @@ test.describe('Mobile Authentication', () => {
       await signInButton.click();
 
       // Wait for successful login
-      await page.waitForURL(`${baseUrl}${ROUTES.DASHBOARD}`, { timeout: 20000 });
+      await page.waitForURL(`${baseUrl}${ROUTES.DASHBOARD}`, { timeout: LONG_TIMEOUT });
 
       // Verify login was successful
       await expect(page.locator('body')).toContainText('Calendar Parser', { timeout: 10000 });

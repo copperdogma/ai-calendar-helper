@@ -1,6 +1,5 @@
 import Redis from 'ioredis';
 import { getOptionalRedisClient } from '@/lib/redis';
-import { env } from '@/lib/env';
 // import { logger } from '@/lib/logger'; // Currently unused but may be needed for future tests
 
 // Mock ioredis directly
@@ -15,7 +14,11 @@ jest.mock('ioredis', () => {
   const MockRedisClass = jest.fn(() => mockRedisInstance);
   MockRedisClass.prototype = mockRedisInstance;
 
-  return MockRedisClass;
+  // This is the key change: the module itself should have a 'Redis' property
+  // that is the constructor, and the default export is the constructor.
+  return Object.assign(MockRedisClass, {
+    Redis: MockRedisClass,
+  });
 });
 
 // Mock other dependencies
@@ -41,7 +44,6 @@ jest.mock('@/lib/logger', () => ({
 }));
 
 const MockRedis = Redis as jest.MockedClass<typeof Redis>;
-const mockEnv = env as jest.Mocked<typeof env>;
 // const mockLogger = logger as jest.Mocked<typeof logger>; // Currently unused
 
 // Mock child logger
@@ -58,9 +60,15 @@ const mockEnv = env as jest.Mocked<typeof env>;
 // }
 
 describe('Redis Client', () => {
+  let originalNextRuntime: string | undefined;
+
   beforeEach(() => {
     jest.clearAllMocks();
     jest.resetModules();
+
+    // Store and clear NEXT_RUNTIME
+    originalNextRuntime = process.env.NEXT_RUNTIME;
+    delete process.env.NEXT_RUNTIME;
 
     // Reset the mock implementation
     MockRedis.mockClear();
@@ -71,8 +79,20 @@ describe('Redis Client', () => {
     delete globalWithRedis[globalKey];
   });
 
+  afterEach(() => {
+    // Restore NEXT_RUNTIME
+    process.env.NEXT_RUNTIME = originalNextRuntime;
+  });
+
   describe('getOptionalRedisClient', () => {
+    it('should return null when running on the edge', () => {
+      process.env.NEXT_RUNTIME = 'edge';
+      const client = getOptionalRedisClient();
+      expect(client).toBeNull();
+    });
+
     it('should return null when REDIS_URL is not configured', () => {
+      process.env.NEXT_RUNTIME = 'nodejs';
       // Test the actual module behavior when REDIS_URL is not set
       jest.isolateModules(() => {
         // Mock env with no REDIS_URL
@@ -104,6 +124,7 @@ describe('Redis Client', () => {
     });
 
     it('should return null when Redis is explicitly disabled', () => {
+      process.env.NEXT_RUNTIME = 'nodejs';
       jest.isolateModules(() => {
         jest.doMock('@/lib/env', () => ({
           env: { REDIS_URL: undefined },
@@ -137,6 +158,7 @@ describe('Redis Client', () => {
     });
 
     it('should create Redis client when REDIS_URL is configured', () => {
+      process.env.NEXT_RUNTIME = 'nodejs';
       jest.isolateModules(() => {
         const mockRedisInstance = {
           status: 'ready',
@@ -173,6 +195,7 @@ describe('Redis Client', () => {
     });
 
     it('should return null when Redis client is not in ready state', () => {
+      process.env.NEXT_RUNTIME = 'nodejs';
       jest.isolateModules(() => {
         const mockRedisInstance = {
           status: 'disconnected',
@@ -194,6 +217,7 @@ describe('Redis Client', () => {
     });
 
     it('should return null when connection has failed', () => {
+      process.env.NEXT_RUNTIME = 'nodejs';
       jest.isolateModules(() => {
         jest.doMock('ioredis', () =>
           jest.fn(() => {
@@ -214,6 +238,7 @@ describe('Redis Client', () => {
 
   describe('Redis Client Connection Events', () => {
     it('should attach event listeners to Redis client', () => {
+      process.env.NEXT_RUNTIME = 'nodejs';
       jest.isolateModules(() => {
         const mockRedisInstance = {
           status: 'connecting',
@@ -245,6 +270,7 @@ describe('Redis Client', () => {
 
   describe('Redis Retry Strategy', () => {
     it('should implement exponential backoff with cap', () => {
+      process.env.NEXT_RUNTIME = 'nodejs';
       jest.isolateModules(() => {
         let capturedRetryStrategy: ((times: number) => number | null) | undefined;
 
@@ -293,6 +319,7 @@ describe('Redis Client', () => {
     });
 
     it('should stop retrying after 5 attempts', () => {
+      process.env.NEXT_RUNTIME = 'nodejs';
       jest.isolateModules(() => {
         let capturedRetryStrategy: ((times: number) => number | null) | undefined;
 
@@ -326,6 +353,7 @@ describe('Redis Client', () => {
 
   describe('Singleton Behavior', () => {
     it('should return the same Redis client instance on multiple calls', () => {
+      process.env.NEXT_RUNTIME = 'nodejs';
       jest.isolateModules(() => {
         const mockRedisInstance = {
           status: 'ready',
@@ -354,21 +382,19 @@ describe('Redis Client', () => {
   describe('Development HMR Support', () => {
     it('should handle HMR disposal in development', async () => {
       const originalNodeEnv = process.env.NODE_ENV;
-
-      // Mock NODE_ENV for this test
       Object.defineProperty(process.env, 'NODE_ENV', {
         value: 'development',
         writable: true,
-        configurable: true,
       });
+      process.env.NEXT_RUNTIME = 'nodejs';
 
-      mockEnv.REDIS_URL = 'redis://localhost:6379';
+      const mockQuit = jest.fn().mockResolvedValue('OK');
       const mockRedisInstance = {
         status: 'ready',
         options: { host: 'localhost', port: 6379 },
         on: jest.fn(),
         removeAllListeners: jest.fn(),
-        quit: jest.fn().mockResolvedValue('OK'),
+        quit: mockQuit,
       } as any;
       (MockRedis as any).mockImplementation(() => mockRedisInstance);
 

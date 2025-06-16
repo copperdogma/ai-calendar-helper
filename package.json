@@ -21,7 +21,7 @@
     "clean": "rm -rf .next out",
     "dev:debug": "NODE_OPTIONS='--inspect' next dev",
     "build:analyze": "ANALYZE=true next build",
-    "validate": "npm run lint && npm run format:check && npm run type-check",
+    "validate": "npm-run-all format:check lint type-check",
     "prepare": "husky",
     "db:seed": "npx prisma db seed",
     "test": "npm run test:unit",
@@ -51,7 +51,7 @@
     "ai:status": "pm2 status next-dev",
     "ai:logs": "pm2 logs next-dev --lines 100 --nostream",
     "ai:port": "node scripts/get-port.js",
-    "ai:health": "node scripts/check-health.js",
+    "ai:health": "node ./scripts/health-check.mjs",
     "dev:simple": "next dev -p 3336",
     "dev:background": "npm run dev &",
     "model:compare": "tsx scripts/model-comparison-test.ts",
@@ -61,8 +61,8 @@
   },
   "dependencies": {
     "@auth/core": "^0.39.1",
-    "@auth/prisma-adapter": "^2.8.0",
-    "@emotion/cache": "^11.14.0",
+    "@auth/prisma-adapter": "^2.4.1",
+    "@emotion/cache": "^11.11.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@hookform/resolvers": "^5.0.1",
@@ -133,6 +133,7 @@
     "jest-mock-extended": "^4.0.0-beta1",
     "next-router-mock": "^1.0.2",
     "node-mocks-http": "^1.17.2",
+    "npm-run-all": "^4.1.5",
     "pino-pretty": "^13.0.0",
     "playwright-core": "^1.52.0",
     "pm2": "^6.0.5",
@@ -169,5 +170,8 @@
   },
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+  },
+  "browser": {
+    "ioredis": false
   }
 }

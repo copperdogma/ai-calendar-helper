@@ -24,10 +24,12 @@ console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
  * Ensure the test user exists in the database before attempting login
  */
 async function ensureTestUserExists(page: Page): Promise<boolean> {
-  const baseUrl = process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3777';
+  // Removed unused `baseUrl` variable
   try {
     console.log('🔍 Ensuring test user exists in the database...');
-    const response = await page.goto(`${baseUrl}/api/test/e2e-auth-setup`);
+    const response = await page.goto(
+      `${process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3777'}/api/test/e2e-auth-setup`
+    );
 
     if (!response) {
       console.error('❌ Failed to reach test user setup endpoint');
@@ -48,7 +50,6 @@ async function ensureTestUserExists(page: Page): Promise<boolean> {
  */
 async function setupAuthViaUiLogin(page: Page): Promise<boolean> {
   console.log('🔑 Setting up authentication via UI Login Form...');
-  const baseUrl = process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3777';
 
   try {
     // First ensure the test user exists
@@ -60,7 +61,10 @@ async function setupAuthViaUiLogin(page: Page): Promise<boolean> {
     }
 
     // 1. Navigate to Login Page
-    await page.goto(`${baseUrl}/login`, { waitUntil: 'networkidle' });
+    await page.goto('/login', { waitUntil: 'networkidle' });
+    await page
+      .getByRole('button', { name: 'Sign In with Email' })
+      .waitFor({ state: 'visible', timeout: 15000 });
     console.log('Navigated to /login');
 
     // 2. Locate Form Elements (Using selectors from CredentialsLoginForm.tsx)
@@ -80,7 +84,7 @@ async function setupAuthViaUiLogin(page: Page): Promise<boolean> {
     console.log('Clicked Sign In button');
 
     // 4. Wait for successful redirect to Calendar Parser page
-    await page.waitForURL('**/calendar-parser', { timeout: 15000, waitUntil: 'networkidle' });
+    await page.waitForURL('**/calendar-parser', { timeout: 30000, waitUntil: 'networkidle' });
     console.log('Redirected to /calendar-parser after login attempt');
 
     // 5. Verify and Save State

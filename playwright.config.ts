@@ -168,6 +168,7 @@ const config: PlaywrightTestConfig = defineConfig({
       NODE_ENV: 'test',
       ALLOW_TEST_ENDPOINTS: 'true',
       NEXT_PUBLIC_IS_E2E_TEST_ENV: 'true',
+      AUTH_TRUST_HOST: 'true',
       // Add any other environment variables needed for testing
     },
   },
