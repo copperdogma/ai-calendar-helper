@@ -88,8 +88,11 @@ interface LogContext {
 const DEFAULT_LOGIN_REDIRECT = ROUTES.CALENDAR_PARSER;
 
 // --- Route Type Checkers (Keep specific to Edge) ---
-const isPublicRoute = (pathname: string): boolean =>
-  PUBLIC_ROUTES.includes(pathname as (typeof PUBLIC_ROUTES)[number]);
+const isPublicRoute = (pathname: string): boolean => {
+  if (PUBLIC_ROUTES.includes(pathname as (typeof PUBLIC_ROUTES)[number])) return true;
+  // Allow Next.js static assets and error overlay stack-frame resource in dev/test
+  return pathname.startsWith('/_next') || pathname.startsWith('/__nextjs_original-stack-frame');
+};
 const isApiRoute = (pathname: string): boolean =>
   pathname.startsWith(API_PREFIXES.AUTH) || pathname.startsWith(API_PREFIXES.TEST);
 const isAuthRoute = (pathname: string): boolean =>

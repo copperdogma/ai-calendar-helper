@@ -4,6 +4,9 @@ import { faker } from '@faker-js/faker';
 
 // Base URL is set in playwright.config.ts
 
+// Some registration flows take longer when dev server is cold
+test.setTimeout(120000);
+
 async function navigateToRegisterAndVerifyForm(page: Page): Promise<void> {
   await page.goto(ROUTES.REGISTER, { waitUntil: 'networkidle' });
   await expect(page.locator('h1:has-text("Register")')).toBeVisible();
@@ -110,7 +113,7 @@ test.describe('User Registration', () => {
     await fillAndSubmitRegistrationForm(page, newUser);
 
     // Wait specifically for redirect to dashboard, with a reasonable timeout
-    await page.waitForURL(new RegExp(ROUTES.DASHBOARD), { timeout: 20000 }).catch(async error => {
+    await page.waitForURL(new RegExp(ROUTES.DASHBOARD), { timeout: 60000 }).catch(async error => {
       // Capture screenshot on failure for diagnostics
       await page.screenshot({ path: 'tests/e2e/screenshots/auto-signin-failure.png' });
 
@@ -145,7 +148,7 @@ test.describe('User Registration', () => {
     ).toBeVisible();
 
     // Extra validation - attempt to access a protected route directly
-    await page.goto(ROUTES.PROFILE, { waitUntil: 'networkidle' });
+    await page.goto(ROUTES.PROFILE, { waitUntil: 'domcontentloaded', timeout: 60000 });
 
     // If we can access profile without redirect, we're definitely logged in
     await expect(page.locator('h1:has-text("Profile")')).toBeVisible();

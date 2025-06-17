@@ -82,7 +82,7 @@ test.describe('AI Calendar Helper Workflow', () => {
     await expect(
       page.locator('[data-testid="calendar-integration-buttons"]').first()
     ).toBeVisible();
-    await expect(page.locator('p:has-text("📅"):has-text("4:00 PM")').first()).toBeVisible(); // 8PM UTC = 4PM Eastern
+    await expect(page.locator('p:has-text("⏰"):has-text("16:00")').first()).toBeVisible(); // 8PM UTC = 4PM Eastern converted to 24h format
     await expect(page.getByText(/Confidence: 88%/)).toBeVisible();
 
     // Verify raw JSON debugging area
@@ -230,7 +230,11 @@ test.describe('AI Calendar Helper Workflow', () => {
     await page.goto('/profile', { timeout: LONG_TIMEOUT });
     await page.goto('/calendar-parser', { timeout: LONG_TIMEOUT });
 
+    // Re-select textarea to ensure fresh reference after navigation
+    const newTextInput = page.locator('textarea[placeholder*="Enter your event text"]');
+    await expect(newTextInput).toBeVisible({ timeout: LONG_TIMEOUT });
+
     // Form should be reset (this is expected behavior)
-    await expect(textInput).toHaveValue('');
+    await expect(newTextInput).toHaveValue('');
   });
 });

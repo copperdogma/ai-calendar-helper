@@ -167,7 +167,8 @@ describe('TextInputForm', () => {
         );
         expect(screen.getByText(/Found 1 event/i)).toBeInTheDocument();
         expect(screen.getAllByText(/Team Meeting/i)).toHaveLength(3); // input + display + raw JSON
-        expect(screen.getByText(/Thursday, June 12, 2025 at 2:00 PM/i)).toBeInTheDocument();
+        expect(screen.getAllByText(/Thursday, June 12, 2025/i).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/2:00 PM/i).length).toBeGreaterThan(0);
         expect(screen.getAllByText(/Conference Room A/i)).toHaveLength(3); // input + display + raw JSON
         expect(screen.getByText(/Confidence: 95%/i)).toBeInTheDocument();
       });

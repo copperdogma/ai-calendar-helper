@@ -83,9 +83,14 @@ async function setupAuthViaUiLogin(page: Page): Promise<boolean> {
     await submitButton.click();
     console.log('Clicked Sign In button');
 
-    // 4. Wait for successful redirect to Calendar Parser page
-    await page.waitForURL('**/calendar-parser', { timeout: 30000, waitUntil: 'networkidle' });
-    console.log('Redirected to /calendar-parser after login attempt');
+    // 4. Wait for successful redirect to Calendar Parser page – allow more time on first compilation
+    try {
+      await page.waitForURL('**/calendar-parser', { timeout: 90000, waitUntil: 'load' });
+      console.log('Redirected to /calendar-parser after login attempt');
+    } catch (err) {
+      // If timeout hit, continue – verification step will decide if login actually succeeded
+      console.warn('⚠️ waitForURL timeout after login – proceeding to verification');
+    }
 
     // 5. Verify and Save State
     console.log('🔍 Verifying authentication and session state after UI login...');
@@ -101,7 +106,9 @@ async function setupAuthViaUiLogin(page: Page): Promise<boolean> {
 /**
  * This setup function now uses the UI Login method.
  */
-setup('authenticate', async ({ page }) => {
+setup.setTimeout(120000);
+
+setup('authenticate', async ({ page, baseURL }, workerInfo) => {
   console.log('🔒 Setting up authentication for testing...');
 
   try {

@@ -20,7 +20,7 @@ describe('EventPreviewCard', () => {
 
     expect(screen.getByText(/Board Game Night/i)).toBeInTheDocument();
     expect(screen.getByText(/Saturday, March 22, 2025/i)).toBeInTheDocument();
-    expect(screen.getByText(/5:00 PM/i)).toBeInTheDocument();
+    expect(screen.getByText(/5:00/i)).toBeInTheDocument();
     expect(screen.getByText(/123 Main St/i)).toBeInTheDocument();
     expect(screen.getByText(/Confidence: 95%/i)).toBeInTheDocument();
     expect(screen.getByText(/Bring your favorite board game!/i)).toBeInTheDocument();

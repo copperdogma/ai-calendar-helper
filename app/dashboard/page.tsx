@@ -102,7 +102,7 @@ const CalendarHelperSection = () => {
         time: startDate.toLocaleTimeString('en-US', {
           hour: 'numeric',
           minute: '2-digit',
-          hour12: true,
+          hour12: false,
           timeZone: event.timezone, // Display time in the AI's specified timezone
         }),
         duration: `${Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60))} minutes`,

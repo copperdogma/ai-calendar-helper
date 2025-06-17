@@ -14,9 +14,10 @@ describe('generateAddToCalendarLinks with explicit timezone', () => {
 
     // Should not throw and must include VEVENT lines
     expect(links.ics).toContain('BEGIN:VEVENT');
-    expect(links.ics).toContain('DTSTART:');
+    expect(links.ics).toContain('DTSTART;TZID=Europe/Paris:20250310T000000');
     // Google link contains Z suffix (UTC)
     expect(links.google).toMatch(/Z/);
+    expect(links.google).toContain('ctz=Europe%2FParis');
   });
 
   it('handles date+time event with timezone', () => {
@@ -30,7 +31,7 @@ describe('generateAddToCalendarLinks with explicit timezone', () => {
     };
 
     const { outlook } = generateAddToCalendarLinks(event);
-    // Outlook link should include encoded startdt parameter
     expect(outlook).toMatch(/startdt=/);
+    expect(outlook).toContain('ctz=Asia%2FTokyo');
   });
 });

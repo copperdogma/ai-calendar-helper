@@ -23,7 +23,7 @@ const Footer: React.FC = () => {
         <Typography variant="body2" color="text.secondary" align="center">
           {'Copyright © '}
           <Link color="inherit" href="/">
-            Your Website Name
+            AI Calendar Helper
           </Link>{' '}
           {new Date().getFullYear()}
           {'.'}

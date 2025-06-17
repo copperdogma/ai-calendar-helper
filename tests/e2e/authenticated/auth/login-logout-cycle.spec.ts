@@ -23,7 +23,10 @@ import { loggers } from '../../../../lib/logger';
 const logger = loggers.ui;
 
 // Use a central timeout value that can be overridden via env vars (see .env.test TIMEOUT_NAVIGATION)
-const LONG_TIMEOUT = parseInt(process.env.TIMEOUT_NAVIGATION ?? '60000');
+const LONG_TIMEOUT = parseInt(process.env.TIMEOUT_NAVIGATION ?? '90000');
+
+// Allow extra time on cold dev server compilations
+test.setTimeout(120000);
 
 test.describe('Authentication Cycle', () => {
   // REMOVED: test.use({ storageState: storageStatePath });

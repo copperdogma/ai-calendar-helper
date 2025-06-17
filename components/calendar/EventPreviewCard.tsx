@@ -22,6 +22,10 @@ export interface EventPreview {
   confidence?: number;
   summary?: string;
   originalText?: string;
+  timezone?: string;
+  durationMinutes?: number;
+  endDateISO?: string;
+  endTime?: string;
 }
 
 interface EventPreviewCardProps {
@@ -167,8 +171,13 @@ const EventPreviewCard: React.FC<EventPreviewCardProps> = ({ event, onUpdate }) 
             </Typography>
           ) : null}
           <Typography variant="body2" color="text.secondary">
-            📅 {event.date} {event.time && `at ${event.time}`}
+            📅 {event.date}
           </Typography>
+          {event.time && (
+            <Typography variant="body2" color="text.secondary">
+              ⏰ {event.time} – {event.endTime} {event.timezone ? `(${event.timezone})` : ''}
+            </Typography>
+          )}
           {event.location && (
             <Typography variant="body2" color="text.secondary">
               📍 {event.location}
@@ -204,7 +213,8 @@ const EventPreviewCard: React.FC<EventPreviewCardProps> = ({ event, onUpdate }) 
               time: event.time,
               location: event.location,
               description: fullDesc,
-              timezone,
+              timezone: event.timezone || timezone,
+              durationMinutes: event.durationMinutes,
             });
 
             const icsContent = generateAddToCalendarLinks({
@@ -213,7 +223,8 @@ const EventPreviewCard: React.FC<EventPreviewCardProps> = ({ event, onUpdate }) 
               time: event.time,
               location: event.location,
               description: fullDesc,
-              timezone,
+              timezone: event.timezone || timezone,
+              durationMinutes: event.durationMinutes,
             }).ics;
 
             const icsDataUri = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
