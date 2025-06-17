@@ -12,13 +12,12 @@ WORKDIR /app
 # Copy dependency manifests
 COPY package*.json ./
 
-# Install only production dependencies (skip platform-specific dev deps)
-ENV NODE_ENV=production
 # Skip husky git hooks during install
 ENV HUSKY=0
+ENV NEXTAUTH_SECRET="placeholder-during-build"
 
-# Install production dependencies (include dev for build)
-RUN npm ci --omit=optional
+# Install ALL dependencies (including dev and optional) so native bindings are available
+RUN npm ci
 
 # Copy the rest of the project
 COPY . .
@@ -49,6 +48,9 @@ COPY --from=builder /app/node_modules ./node_modules
 
 # Copy prisma package to root path to satisfy symlink
 COPY --from=builder /app/node_modules/prisma ./prisma
+
+# Remove development dependencies to keep runtime image slim
+RUN npm prune --omit=dev
 
 EXPOSE 3000
 

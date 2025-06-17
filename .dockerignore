@@ -1,0 +1,31 @@
+# Exclude files and directories that are not needed in the Docker build context
+
+# Node modules (will be installed in the image)
+node_modules
+**/node_modules
+
+# VCS
+.git
+
+# Build output / caches
+.next
+coverage
+playwright-report
+playwright-cache
+
+# Editor / OS metadata
+.vscode
+.idea
+.DS_Store
+
+# Logs & misc
+logs
+*.log
+*.tsbuildinfo
+
+# Tests & mocks (not needed at runtime)
+# Keep mocks; exclude only tests to avoid type-checking errors
+tests
+
+# Local env files (will be provided as secrets)
+.env* 
