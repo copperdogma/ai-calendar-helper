@@ -1,11 +1,6 @@
 ---
+description: 
 globs: ["app/api/**", "**/*route.ts", "lib/api*"]
-alwaysApply: false
----
-
----
-description:
-globs:
 alwaysApply: false
 ---
 # API Development Guide

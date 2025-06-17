@@ -1,10 +1,204 @@
 ---
-globs: ["**/auth/**", "**/login/**", "lib/auth*", "middleware.ts", "app/api/auth/**"]
+description: 
+globs: **/auth/**,**/login/**,lib/auth*,middleware.ts,app/api/auth/**
 alwaysApply: false
 ---
+# Authentication Development Guide
 
----
-description:
-globs:
-alwaysApply: false
----
+## Quick Commands
+
+```bash
+# NextAuth.js development
+npm run dev                     # Start with auth debugging
+npm run test:e2e:auth-only     # Run authentication E2E tests
+
+# Authentication testing
+npm test tests/unit/auth/       # Run auth unit tests
+npm run test:coverage -- tests/unit/auth/
+
+# Database auth management
+npx prisma db push             # Update auth schema
+npx prisma studio              # View user/account data
+```
+
+## Key Configuration Files
+
+- `lib/auth-shared.ts` - Core NextAuth.js configuration shared across runtimes
+- `lib/auth-node.ts` - Server-side configuration
+- `lib/auth-edge.ts` - Edge runtime configuration (middleware)
+- `middleware.ts` - Route protection middleware
+- `lib/auth/` - Auth helper functions and implementation
+
+## Authentication Implementation Procedures
+
+### Adding New OAuth Providers
+
+1. **Configure provider in auth-shared.ts**:
+```typescript
+import { GoogleProvider } from "next-auth/providers/google"
+
+export const authConfig = {
+  providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+    // Add new provider here
+  ],
+}
+```
+
+2. **Add environment variables**:
+```bash
+# In .env.local
+PROVIDER_CLIENT_ID="your_client_id"
+PROVIDER_CLIENT_SECRET="your_client_secret"
+```
+
+3. **Update Prisma schema if needed** in `prisma/schema.prisma`
+
+### Protecting New Routes
+
+1. **Add route patterns to middleware.ts**:
+```typescript
+const PROTECTED_ROUTES = [
+  '/dashboard/:path*',
+  '/profile/:path*',
+  '/api/user/:path*',
+  '/your-new-route/:path*', // Add here
+]
+```
+
+2. **Test route protection**:
+```typescript
+// In E2E tests
+await page.goto('/your-new-route');
+expect(page.url()).toContain('/login');
+```
+
+### OAuth Profile Data Handling
+
+**Default: Initial Population Only**
+- User profile populated ONCE from OAuth provider
+- Subsequent logins do NOT update profile from provider
+- Users can customize profile independently
+
+**To Enable Continuous Sync**:
+Modify `lib/auth/auth-helpers.ts` in `_handleExistingUser`:
+```typescript
+// Update user profile with latest OAuth data
+if (name !== dbUserWithAccounts.name || image !== dbUserWithAccounts.image) {
+  updatedUser = await prisma.user.update({
+    where: { id: dbUserWithAccounts.id },
+    data: {
+      name: name || dbUserWithAccounts.name,
+      image: image || dbUserWithAccounts.image,
+    },
+  });
+}
+```
+
+### Rate Limiting Configuration
+
+**Redis-based rate limiting** in `lib/actions/auth.actions.ts`:
+
+**Production Setup**:
+```bash
+# Required environment variables
+REDIS_URL="redis://localhost:6379"
+ENABLE_REDIS_RATE_LIMITING="true"
+RATE_LIMIT_REGISTER_MAX_ATTEMPTS=10
+RATE_LIMIT_REGISTER_WINDOW_SECONDS=3600
+```
+
+**⚠️ Security Note**: Fails open if Redis unavailable - ensure Redis HA in production
+
+### Session Debugging
+
+**Check session state**:
+```typescript
+import { auth } from '@/lib/auth-node'
+
+// In API routes
+const session = await auth()
+console.log('Session:', session)
+
+// In client components
+import { useSession } from 'next-auth/react'
+const { data: session, status } = useSession()
+```
+
+**Common session issues**:
+- `NEXTAUTH_SECRET` not set
+- JWT token expiration
+- Database connection issues
+- Middleware configuration errors
+
+## Error Handling Patterns
+
+### Authentication Errors
+
+```typescript
+// In API routes
+if (!session) {
+  return Response.json({ error: 'Unauthorized' }, { status: 401 })
+}
+
+// In components
+if (status === 'loading') return <LoadingSpinner />
+if (!session) return <SignInPrompt />
+```
+
+### OAuth Error Handling
+
+```typescript
+// In auth configuration
+callbacks: {
+  signIn: async ({ user, account, profile }) => {
+    try {
+      // Custom sign-in logic
+      return true
+    } catch (error) {
+      console.error('Sign-in error:', error)
+      return false
+    }
+  }
+}
+```
+
+### Database Connection Issues
+
+- Check `DATABASE_URL` environment variable
+- Verify Prisma schema is up-to-date
+- Test database connection: `npx prisma db push`
+
+## Testing Authentication
+
+### E2E Authentication Tests
+
+```bash
+# Run auth-specific E2E tests
+npm run test:e2e:auth-only
+
+# Run with debugging
+npm run test:e2e:debug
+```
+
+### Unit Test Patterns
+
+```typescript
+// Mock NextAuth.js in tests
+jest.mock('next-auth/react', () => ({
+  useSession: () => ({
+    data: { user: { email: 'test@example.com' } },
+    status: 'authenticated'
+  })
+}))
+```
+
+## References
+
+- @middleware.ts - Route protection implementation
+- @lib/auth-shared.ts - Core auth configuration
+- @prisma/schema.prisma - User/Account models
+- @app/api/auth - NextAuth.js API routes

@@ -33,15 +33,9 @@ AI Calendar Helper is a modern web application that converts natural language to
 
 ## Quick Start
 
-1. **Clone**: `git clone https://github.com/cam/ai-calendar-helper.git && cd ai-calendar-helper`
-2. **Install Dependencies**: `npm install --legacy-peer-deps`
-3. **Configure Project**:
-   - Copy template: `cp setup-answers.example.json setup-answers.json`
-   - Edit `setup-answers.json` with your project details
-   - Run setup: `node scripts/setup.js --config setup-answers.json`
-4. **Database Migration**: `npx dotenv-cli -e .env.local npx prisma migrate dev`
-5. **Start AI Server**: `npm run ai:start`
-6. **Health Check**: `npm run ai:health`
+_For one-time installation and environment configuration, please follow the detailed instructions in_ **[SETUP.md](SETUP.md)**.
+
+Once your project is set up, refer to the sections below for project structure, daily development workflow, and advanced usage tips.
 
 ## Project Structure
 
@@ -119,45 +113,7 @@ Key variables to configure in `.env.local`:
 
 ## Setup Guide
 
-### 1. Database Setup
-
-Ensure PostgreSQL is running:
-
-```bash
-# Check if PostgreSQL is running
-brew services list | grep postgres
-
-# Start PostgreSQL if needed
-brew services start postgresql@14
-```
-
-### 2. Environment Configuration
-
-The setup script creates `.env.local` with proper configuration:
-
-```bash
-node scripts/setup.js --config setup-answers.json
-```
-
-### 3. Database Migration
-
-```bash
-npx dotenv-cli -e .env.local npx prisma migrate dev
-```
-
-### 4. Google OAuth Setup
-
-1. Create a project in [Google Cloud Console](https://console.cloud.google.com/)
-2. Enable Google Calendar API
-3. Create OAuth 2.0 credentials
-4. Add authorized redirect URIs: `http://localhost:3000/api/auth/callback/google`
-5. Update `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `.env.local`
-
-### 5. OpenAI API Setup
-
-1. Create an account at [OpenAI](https://platform.openai.com/)
-2. Generate an API key
-3. Update `OPENAI_API_KEY` in `.env.local`
+_This detailed setup content has been consolidated into_ **[SETUP.md](SETUP.md)** _to avoid duplication and keep the README centered around ongoing development and AI guidance._
 
 ## Authentication
 

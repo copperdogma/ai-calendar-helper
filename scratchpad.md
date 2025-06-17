@@ -60,3 +60,31 @@ Implement a three-prompt pipeline in `AIProcessingService`:
 ## Decisions Made
 
 - Switched eval providers from `gpt-4o-mini` to `gpt-4.1-nano` as per user request.
+
+---
+
+## Documentation Optimization Project
+
+### Phase 1: Discovery 🔄 IN PROGRESS
+
+#### Documents Checklist
+
+- [x] docs/ai-agent-guide.md
+- [x] docs/architecture.md
+- [x] docs/cursor-rules-integration-summary.md
+- [x] docs/design.md
+- [x] docs/examples/ai-service-usage.md
+- [x] docs/log.md
+- [x] docs/nextauth-prisma-adapter-optimizations.md
+- [x] docs/nextauth-prisma-adapter-summary.md
+- [x] docs/nextauth-prisma-adapter.md
+- [x] docs/pwa-testing.md
+- [x] docs/requirements.md
+- [x] docs/templates/architecture-template.md
+- [x] docs/templates/design-template.md
+- [x] docs/templates/requirements-template.md
+- [x] README.md
+- [x] SETUP.md
+- [x] testing/README-main.md
+
+- [ ] Finally: update @cimprove-project-documents.mdc to reflect the new methodology for refining the docs: setup instrucitons go in SETUP.md, usage instructions go in the other docs. Everything is AI centric.

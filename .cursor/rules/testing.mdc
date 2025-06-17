@@ -1,555 +1,135 @@
 ---
 description: 
-globs: tests/**/*
+globs: **/*.test.*,**/*.spec.*,tests/**,**/jest.config.*,**/playwright.config.*
 alwaysApply: false
 ---
 # Testing Development Guide
 
-## Testing Principles
+This guide provides a comprehensive overview of the testing strategy, tools, and procedures used in this project.
 
-- **Unit Tests**: Test behavior, not implementation. Keep tests small, isolated, and mock external dependencies. Test error/edge cases.
-- **Integration Tests**: Test realistic user scenarios with minimal mocking. Verify API contracts and database interactions.
-- **E2E Tests**: Focus on critical user paths. Use data attributes for selectors. Implement proper waits. Keep tests independent.
+## Guiding Principles
+
+-   **Unit Tests**: Test behavior, not implementation. Keep tests small, isolated, and mock external dependencies. Cover error and edge cases.
+-   **Integration Tests**: Test realistic user scenarios with minimal mocking, focusing on API contracts and database interactions.
+-   **E2E Tests**: Focus on critical user paths. Use `data-testid` attributes for selectors. Implement proper waits and keep tests independent.
 
 ## Quick Commands
 
-### Unit & Integration Tests
+### Unit & Integration Tests (Jest)
 
 ```bash
-# Run all unit tests (primary command)
+# Run all unit tests with coverage
 npm run test:unit
 
 # Run unit tests in watch mode
 npm run test:unit:watch
 
-# Run unit tests with coverage
-npm run test:unit:coverage
+# Run tests related to specific files
+npm run test:unit:subset <file1> <file2>
 
-# Comprehensive test suite (unit + E2E)
+# Run tests with coverage for a subset of files
+npm run test:unit:coverage:subset <file1> <file2>
+```
+
+### End-to-End Tests (Playwright)
+
+The E2E scripts automatically handle killing processes on the test port and checking server logs for errors after the run.
+
+```bash
+# Run all E2E tests
+npm run test:e2e
+
+# Run only authentication-related tests
+npm run test:e2e:auth-only
+
+# Run only tests for public (unauthenticated) pages
+npm run test:e2e:public-only
+
+# Run only tests for authenticated pages
+npm run test:e2e:authenticated-only
+
+# Run Playwright in debug mode
+npx playwright test --debug
+
+# View the last HTML test report
+npm run test:e2e:report
+
+# Update visual regression snapshots
+npm run test:e2e:update-snapshots
+```
+
+### Combined & CI
+
+```bash
+# Run the primary test suite (unit tests)
 npm test
 
-# CI test suite
+# Run the full CI suite (unit + E2E)
 npm run test:ci
 ```
 
-### End-to-End Tests
+---
 
-```bash
-# Run all E2E tests (most comprehensive)
-npm run test:e2e
+## Jest Deep Dive
 
-# Specific test categories
-npm run test:e2e:auth-only          # Authentication tests only
-npm run test:e2e:public-only        # Unauthenticated tests only  
-npm run test:e2e:authenticated-only # Protected route tests only
+Our Jest setup (`jest.config.js`) uses a multi-project configuration to optimize testing for different environments.
 
-# Debugging E2E tests
-npm run test:e2e:debug              # Step-through debugging
-npm run test:e2e:headed             # Visible browser mode
-npm run test:e2e:update-snapshots   # Update visual snapshots
-npm run test:e2e:report             # View HTML test report
-```
+### Jest Projects: Node vs. JSDOM
+
+-   **`displayName: 'node'`**: For server-side code.
+    -   **Environment**: `node`
+    -   **Test Folders**: `tests/unit/lib`, `tests/unit/api`, `tests/unit/db`, `tests/unit/auth`, `tests/integration`.
+    -   **Setup**: Uses `jest.setup.api.js` and `node-setup.js`.
+-   **`displayName: 'jsdom'`**: For client-side code.
+    -   **Environment**: `jsdom`
+    -   **Test Folders**: `tests/unit/components`, `tests/unit/utils`, `tests/unit/providers`.
+    -   **Setup**: Uses `jest.setup.jsdom.ts` and `browser-setup.js`.
+
+### Key Jest Configurations
+
+-   **SWC Transformer (`@swc/jest`)**: We use SWC for transforming TypeScript/JSX, which is significantly faster than Babel. The configuration is aligned with Next.js's internal compiler.
+-   **Module Aliases (`moduleNameMapper`)**: The config includes path aliases (e.g., `^@/(.*)$`) to simplify imports in tests.
+-   **ESM Module Transformation (`transformIgnorePatterns`)**: Jest runs in a CommonJS context, so modern ESM packages in `node_modules` must be transformed. Our config is set up to transpile commonly used packages like `next-auth`, `jose`, `uuid`, etc.
+-   **Global Setup (`globalSetup.ts`)**: A global setup script runs once before all test suites to prepare the test environment (e.g., setting up a test database).
+-   **Open Handles (`detectOpenHandles`)**: This option is enabled to help debug tests that don't exit cleanly due to open handles (e.g., database connections, servers).
 
 ### Code Coverage
 
-```bash
-# Generate coverage report
-npm run test:unit:coverage
+-   **`collectCoverageFrom`**: Specifies which files to include in the coverage report, focusing on application code in `app/`, `lib/`, and `components/`.
+-   **`coveragePathIgnorePatterns`**: Excludes `node_modules`, config files, and other non-application code from coverage metrics.
+-   **Thresholds**: A global coverage threshold is enforced. Some critical files may have their own higher thresholds defined in `jest.config.js`.
 
-# View coverage report in browser (macOS)
-open coverage/lcov-report/index.html
-```
+---
 
-**Coverage Thresholds**:
-- **Statements**: 90%
-- **Branches**: 85%
-- **Functions**: 90%
-- **Lines**: 90%
+## Playwright Deep Dive
 
-## Testing Architecture
+Our Playwright setup (`playwright.config.ts`) is designed for robust and efficient E2E testing.
 
-### Jest Multi-Project Configuration
+### Automated Web Server (`webServer`)
 
-**Two distinct environments**:
-- **jsdom project**: React components, browser environment
-- **node project**: API routes, server-side code, Node.js utilities
+Playwright automatically starts the Next.js development server before running tests.
+-   **Command**: `npm run dev:test`
+-   **Port**: `3777`
+-   **Health Check**: Waits for `http://1227.0.0.1:3777/api/health` to be ready.
+-   **`reuseExistingServer`**: `!process.env.CI` - In local development, it will reuse a running server to speed up test cycles.
 
-Configuration automatically selects environment based on file location and content.
+### Authentication State (`storageState`)
 
-### Test Organization
+-   A dedicated `setup` project runs first (`tests/e2e/setup/auth.setup.ts`).
+-   It logs in as a test user and saves the session cookies and local storage into `tests/.auth/user.json`.
+-   Authenticated test suites (`authenticated-chromium`, `Mobile Chrome`) depend on `setup` and use this `storageState` file to start tests already logged in.
 
-```
-tests/
-├── unit/                    # Unit tests
-│   ├── api/                # API route tests
-│   ├── components/         # React component tests  
-│   └── utils/              # Utility function tests
-├── integration/            # Integration tests
-├── e2e/                   # End-to-end tests
-│   ├── setup/             # Authentication setup
-│   ├── public/            # Unauthenticated tests
-│   ├── authenticated/     # Protected route tests
-│   └── utils/             # E2E test utilities
-├── mocks/                 # Shared test mocks
-└── utils/                 # Test utilities
-```
+### Multi-Browser & Mobile Testing
 
-## Unit Testing Patterns
+-   The configuration includes projects for `Desktop Chrome`, `Desktop Firefox`, and `Mobile Chrome` (emulating a Pixel 7).
+-   This allows for testing user flows across different browsers and form factors.
 
-### Component Testing
+### Debugging & Tracing
 
-```typescript
-import { renderWithProviders } from '@/tests/utils/test-utils'
-import { Button } from '@/components/ui/Button'
+-   **`trace: 'on-first-retry'`**: For CI runs, a detailed trace is recorded on the first retry of a failed test. You can open `trace.zip` in Playwright's Trace Viewer.
+-   **`screenshot: 'only-on-failure'`**: Captures a screenshot when a test fails.
+-   **`video: 'retain-on-failure'`**: Records a video of the test run, kept only if the test fails.
 
-test('button handles click events', async () => {
-  const handleClick = jest.fn()
-  const { getByRole } = renderWithProviders(
-    <Button onClick={handleClick}>Click me</Button>
-  )
-  
-  await fireEvent.click(getByRole('button'))
-  expect(handleClick).toHaveBeenCalledTimes(1)
-})
+### Accessibility Testing
 
-test('button shows loading state', () => {
-  const { getByRole } = renderWithProviders(
-    <Button loading>Submit</Button>
-  )
-  
-  expect(getByRole('button')).toBeDisabled()
-  expect(getByRole('button')).toHaveTextContent('Loading...')
-})
-```
-
-### API Route Testing
-
-```typescript
-import { createMocks } from 'node-mocks-http'
-import { GET, POST } from '@/app/api/user/me/route'
-
-describe('/api/user/me', () => {
-  test('GET returns user data for authenticated user', async () => {
-    // Mock NextAuth session
-    jest.mocked(auth).mockResolvedValue({
-      user: { id: '1', email: 'test@example.com' }
-    })
-    
-    const { req } = createMocks({ method: 'GET' })
-    const response = await GET(req)
-    
-    expect(response.status).toBe(200)
-    const data = await response.json()
-    expect(data.user).toHaveProperty('email', 'test@example.com')
-  })
-
-  test('POST updates user profile', async () => {
-    const { req } = createMocks({
-      method: 'POST',
-      body: { name: 'Updated Name' }
-    })
-    
-    const response = await POST(req)
-    expect(response.status).toBe(200)
-  })
-})
-```
-
-### Database Mocking Strategy
-
-```typescript
-import { prismaMock } from '@/__mocks__/db/prismaMocks'
-
-beforeEach(() => {
-  // prismaMock automatically resets with sensible defaults
-})
-
-test('should create user', async () => {
-  const mockUser = {
-    id: '1',
-    email: 'test@example.com',
-    name: 'Test User'
-  }
-  
-  prismaMock.user.create.mockResolvedValue(mockUser)
-  
-  const result = await createUser({
-    email: 'test@example.com',
-    name: 'Test User'
-  })
-  
-  expect(prismaMock.user.create).toHaveBeenCalledWith({
-    data: {
-      email: 'test@example.com',
-      name: 'Test User'
-    }
-  })
-  expect(result).toEqual(mockUser)
-})
-
-test('should handle database errors', async () => {
-  prismaMock.user.create.mockRejectedValue(new Error('Database error'))
-  
-  await expect(createUser({
-    email: 'test@example.com'
-  })).rejects.toThrow('Database error')
-})
-```
-
-### Authentication Testing
-
-```typescript
-// Mock NextAuth modules
-jest.mock('@/lib/auth-node', () => ({
-  auth: jest.fn()
-}))
-
-import { auth } from '@/lib/auth-node'
-
-test('protected API returns 401 for unauthenticated user', async () => {
-  jest.mocked(auth).mockResolvedValue(null)
-  
-  const { req } = createMocks({ method: 'GET' })
-  const response = await GET(req)
-  
-  expect(response.status).toBe(401)
-})
-
-test('protected API allows authenticated user', async () => {
-  jest.mocked(auth).mockResolvedValue({
-    user: { id: '1', email: 'test@example.com' }
-  })
-  
-  const { req } = createMocks({ method: 'GET' })
-  const response = await GET(req)
-  
-  expect(response.status).toBe(200)
-})
-```
-
-## End-to-End Testing
-
-### Playwright Project Structure
-
-**Three projects**:
-1. **setup**: Authenticates test user, saves session state
-2. **unauthenticated-tests**: Public pages and components (`tests/e2e/public/`)
-3. **authenticated-chromium**: Protected routes (`tests/e2e/authenticated/`)
-
-### Authentication Strategy
-
-```typescript
-// tests/e2e/setup/auth.setup.ts
-import { test as setup, expect } from '@playwright/test'
-
-const authFile = 'tests/.auth/user.json'
-
-setup('authenticate', async ({ page }) => {
-  await page.goto('/login')
-  await page.fill('[name="email"]', 'test@example.com')
-  await page.fill('[name="password"]', 'password123')
-  await page.click('button[type="submit"]')
-  
-  await page.waitForURL('/dashboard')
-  await page.context().storageState({ path: authFile })
-})
-```
-
-### E2E Test Patterns
-
-```typescript
-// Authentication flow test
-test('user can sign in with credentials', async ({ page }) => {
-  await page.goto('/login')
-  
-  await page.fill('[name="email"]', 'test@example.com')
-  await page.fill('[name="password"]', 'password123')
-  await page.click('button[type="submit"]')
-  
-  await expect(page).toHaveURL('/dashboard')
-  await expect(page.getByText('Welcome')).toBeVisible()
-})
-
-// Accessibility testing
-import AxeBuilder from '@axe-core/playwright'
-
-test('homepage is accessible', async ({ page }) => {
-  await page.goto('/')
-  
-  const accessibilityScanResults = await new AxeBuilder({ page })
-    .withTags(['wcag2a', 'wcag2aa'])
-    .analyze()
-  
-  expect(accessibilityScanResults.violations).toEqual([])
-})
-
-// API interaction test
-test('profile page loads user data', async ({ page }) => {
-  await page.goto('/profile')
-  
-  // Wait for API call to complete
-  await page.waitForResponse('/api/user/me')
-  await expect(page.getByTestId('user-name')).toBeVisible()
-})
-```
-
-### Visual Regression Testing
-
-```typescript
-test('button component visual regression', async ({ page }) => {
-  await page.goto('/components/button')
-  
-  const button = page.getByTestId('primary-button')
-  await expect(button).toHaveScreenshot('primary-button.png')
-  
-  await button.hover()
-  await expect(button).toHaveScreenshot('primary-button-hover.png')
-})
-```
-
-## Coverage Standards
-
-### Coverage Thresholds
-
-```javascript
-// jest.config.js
-coverageThreshold: {
-  global: {
-    statements: 90,
-    branches: 85,
-    functions: 90,
-    lines: 90
-  }
-}
-```
-
-### Coverage Analysis
-
-```bash
-# Generate and view coverage
-npm run test:unit:coverage
-open coverage/lcov-report/index.html
-
-# Coverage by file type
-npm run test:unit:coverage -- --collectCoverageFrom="components/**/*.{ts,tsx}"
-npm run test:unit:coverage -- --collectCoverageFrom="app/api/**/*.{ts,tsx}"
-```
-
-## Debugging & Troubleshooting
-
-### E2E Test Debugging
-
-```bash
-# Step-through debugging
-npm run test:e2e:debug
-
-# Run with visible browser
-npm run test:e2e:headed
-
-# Generate trace files
-npm run test:e2e -- --trace on
-
-# View test report with traces
-npm run test:e2e:report
-```
-
-### Common Issues & Solutions
-
-**Port conflicts**:
-```bash
-# Kill processes on port
-lsof -ti:3000 | xargs kill -9
-
-# Use different port
-PORT=3001 npm run test:e2e
-```
-
-**Authentication test failures**:
-```bash
-# Clear auth state
-rm -rf tests/.auth/
-
-# Re-run setup
-npx playwright test --project=setup
-```
-
-**Database connection issues**:
-```bash
-# Test database connection
-npm run test:unit tests/integration/database.test.ts
-
-# Reset test database
-npm run test:db:reset
-```
-
-**Flaky E2E tests**:
-```bash
-# Run specific test multiple times
-npx playwright test auth.spec.ts --repeat-each=5
-
-# Run with retries
-npx playwright test --retries=3
-```
-
-### Test Server Management
-
-```bash
-# Start test server for E2E
-npm run ai:start
-
-# Verify server health before tests
-npm run ai:health
-
-# Check server logs during tests
-npm run ai:logs
-
-# Stop server after tests
-npm run ai:stop
-```
-
-## Testing Best Practices
-
-### Unit Testing
-1. **Test behavior, not implementation**
-2. **Use descriptive test names**
-3. **Follow AAA pattern (Arrange, Act, Assert)**
-4. **Mock external dependencies**
-5. **Test error cases and edge conditions**
-
-### Integration Testing
-1. **Test realistic user scenarios**
-2. **Use minimal mocking**
-3. **Verify API contract compliance**
-4. **Test database interactions**
-
-### E2E Testing
-1. **Focus on critical user paths**
-2. **Use data-testid for reliable selection**
-3. **Implement proper waiting strategies**
-4. **Keep tests independent**
-5. **Use page object patterns for complex flows**
-
-## CI/CD Integration
-
-### GitHub Actions Configuration
-
-```yaml
-- name: Run Unit Tests
-  run: npm run test:ci
-
-- name: Run E2E Tests
-  run: npm run test:e2e
-
-- name: Upload Coverage
-  uses: codecov/codecov-action@v3
-  with:
-    file: ./coverage/lcov.info
-```
-
-### Test Environment Variables
-
-```bash
-# Test environment (.env.test)
-DATABASE_URL="postgresql://test:test@localhost:5433/test_db"
-NEXTAUTH_SECRET="test-secret"
-NEXTAUTH_URL="http://localhost:3000"
-```
-
-## References
-
-- @tests/unit - Unit test examples
-- @tests/e2e - E2E test examples
-- @jest.config.js - Jest configuration
-- @playwright.config.ts - Playwright configuration
-- @tests/utils/test-utils.tsx - Custom testing utilities
-
-## Test Fixtures and Utilities
-
-### Unit Test Fixtures (`tests/utils/test-fixtures.ts`)
-
-- **`AuthTestUtils.renderWithAuth(<Component />)`**: Renders a component with an unauthenticated state.
-- **`AuthTestUtils.renderAuthenticated(<Component />)`**: Renders with a default authenticated user.
-- **`createMockUser({ ...overrides })`**: Creates a consistent mock user object.
-- **`AuthStateFixtures.authenticated`**: Provides a pre-defined authenticated state for context providers.
-
-### E2E Test Fixtures (`tests/e2e/fixtures/test-fixtures.ts`)
-
-- **`authenticatedPage`**: A page object that is already authenticated with a default test user.
-- **`adminPage`**: A page object authenticated as an admin user.
-- **`mobilePage`, `tabletPage`, `desktopPage`**: Pages configured for specific viewports for responsive testing.
-- **`testUtils`**: A collection of helper methods for common operations like waiting for navigation or checking if an element exists.
-
-## Unit Testing Best Practices
-
-### Query Priority
-Follow this priority order for selecting elements to ensure tests are accessible and resilient:
-1.  **`getByRole`**: The most accessible and preferred method.
-    `screen.getByRole('button', { name: /submit/i })`
-2.  **`getByLabelText`**: Best for form fields.
-    `screen.getByLabelText(/email address/i)`
-3.  **`getByText`**: Good for non-interactive elements like divs or spans.
-    `screen.getByText(/welcome to our app/i)`
-4.  **`getByTestId`**: Use as a last resort for elements without semantic roles or text.
-    `screen.getByTestId('unique-element')`
-
-### User Interactions
-Always use `userEvent` over `fireEvent` to simulate real user interactions more accurately.
-
-```typescript
-// ✅ Good
-import userEvent from '@testing-library/user-event'
-const user = userEvent.setup()
-await user.click(screen.getByRole('button'))
-
-// ❌ Bad
-import { fireEvent } from '@testing-library/react'
-fireEvent.click(screen.getByRole('button'))
-```
-
-### Async Operations
-Use `findBy*` queries for elements that appear asynchronously. Use `waitFor` for other async assertions.
-
-```typescript
-// Use findBy* to wait for an element to appear
-const submitButton = await screen.findByRole('button', { name: /submit/i });
-
-// Use waitFor for other assertions after an action
-await user.click(button);
-await waitFor(() => {
-  expect(screen.getByText(/success/i)).toBeVisible();
-});
-```
-
-### Jest-DOM Matchers
-Use specific Jest-DOM matchers for more precise tests and clearer error messages.
-- `toBeVisible()`
-- `toBeDisabled()`
-- `toHaveTextContent()`
-- `toHaveAttribute()`
-- `toHaveValue()`
-
-```typescript
-// ✅ Good: Specific and clear
-expect(button).toBeDisabled();
-expect(element).toHaveTextContent('Expected text');
-
-// ❌ Bad: Generic and less clear
-expect(button.disabled).toBe(true);
-expect(element.textContent).toBe('Expected text');
-```
-
-### Test Structure (Arrange-Act-Assert)
-```typescript
-it('should display success message after successful submission', async () => {
-  // Arrange
-  const user = userEvent.setup();
-  render(<MyForm />);
-
-  // Act
-  await user.type(screen.getByLabelText(/email/i), 'test@example.com');
-  await user.click(screen.getByRole('button', { name: /submit/i }));
-
-  // Assert
-  expect(await screen.findByText(/success/i)).toBeVisible();
-});
-```
+-   We use `@axe-core/playwright` for running accessibility checks within our E2E tests to catch violations early.

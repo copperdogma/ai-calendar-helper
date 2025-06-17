@@ -120,12 +120,7 @@ const aiService = new AIProcessingService(mockClient);
 
 ## Environment Setup
 
-Add to your `.env.local` file:
-
-```bash
-# OpenAI Configuration
-OPENAI_API_KEY="your-openai-api-key-here"
-```
+_Add the `OPENAI_API_KEY` variable as described in_ **[SETUP.md](../../SETUP.md)** _(\_Environment Variables → AI Services_)\_.
 
 ## Response Schema
 

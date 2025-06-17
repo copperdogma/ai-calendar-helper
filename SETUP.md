@@ -10,6 +10,37 @@ It should take an AI agent about 5 minutes to fully set up, not including the ti
 - Node.js environment with npm
 - Terminal/shell access
 
+## Quick Start (TL;DR)
+
+1. **Clone** the repo and enter it:
+   ```bash
+   git clone https://github.com/cam/ai-calendar-helper.git && cd ai-calendar-helper
+   ```
+2. **Install** dependencies (peer-deps flag avoids Jest version conflicts):
+   ```bash
+   npm install --legacy-peer-deps
+   ```
+3. **Configure** project placeholders:
+   ```bash
+   cp setup-answers.example.json setup-answers.json
+   # Edit setup-answers.json as needed, then run:
+   node scripts/setup.js --config setup-answers.json
+   ```
+4. **Run initial migration**:
+   ```bash
+   npx dotenv-cli -e .env.local npx prisma migrate dev
+   ```
+5. **Launch** the dev server via PM2:
+   ```bash
+   npm run ai:start
+   ```
+6. **Verify** everything is healthy:
+   ```bash
+   npm run ai:health
+   ```
+
+_After completing these steps, consult the detailed sections below for deeper explanations, environment variables, and optional services._
+
 ## Setup Process
 
 ### 1. Repository Setup

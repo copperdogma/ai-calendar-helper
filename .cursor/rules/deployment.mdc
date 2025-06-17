@@ -1,6 +1,6 @@
 ---
 description: 
-globs: 
+globs: "fly.toml,Dockerfile,ecosystem.config.js,scripts/deploy*
 alwaysApply: false
 ---
 # Deployment Procedures
@@ -32,25 +32,27 @@ npm run ai:stop
 npm run ai:verify-port
 ```
 
-### Fly.io Deployment
+### Fly.io Quick Deployment Checklist
 ```bash
-# Deploy to production
+# 1. Install & login
+brew install flyctl
+fly auth login
+
+# 2. Create app
+fly apps create ai-calendar-helper --org personal --region sea
+
+# 3. Provision & Attach DB
+fly postgres create --name ai-calendar-helper-db --region sea --initial-cluster-size 1 --volume-size 1
+fly postgres attach --app ai-calendar-helper ai-calendar-helper-db
+
+# 4. Import Secrets from a local .env.production file
+fly secrets import < .env.production --app ai-calendar-helper
+
+# 5. Deploy (using remote builder)
 npm run deploy:fly
 
-# Check deployment status
-fly status --app ai-calendar-helper
-
-# View production logs
-fly logs --app ai-calendar-helper
-
-# Scale application
-fly scale count 1 --app ai-calendar-helper
-
-# SSH into production
-fly ssh console --app ai-calendar-helper
-
-# Check app info
-fly info --app ai-calendar-helper
+# 6. Health check
+curl -f https://ai-calendar-helper.fly.dev/api/health
 ```
 
 ### Build & Validation
@@ -66,6 +68,9 @@ npm run validate
 
 # Bundle analysis
 npm run build:analyze
+
+# Scale application
+fly scale count 2 --app ai-calendar-helper
 ```
 
 ## PM2 Configuration
@@ -322,3 +327,11 @@ fly config show --app ai-calendar-helper > config-backup.toml
 - `@Dockerfile` - Container build instructions (if using Docker)
 - `@scripts/deploy*` - Custom deployment scripts
 - `@prisma/migrations/` - Database migration files
+
+## Common Fly.io Pitfalls & Fixes
+
+| Symptom                                                 | Root Cause                                                                      | Fix                                                                                         |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `Cannot find module '/app/prisma'` in `release_command` | Prisma CLI symlink expects a folder named `prisma`.                               | Copy `node_modules/prisma` to `/app/prisma` **and** move schema to `/app/db/schema.prisma` in Dockerfile. |
+| `default level:info must be included...` on Fly         | Fly's `LOG_LEVEL` env is upper-case (`INFO`) which breaks Pino logger.            | Coerce to lower-case in `lib/logger.ts`: `level: (process.env.LOG_LEVEL || 'info').toLowerCase()` |
+| OOM during migrations                                   | Release VM default memory is too low (≈256MB).                                  | Set `[vm] memory_mb = 512` in `fly.toml`.                                                   |

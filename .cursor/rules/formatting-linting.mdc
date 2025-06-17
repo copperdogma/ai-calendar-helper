@@ -1,6 +1,6 @@
 ---
 description: 
-globs: 
+globs: eslint.config.*,prettier.config.*,**/.prettierrc*
 alwaysApply: false
 ---
 # Code Formatting & Linting Guide
