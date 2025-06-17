@@ -108,7 +108,7 @@ async function setupAuthViaUiLogin(page: Page): Promise<boolean> {
  */
 setup.setTimeout(120000);
 
-setup('authenticate', async ({ page, baseURL }, workerInfo) => {
+setup('authenticate', async ({ page, baseURL: _baseURL }, _workerInfo) => {
   console.log('🔒 Setting up authentication for testing...');
 
   try {

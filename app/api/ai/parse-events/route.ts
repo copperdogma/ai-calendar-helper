@@ -89,6 +89,82 @@ function shouldIncludeDebug() {
 }
 
 export async function POST(req: NextRequest) {
+  // If the client requests streaming progress via ?stream=true we will return
+  // a Server-Sent Events (text/event-stream) response with status updates.
+  const url = new URL(req.url);
+  const wantsStream =
+    url.searchParams.get('stream') === 'true' ||
+    req.headers.get('accept')?.includes('text/event-stream');
+
+  if (wantsStream) {
+    // We'll build a ReadableStream to progressively send JSON payloads using
+    // the SSE format: "data: {json}\n\n"
+    const encoder = new TextEncoder();
+
+    // Read and validate the body up front (must fully read before streaming)
+    const requestBody = await req.json();
+
+    const { text, options } = validateRequest(requestBody);
+
+    const aiService = new AIProcessingService();
+    const aiOpts = toAIOptions(options);
+
+    const sendEvent = (controller: ReadableStreamDefaultController, payload: unknown) => {
+      controller.enqueue(encoder.encode(`data: ${JSON.stringify(payload)}\n\n`));
+    };
+
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          sendEvent(controller, { status: 'Reading input...' });
+
+          // --- Segmentation (identify + start_lines) ---
+          sendEvent(controller, { status: 'Identifying potential events...' });
+          const segments = await aiService.segmentText(text.trim(), aiOpts);
+          sendEvent(controller, {
+            status: `Found ${segments.length} potential event${segments.length !== 1 ? 's' : ''}...`,
+          });
+
+          // --- Extract events sequentially so we can report progress ---
+          const extracted: RawEvent[] = [];
+
+          for (let i = 0; i < segments.length; i++) {
+            const chunk = segments[i];
+            sendEvent(controller, {
+              status: `Parsing event ${i + 1} of ${segments.length}...`,
+            });
+
+            // @ts-ignore – access private helper for chunk parsing
+            const ev = await aiService.parseEventChunk(chunk, aiOpts);
+            if (ev) extracted.push(ev as unknown as RawEvent);
+          }
+
+          sendEvent(controller, {
+            status: `Completed – total ${extracted.length} event${extracted.length !== 1 ? 's' : ''}`,
+            complete: true,
+            events: transformEvents(extracted),
+          });
+
+          controller.close();
+        } catch (err) {
+          sendEvent(controller, {
+            error: err instanceof Error ? err.message : 'Unknown error',
+            complete: true,
+          });
+          controller.close();
+        }
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache, no-transform',
+        Connection: 'keep-alive',
+      },
+    });
+  }
+
   const requestId = Math.random().toString(36).substring(2, 15);
   console.log(`🚀 [${requestId}] AI Parse Events API called`);
 

@@ -28,12 +28,17 @@ interface ParsedEvent {
 }
 
 interface TextInputFormProps {
-  onParseEvents?: (text: string) => Promise<ParsedEvent[]>;
+  onParseEvents?: (
+    text: string,
+    /** Optional callback used by the parser to push granular progress messages */
+    onProgress?: (message: string) => void
+  ) => Promise<ParsedEvent[]>;
 }
 
 const TextInputForm: React.FC<TextInputFormProps> = ({ onParseEvents }) => {
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState<string>('Parsing...');
   const [results, setResults] = useState<ParsedEvent[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [debugData, setDebugData] = useState<unknown>(null);
@@ -48,13 +53,23 @@ const TextInputForm: React.FC<TextInputFormProps> = ({ onParseEvents }) => {
     setError(null);
     setResults(null);
 
+    // Step 1: Let the user know we're starting to read the input
+    setLoadingMessage('Reading input...');
+
+    // Give React a moment to paint the first status message
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Step 2: Inform the user we're sending the request to the AI parser
+    setLoadingMessage('Parsing...');
+
     try {
       if (onParseEvents) {
-        const parsedEvents = await onParseEvents(inputText.trim());
-        const enriched = parsedEvents.map(evt => ({
-          ...evt,
-        }));
-        setResults(enriched);
+        const parsedEvents = await onParseEvents(inputText.trim(), message => {
+          // Update the UI with progress coming from the server (via SSE/stream)
+          setLoadingMessage(message);
+        });
+
+        setResults(parsedEvents);
 
         // Use explicit typing for the debugCombined property
         interface EventWithDebug extends ParsedEvent {
@@ -98,6 +113,8 @@ const TextInputForm: React.FC<TextInputFormProps> = ({ onParseEvents }) => {
       setError(error instanceof Error ? error.message : 'Failed to parse events');
     } finally {
       setIsLoading(false);
+      // Clear the loading message once finished so the default button label returns
+      setLoadingMessage('Parsing...');
     }
   };
 
@@ -164,7 +181,7 @@ const TextInputForm: React.FC<TextInputFormProps> = ({ onParseEvents }) => {
                 startIcon={isLoading ? <CircularProgress size={20} /> : null}
                 sx={{ minWidth: 160 }}
               >
-                {isLoading ? 'Parsing...' : 'Parse Events ⌘↵'}
+                {isLoading ? loadingMessage : 'Parse Events ⌘↵'}
               </Button>
             </span>
           </Tooltip>

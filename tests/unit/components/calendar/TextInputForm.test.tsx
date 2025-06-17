@@ -163,7 +163,8 @@ describe('TextInputForm', () => {
       // Wait for AI results (loading state is too fast to test with resolved Promise)
       await waitFor(() => {
         expect(mockParseEvents).toHaveBeenCalledWith(
-          'Team meeting tomorrow at 2pm in Conference Room A'
+          'Team meeting tomorrow at 2pm in Conference Room A',
+          expect.any(Function)
         );
         expect(screen.getByText(/Found 1 event/i)).toBeInTheDocument();
         expect(screen.getAllByText(/Team Meeting/i)).toHaveLength(3); // input + display + raw JSON
