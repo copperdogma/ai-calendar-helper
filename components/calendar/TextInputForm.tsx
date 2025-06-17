@@ -114,7 +114,13 @@ const TextInputForm: React.FC<TextInputFormProps> = ({ onParseEvents }) => {
 
   return (
     <Box sx={{ width: '100%', maxWidth: 800, mx: 'auto' }}>
-      <form onSubmit={handleSubmit} role="form" aria-labelledby="event-parser-heading">
+      {/* The form only wraps the input and action buttons to avoid nested form submissions within event previews */}
+      <form
+        onSubmit={handleSubmit}
+        role="form"
+        aria-labelledby="event-parser-heading"
+        style={{ width: '100%' }}
+      >
         <TextField
           multiline
           rows={6}
@@ -166,68 +172,68 @@ const TextInputForm: React.FC<TextInputFormProps> = ({ onParseEvents }) => {
             Clear
           </Button>
         </Box>
-
-        {/* Results Section */}
-        {((results && results.length > 0) || error) && (
-          <Box sx={{ mt: 4 }} role="region" aria-labelledby="results-heading">
-            <Typography
-              variant="h3"
-              component="h2"
-              id="results-heading"
-              sx={{ fontSize: '1.25rem', fontWeight: 600, mb: 2 }}
-            >
-              {error
-                ? 'Error'
-                : `Found ${results?.length || 0} event${(results?.length || 0) !== 1 ? 's' : ''}`}
-            </Typography>
-
-            {error && (
-              <Alert severity="error" sx={{ mb: 2 }} role="alert" aria-live="polite">
-                {error}
-              </Alert>
-            )}
-
-            {results && results.length > 0 && (
-              <Box aria-live="polite" aria-label="Parsed events">
-                {results.map((event, index) => (
-                  <EventPreviewCard
-                    key={event.id || index}
-                    event={event}
-                    onUpdate={(updated: ParsedEvent) => {
-                      setResults(prev =>
-                        prev ? prev.map((e, i) => (i === index ? updated : e)) : null
-                      );
-                    }}
-                  />
-                ))}
-              </Box>
-            )}
-
-            {/* Raw JSON display for debugging */}
-            <Box sx={{ mt: 3 }}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Raw AI Response (for development):
-              </Typography>
-              <TextField
-                multiline
-                fullWidth
-                value={
-                  typeof debugData === 'string'
-                    ? debugData
-                    : JSON.stringify(debugData || results, null, 2)
-                }
-                variant="outlined"
-                size="small"
-                InputProps={{
-                  readOnly: true,
-                  sx: { fontSize: '0.8rem', fontFamily: 'monospace' },
-                }}
-                sx={{ backgroundColor: 'background.default', color: 'text.primary' }}
-              />
-            </Box>
-          </Box>
-        )}
       </form>
+
+      {/* Results Section - placed outside the form to prevent Enter key in edits from re-triggering form submit */}
+      {((results && results.length > 0) || error) && (
+        <Box sx={{ mt: 4 }} role="region" aria-labelledby="results-heading">
+          <Typography
+            variant="h3"
+            component="h2"
+            id="results-heading"
+            sx={{ fontSize: '1.25rem', fontWeight: 600, mb: 2 }}
+          >
+            {error
+              ? 'Error'
+              : `Found ${results?.length || 0} event${(results?.length || 0) !== 1 ? 's' : ''}`}
+          </Typography>
+
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }} role="alert" aria-live="polite">
+              {error}
+            </Alert>
+          )}
+
+          {results && results.length > 0 && (
+            <Box aria-live="polite" aria-label="Parsed events">
+              {results.map((event, index) => (
+                <EventPreviewCard
+                  key={event.id || index}
+                  event={event}
+                  onUpdate={(updated: ParsedEvent) => {
+                    setResults(prev =>
+                      prev ? prev.map((e, i) => (i === index ? updated : e)) : null
+                    );
+                  }}
+                />
+              ))}
+            </Box>
+          )}
+
+          {/* Raw JSON display for debugging */}
+          <Box sx={{ mt: 3 }}>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              Raw AI Response (for development):
+            </Typography>
+            <TextField
+              multiline
+              fullWidth
+              value={
+                typeof debugData === 'string'
+                  ? debugData
+                  : JSON.stringify(debugData || results, null, 2)
+              }
+              variant="outlined"
+              size="small"
+              InputProps={{
+                readOnly: true,
+                sx: { fontSize: '0.8rem', fontFamily: 'monospace' },
+              }}
+              sx={{ backgroundColor: 'background.default', color: 'text.primary' }}
+            />
+          </Box>
+        </Box>
+      )}
     </Box>
   );
 };

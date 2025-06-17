@@ -4,12 +4,16 @@ import { Check, Close, Edit } from '@mui/icons-material';
 import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { generateAddToCalendarLinks, buildEventDescription } from '@/lib/utils/calendarLinks';
 import { useTimezone } from '@/lib/hooks/useTimezone';
 // Vendor-specific icons from react-icons
 import GoogleCalendarIcon from '@/components/icons/GoogleCalendarIcon';
 import AppleCalendarIcon from '@/components/icons/AppleCalendarIcon';
 import OutlookIcon from '@/components/icons/OutlookIcon';
+
+// Ensure dayjs can parse both ISO (YYYY-MM-DD) and verbose formats
+dayjs.extend(customParseFormat);
 
 export interface EventPreview {
   id: string;
@@ -171,7 +175,15 @@ const EventPreviewCard: React.FC<EventPreviewCardProps> = ({ event, onUpdate }) 
             </Typography>
           ) : null}
           <Typography variant="body2" color="text.secondary">
-            📅 {event.date}
+            📅{' '}
+            {(() => {
+              const parsed = dayjs(
+                event.date,
+                ['YYYY-MM-DD', 'dddd, MMMM D, YYYY', 'ddd, MMM D, YYYY'],
+                true
+              );
+              return parsed.isValid() ? parsed.format('dddd, MMMM D, YYYY') : event.date;
+            })()}
           </Typography>
           {event.time && (
             <Typography variant="body2" color="text.secondary">

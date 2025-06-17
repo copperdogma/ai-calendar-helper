@@ -1,0 +1,338 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Code Quality & Standards
+
+## Quick Commands
+
+### Formatting & Linting
+```bash
+# Auto-fix all formatting and linting issues
+npm run validate
+
+# Individual commands
+npm run format        # Prettier formatting
+npm run lint:fix      # ESLint auto-fix
+npm run type-check    # TypeScript validation
+
+# Check without fixing
+npm run format:check  # Check Prettier compliance
+npm run lint          # Check ESLint issues
+```
+
+### Quality Validation
+```bash
+# Full validation pipeline (used in CI)
+npm run build:clean   # format + lint + build
+
+# Pre-commit validation
+npm run lint-staged   # Format changed files only
+
+# Type safety check
+npx tsc --noEmit
+```
+
+## Formatting Standards
+
+### Prettier Configuration
+**File**: `.prettierrc`
+```json
+{
+  "semi": true,
+  "trailingComma": "es5",
+  "singleQuote": true,
+  "tabWidth": 2,
+  "printWidth": 100
+}
+```
+
+### Auto-formatting Setup
+**VSCode** (`.vscode/settings.json`):
+```json
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
+}
+```
+
+**Git Hooks** (`.lintstagedrc.js`):
+```javascript
+module.exports = {
+  '*.{ts,tsx,js,jsx}': ['prettier --write', 'eslint --fix'],
+  '*.{json,md,css}': ['prettier --write'],
+};
+```
+
+## SOLID Principles Implementation
+
+### Single Responsibility Principle (SRP)
+**Rule**: One class/function, one responsibility
+
+**✅ CORRECT**:
+```typescript
+class UserValidator {
+  validateEmail(email: string): boolean { /* */ }
+}
+
+class UserRepository {
+  saveUser(user: User): Promise<void> { /* */ }
+}
+```
+
+**❌ INCORRECT**:
+```typescript
+class UserManager {
+  validateEmail(email: string): boolean { /* */ }
+  saveUser(user: User): Promise<void> { /* */ }
+  sendEmail(email: string): void { /* */ }  // Multiple responsibilities
+}
+```
+
+### Open/Closed Principle (OCP)
+**Rule**: Open for extension, closed for modification
+
+**✅ CORRECT**:
+```typescript
+interface PaymentProcessor {
+  process(amount: number): Promise<void>;
+}
+
+class StripeProcessor implements PaymentProcessor {
+  process(amount: number): Promise<void> { /* */ }
+}
+```
+
+**❌ INCORRECT**:
+```typescript
+class PaymentManager {
+  process(type: 'stripe' | 'paypal', amount: number) {
+    if (type === 'stripe') { /* */ }
+    // Adding new payment type requires modifying this class
+  }
+}
+```
+
+### Dependency Inversion Principle (DIP)
+**Rule**: Depend on abstractions, not concretions
+
+**✅ CORRECT**:
+```typescript
+interface Logger {
+  log(message: string): void;
+}
+
+class UserService {
+  constructor(private logger: Logger) {}  // Inject dependency
+}
+```
+
+**❌ INCORRECT**:
+```typescript
+class UserService {
+  private logger = new ConsoleLogger();  // Hard dependency
+}
+```
+
+## ESLint Rules Enforcement
+
+### Key Rules Configuration
+```javascript
+// eslint.config.mjs
+export default {
+  rules: {
+    // SOLID Principles
+    'max-lines-per-function': ['error', 50],
+    'complexity': ['error', 10],
+    'no-else-return': 'error',
+    
+    // TypeScript Best Practices
+    '@typescript-eslint/no-explicit-any': 'error',
+    '@typescript-eslint/prefer-nullish-coalescing': 'error',
+    '@typescript-eslint/strict-boolean-expressions': 'error',
+    
+    // Code Quality
+    'no-console': 'warn',
+    'prefer-const': 'error',
+    'no-var': 'error',
+  }
+};
+```
+
+### Common ESLint Fixes
+
+**No Explicit Any**:
+```typescript
+// ❌ Error: @typescript-eslint/no-explicit-any
+function process(data: any) { }
+
+// ✅ Fix: Use specific types
+function process(data: UserData | EventData) { }
+function process<T>(data: T) { }  // Or generics
+```
+
+**Strict Boolean Expressions**:
+```typescript
+// ❌ Error: @typescript-eslint/strict-boolean-expressions
+if (user.name) { }  // string might be empty
+
+// ✅ Fix: Explicit boolean checks
+if (user.name !== '') { }
+if (!!user.name) { }
+if (user.name != null) { }
+```
+
+**Unused Variables**:
+```typescript
+// ❌ Error: @typescript-eslint/no-unused-vars
+const unusedVar = getValue();
+
+// ✅ Fix: Remove or prefix with underscore
+const _debugVar = getValue();  // Kept for debugging
+```
+
+## Code Structure Patterns
+
+### Function Organization
+```typescript
+// ✅ CORRECT: Short, focused functions
+function validateEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+function saveUser(user: User): Promise<void> {
+  return userRepository.save(user);
+}
+
+// ❌ INCORRECT: Long, multi-purpose function
+function handleUserRegistration(userData: any) {
+  // 50+ lines of validation, saving, emailing, logging...
+}
+```
+
+### Component Structure (React)
+```typescript
+// ✅ CORRECT: Single responsibility component
+interface UserProfileProps {
+  user: User;
+  onEdit: (user: User) => void;
+}
+
+export function UserProfile({ user, onEdit }: UserProfileProps) {
+  return (
+    <div>
+      <h2>{user.name}</h2>
+      <Button onClick={() => onEdit(user)}>Edit</Button>
+    </div>
+  );
+}
+
+// ❌ INCORRECT: Multiple responsibilities
+export function UserDashboard() {
+  // User profile + settings + notifications + data fetching...
+}
+```
+
+### Error Handling Patterns
+```typescript
+// ✅ CORRECT: Specific error types
+class ValidationError extends Error {
+  constructor(field: string, value: unknown) {
+    super(`Invalid ${field}: ${value}`);
+  }
+}
+
+// ❌ INCORRECT: Generic error throwing
+throw new Error('Something went wrong');
+```
+
+## Testing Code Quality
+
+### Unit Test Standards
+```typescript
+// ✅ CORRECT: Focused test
+describe('EmailValidator', () => {
+  it('should return true for valid email', () => {
+    expect(validateEmail('user@example.com')).toBe(true);
+  });
+  
+  it('should return false for invalid email', () => {
+    expect(validateEmail('invalid')).toBe(false);
+  });
+});
+```
+
+### Test Coverage Requirements
+- **Statements**: 90%+
+- **Branches**: 85%+
+- **Functions**: 90%+
+- **Lines**: 90%+
+
+## Performance Considerations
+
+### Code Efficiency Rules
+```typescript
+// ✅ CORRECT: Efficient patterns
+const users = useMemo(() => filterUsers(allUsers), [allUsers]);
+
+// ❌ INCORRECT: Inefficient patterns
+const users = filterUsers(allUsers);  // Recalculates every render
+```
+
+### Bundle Size Optimization
+```typescript
+// ✅ CORRECT: Named imports
+import { debounce } from 'lodash-es';
+
+// ❌ INCORRECT: Default imports
+import _ from 'lodash';  // Imports entire library
+```
+
+## Troubleshooting Common Issues
+
+### ESLint Configuration Errors
+```bash
+# Clear ESLint cache
+npx eslint --cache --cache-location .eslintcache --cache-strategy content
+
+# Fix specific file
+npx eslint --fix path/to/file.ts
+
+# Check specific rule
+npx eslint --print-config path/to/file.ts
+```
+
+### Prettier Conflicts
+```bash
+# Check for conflicting rules
+npx eslint-config-prettier
+
+# Format specific file
+npx prettier --write path/to/file.ts
+
+# Check formatting
+npx prettier --check .
+```
+
+### TypeScript Errors
+```bash
+# Clear TypeScript cache
+rm -rf node_modules/.cache/
+
+# Check types only
+npx tsc --noEmit --skipLibCheck
+
+# Generate declaration files
+npx tsc --declaration --emitDeclarationOnly
+```
+
+## File References
+
+- `@eslint.config.mjs` - ESLint configuration
+- `@.prettierrc` - Prettier configuration
+- `@.lintstagedrc.js` - Git hooks configuration
+- `@.vscode/settings.json` - Editor settings
+- `@docs/solid-principles.md` - Detailed SOLID principles guide
+- `@docs/typescript-eslint-rules.md` - TypeScript-specific linting rules
