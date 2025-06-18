@@ -19,6 +19,8 @@ import {
 } from './auth/auth-jwt-helpers';
 import type { Account, Profile, User as NextAuthUser, Session } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
+import { sendSignupNotification } from '@/lib/email';
+import '@/lib/bootstrap';
 
 // ====================================
 // Interfaces (Should be minimal or none)
@@ -206,6 +208,15 @@ export const authConfigNode: NextAuthConfig = {
   session: {
     strategy: 'jwt', // Explicitly JWT for Node.js, though shared should also be JWT
     maxAge: SESSION_MAX_AGE, // Explicitly set using the shared constant
+  },
+  events: {
+    async createUser(message) {
+      try {
+        await sendSignupNotification({ email: message.user.email ?? '', name: message.user.name });
+      } catch (err) {
+        logger.error({ err }, 'Failed to send signup notification');
+      }
+    },
   },
 };
 

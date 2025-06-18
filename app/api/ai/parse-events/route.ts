@@ -4,6 +4,8 @@ import { ExtractedEvent } from '@/types/events';
 import { z } from 'zod';
 import { ApiError } from '@/lib/errors/ApiError';
 import { handleApiError } from '@/lib/errors/handleApiError';
+import { getToken } from 'next-auth/jwt';
+import { incrementUsage } from '@/lib/services/usage.service';
 
 /**
  * Request body schema for parsing calendar events
@@ -169,6 +171,19 @@ export async function POST(req: NextRequest) {
   console.log(`🚀 [${requestId}] AI Parse Events API called`);
 
   try {
+    // Increment usage when authenticated
+    try {
+      const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+      if (token?.sub) {
+        // @ts-ignore literal enum string
+        await incrementUsage({ userId: token.sub, service: 'CALENDAR_PARSER' });
+      }
+    } catch (err) {
+      // non-blocking – swallow usage tracking errors
+
+      const _err = err;
+    }
+
     const requestBody = await req.json();
     console.log(`📥 [${requestId}] Request body:`, {
       textLength: requestBody.text?.length || 0,

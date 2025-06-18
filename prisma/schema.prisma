@@ -22,6 +22,7 @@ model User {
   lastSignedInAt DateTime?
   accounts       Account[]
   sessions       Session[]
+  serviceUsage   ServiceUsage[]
 
   @@index([role])
   @@index([createdAt])
@@ -68,4 +69,21 @@ model VerificationToken {
 enum UserRole {
   ADMIN
   USER
+}
+
+enum Service {
+  CALENDAR_PARSER
+  NOVEL_EVENTS_EXTRACTOR
+}
+
+model ServiceUsage {
+  id        String   @id @default(uuid())
+  userId    String
+  service   Service
+  count     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, service])
 }

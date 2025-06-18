@@ -77,6 +77,12 @@ ai-calendar-helper/
 
 This project uses a comprehensive set of Cursor Rules (`.cursor/rules/`) to provide in-context, up-to-date procedural guidance for development, testing, and deployment.
 
+**Monitoring Commands**
+
+| Command                    | Description                                                                              |
+| -------------------------- | ---------------------------------------------------------------------------------------- |
+| `npm run report:daily:now` | Manually trigger the Daily Usage Report email using local env vars (useful for testing). |
+
 For detailed commands and procedures, please refer to the following rules (you can open them in Cursor with `@`):
 
 - **`@testing.mdc`**: Comprehensive guide for all unit, integration, and E2E testing commands and patterns.

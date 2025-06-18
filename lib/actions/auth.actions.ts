@@ -473,6 +473,14 @@ async function _executeRegistrationCore(
     { ...logContextWithEmail, userId: prismaUser.id },
     '_executeRegistrationCore: Prisma user successfully created.'
   );
+
+  // Send admin notification (non-blocking)
+  try {
+    const { sendSignupNotification } = await import('@/lib/email');
+    await sendSignupNotification({ email: prismaUser.email ?? '', name: prismaUser.name });
+  } catch (err) {
+    log.error({ ...logContextWithEmail, err }, 'Failed to send signup notification');
+  }
   return prismaUser; // Return the created User object
 }
 
