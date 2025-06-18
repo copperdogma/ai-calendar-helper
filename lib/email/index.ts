@@ -1,11 +1,11 @@
-import nodemailer from 'nodemailer';
+import nodemailer, { Transporter } from 'nodemailer';
 
 /**
  * Lazily-initialised singleton Nodemailer transporter based on environment variables.
  */
-let cachedTransport: nodemailer.Transporter | null = null;
+let cachedTransport: Transporter | null = null;
 
-function getTransport(): nodemailer.Transporter {
+function getTransport(): Transporter {
   if (cachedTransport) return cachedTransport;
 
   const { EMAIL_SMTP_USER, EMAIL_SMTP_PASS } = process.env;

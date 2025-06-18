@@ -178,10 +178,8 @@ export async function POST(req: NextRequest) {
         // @ts-ignore literal enum string
         await incrementUsage({ userId: token.sub, service: 'CALENDAR_PARSER' });
       }
-    } catch (err) {
-      // non-blocking – swallow usage tracking errors
-
-      const _err = err;
+    } catch {
+      // swallow usage-tracking errors
     }
 
     const requestBody = await req.json();
