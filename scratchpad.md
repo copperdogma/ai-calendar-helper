@@ -103,3 +103,115 @@ Checklist updates:
 | Cron task not running in serverless deploys | PM2 local dev context only; Flag to disable in prod until proper job runner configured |
 | Extra Prisma migration                      | Coordinate migration file; run `npm run prisma:migrate` in CI                          |
 | App crashes on missing env vars             | Guard `emailClient` with runtime checks & fallback logger                              |
+
+## Image Event Extraction Research & Planning Checklist
+
+- [x] Initial research questions identified
+- [ ] Web research completed
+- [ ] Codebase analysis completed
+- [ ] Best practices identified
+- [ ] Implementation strategy developed
+- [ ] Detailed implementation checklist created
+- [x] User preference questions identified and asked
+- [ ] Plan reviewed and approved by user
+
+### User Preferences (Image Event Extraction)
+
+- Vision model: Use OpenAI vision models (evaluate GPT-4o Vision vs. other OpenAI offerings via new eval harness)
+- Image size limit: 5 MB max; accept only formats supported by OpenAI (PNG, JPEG, WEBP, HEIC as permitted)
+- UI placement: Image upload sits alongside existing text input; user may supply both text and image for one combined event
+- Low-confidence handling: Display flagged result and allow manual edits instead of blocking
+- Storage policy: Process images in-memory only; no persistent storage required
+
+### Web Research Findings (OpenAI Vision)
+
+- Supported image formats: PNG, JPEG/JPG, WEBP, non-animated GIF (OpenAI community thread Oct 2024).
+- Max recommended base64 size: ~20 MB; smaller is better for latency/cost. 5 MB cap aligns well.
+- Two input methods: (1) Public URL; (2) Base64 data URI. In-memory upload → encode to base64 for API call simplifies privacy.
+- Typical request pattern (Node SDK):
+  ```ts
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text: prompt },
+          { type: 'image_url', image_url: { url: `data:image/png;base64,${b64}` } },
+        ],
+      },
+    ],
+  });
+  ```
+- For OCR & extraction tasks, setting `image_url.detail = 'high'` improves accuracy on small text.
+- Pricing: Vision requests are token-based; images expand to ~30–60k "vision tokens" depending on resolution. Keep resolution reasonable (≤1024px).
+- Prompt engineering tip: give explicit schema + examples for JSON event output, then ask model to parse image text and map into schema.
+- Eval harness: Use 20–30 sample flyers/photos; measure JSON accuracy vs. ground truth.
+
+### Codebase Analysis
+
+- Current text parsing endpoint: `app/api/ai/parse-events/route.ts` uses `AIProcessingService` and returns `ExtractedEvent[]`.
+- No existing multipart/image upload endpoints; no components named `ImageUpload*`.
+- AI layer: `lib/ai.ts` provides `AIProcessingService` with helpers like `segmentText`, `parseEventChunk`. Vision support should be added here (`parseEventFromImage`).
+- File upload handling elsewhere limited to `FormData` for profile name etc.; we need new API route with `POST req.formData()` and buffer→base64 logic.
+- Event preview components are modality-agnostic; they accept `ExtractedEvent[]`, so combining text & image results is straightforward.
+
+**Checklist updates:**
+- [x] Web research completed
+- [x] Codebase analysis completed
+
+### Best Practices Identified
+
+1. Encode images to base64 data URIs to avoid temporary files/URLs.
+2. Limit upload size (5 MB) and resize client-side (e.g., `canvas` downscale) for huge images.
+3. Use explicit JSON schema in prompt with `json_schema` system message to improve extraction reliability.
+4. Treat low confidence (<0.7) as "needs review" – flag UI element instead of blocking.
+5. Reuse existing `ExtractedEvent` shape to keep frontend changes minimal.
+6. Add jest unit tests mocking OpenAI vision responses.
+7. Protect API route with auth optional but rate-limit to prevent abuse.
+
+### Proposed Implementation Strategy
+
+1. **AI Layer**
+   - Extend `AIProcessingService` with `parseEventImage(imageBase64: string, text?: string, opts)`.
+   - Build prompt: include optional user text + OCR instructions; output strict JSON.
+2. **API Route**
+   - `POST /api/ai/parse-image-event` (Next.js App Router).
+   - Accept `multipart/form-data`: field `image` + optional `text` + `options` JSON.
+   - Validate size/type; read buffer → base64; call service; return `ExtractedEvent`.
+3. **Frontend**
+   - Create `ImageUploadForm` component alongside `TextInputForm` (tabless horizontal layout).
+   - Accept file drop or click; show thumbnail; on submit, combine with text field content.
+   - Append returned event to existing events state.
+4. **Eval Harness**
+   - Add new eval YAML under `evals/` with ~30 flyer images + expected events.
+   - Use existing scorer or write new image-event scorer.
+5. **Testing**
+   - Unit tests: service returns mocked event on base64 input.
+   - E2E: Playwright uploads sample image, verifies preview list contains parsed event.
+6. **Docs & Storybook**
+   - Update README, story docs; add Storybook entry if applicable.
+
+### Detailed Implementation Checklist
+
+- [ ] Extend `lib/ai.ts` with `parseEventImage` using OpenAI vision model.
+- [ ] Implement `/app/api/ai/parse-image-event/route.ts` with validation & OpenAI call.
+- [ ] Add Zod schema for request (`ImageParseRequestSchema`).
+- [ ] Create `components/calendar/ImageUploadForm.tsx` with drag-and-drop & preview.
+- [ ] Integrate form into `calendar-parser` page (alongside text input).
+- [ ] Update global events context/reducer to merge image event.
+- [ ] Handle low-confidence flag in `EventPreviewCard` (e.g., yellow badge).
+- [ ] Unit tests for AI service (mocked), API route, and utility functions.
+- [ ] Playwright E2E test uploading a sample image.
+- [ ] Add new eval harness (`evals/extract-events-from-image.yaml`).
+- [ ] Documentation updates (story + README + API docs).
+- [ ] Lint/type/test pipeline passes.
+
+### Risks & Mitigations
+
+| Risk | Mitigation |
+| ---- | ---------- |
+| Large image uploads slow/expensive | Enforce 5 MB limit & client-side resize; warn user if >2 MB |
+| Vision model inaccurate on varied layouts | Build eval harness; iterate prompt; consider cropping text-heavy region client-side |
+| API cost spike | Add env flag `ENABLE_IMAGE_PARSING` & guard route; monitor usage |
+| Security of file uploads | Validate MIME type & size; process in memory; discard after base64 conversion |

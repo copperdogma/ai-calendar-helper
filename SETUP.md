@@ -115,7 +115,25 @@ For starting, stopping, and monitoring the development server with PM2, or for d
 
 ### 6. Validation
 
-To verify the setup and run tests, see the comprehensive commands and patterns in **`@testing.mdc`**.
+To quickly verify that your environment variables and external services are wired correctly, run the **Environment Smoke Test**:
+
+```bash
+npm run smoke:test           # colourised table output
+npm run smoke:test -- --json # JSON output (useful for CI logs)
+```
+
+If you want to perform a real email send, append `--full` (requires `SMOKE_TEST_EMAIL_TO` env var).
+
+The smoke test checks:
+• Required environment variables
+• PostgreSQL connectivity
+• Redis (if configured)
+• SMTP transporter (dry-run by default)
+• OpenAI API key validity
+• Application health endpoint
+• PM2 process status
+
+A non-zero exit code indicates a failure you should fix before proceeding.
 
 ## Environment Variables
 

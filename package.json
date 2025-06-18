@@ -58,7 +58,9 @@
     "model:compare": "tsx scripts/model-comparison-test.ts",
     "model:test": "npm run model:compare",
     "deploy:fly": "fly deploy --remote-only",
-    "eval:prompt": "dotenv -e .env.local -- promptfoo eval -c evals/promptfoo.yaml --no-cache -o evals/report.html && echo 'HTML report written to evals/report.html'"
+    "eval:prompt": "dotenv -e .env.local -- promptfoo eval -c evals/promptfoo.yaml --no-cache -o evals/report.html && echo 'HTML report written to evals/report.html'",
+    "smoke:test": "tsx scripts/smoke-test.ts",
+    "smoke:test:ci": "cross-env CI=1 tsx scripts/smoke-test.ts --json"
   },
   "dependencies": {
     "@auth/core": "^0.39.1",
@@ -88,7 +90,8 @@
     "react-icons": "^5.5.0",
     "uuid": "^11.1.0",
     "zod": "^3.24.2",
-    "zustand": "^5.0.3"
+    "zustand": "^5.0.3",
+    "cli-table3": "^0.6.2"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.1",

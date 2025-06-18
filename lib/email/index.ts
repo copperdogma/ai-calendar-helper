@@ -43,7 +43,7 @@ export async function sendSignupNotification(params: {
   await transporter.sendMail({
     from: process.env.EMAIL_SMTP_USER,
     to: process.env.NOTIFICATIONS_EMAIL_TO,
-    subject: `New user signup: ${email}`,
+    subject: `AI Calendar Helper – New user signup: ${email}`,
     text: textLines.join('\n'),
   });
 }

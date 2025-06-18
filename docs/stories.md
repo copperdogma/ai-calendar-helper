@@ -36,6 +36,7 @@ AI Calendar Helper
 | 012      | Implement timezone detection/selection           | Medium   | Done      | /docs/stories/story-012-timezone-handling.md    |
 | 035      | Enhance AI parsing for multiple events           | High     | Done      | /docs/stories/story-035-multi-event-parsing.md  |
 | 032      | Implement Calendar Parser page & default routing | High     | Done      | /docs/stories/story-032-calendar-parser-page.md |
+| 041      | Implement image-based event extraction           | High     | To Do     | /docs/stories/story-041-image-event-extraction.md |
 
 ### Phase 3: UX Enhancements (Priority: Medium)
 
@@ -74,6 +75,7 @@ AI Calendar Helper
 | 028      | Set up fly.io deployment pipeline         | Medium   | Done   | /docs/stories/story-028-deployment.md |
 | 029      | Configure monitoring & error tracking     | Low      | To Do  | /docs/stories/story-029-monitoring.md |
 | 037      | Fix production profile auth/session issue | Critical | Done   | /docs/stories/story-037-auth-bug.md   |
+| 042      | Implement environment smoke test CLI     | Medium   | To Do  | /docs/stories/story-042-environment-smoke-test.md |
 
 ### Phase 7: Optimization & Research (Priority: Medium)
 

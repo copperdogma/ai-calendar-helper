@@ -82,6 +82,7 @@ This project uses a comprehensive set of Cursor Rules (`.cursor/rules/`) to prov
 | Command                    | Description                                                                              |
 | -------------------------- | ---------------------------------------------------------------------------------------- |
 | `npm run report:daily:now` | Manually trigger the Daily Usage Report email using local env vars (useful for testing). |
+| `npm run smoke:test`        | Run environment smoke test to verify DB, SMTP, OpenAI etc. (`--json`, `--full` flags available). |
 
 For detailed commands and procedures, please refer to the following rules (you can open them in Cursor with `@`):
 
