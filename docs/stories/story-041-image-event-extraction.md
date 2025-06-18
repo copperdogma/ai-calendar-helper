@@ -62,12 +62,12 @@ TBD – will reference future design documentation for the upload component and 
 
 ## Risks & Mitigations
 
-| Risk | Mitigation |
-| ---- | ---------- |
-| Large images slow or exceed cost budget | Enforce 5 MB limit; warn >2 MB; optional client resize |
-| Vision model misreads complex layouts | Build eval harness with 20-30 sample flyers; iterate prompt; consider cropping |
-| API cost spike | Gate feature behind `ENABLE_IMAGE_PARSING`; monitor usage |
-| Security – malicious uploads | Validate MIME/type; limit size; process in memory; discard buffer immediately |
+| Risk                                    | Mitigation                                                                     |
+| --------------------------------------- | ------------------------------------------------------------------------------ |
+| Large images slow or exceed cost budget | Enforce 5 MB limit; warn >2 MB; optional client resize                         |
+| Vision model misreads complex layouts   | Build eval harness with 20-30 sample flyers; iterate prompt; consider cropping |
+| API cost spike                          | Gate feature behind `ENABLE_IMAGE_PARSING`; monitor usage                      |
+| Security – malicious uploads            | Validate MIME/type; limit size; process in memory; discard buffer immediately  |
 
 ## Implementation Strategy
 
@@ -92,4 +92,4 @@ TBD – will reference future design documentation for the upload component and 
 - [ ] Create eval harness `evals/extract-events-from-image.yaml` and scorer.
 - [ ] Update documentation (README, Story docs, Storybook).
 - [ ] Ensure lint/type/test pipeline passes.
-- [ ] User review & sign-off. 
+- [ ] User review & sign-off.

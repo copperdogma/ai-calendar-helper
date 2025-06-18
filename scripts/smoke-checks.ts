@@ -27,7 +27,7 @@ const REQUIRED_ENV_VARS = [
 ];
 
 export async function checkRequiredEnvVars(): Promise<CheckResult> {
-  const missing = REQUIRED_ENV_VARS.filter((key) => !process.env[key]);
+  const missing = REQUIRED_ENV_VARS.filter(key => !process.env[key]);
   const ok = missing.length === 0;
   return {
     name: 'Environment Variables',
@@ -67,7 +67,11 @@ export async function checkRedis(): Promise<CheckResult> {
     const pong = await client.ping();
     return { name: 'Redis', ok: pong === 'PONG', message: chalkGreen(pong) };
   } catch (err: unknown) {
-    return { name: 'Redis', ok: false, message: chalkRed(`Ping failed: ${(err as Error).message}`) };
+    return {
+      name: 'Redis',
+      ok: false,
+      message: chalkRed(`Ping failed: ${(err as Error).message}`),
+    };
   }
 }
 
@@ -90,7 +94,11 @@ export async function checkSMTP(full: boolean): Promise<CheckResult> {
 
     if (full) {
       if (!SMOKE_TEST_EMAIL_TO) {
-        return { name: 'SMTP', ok: false, message: chalkRed('SMOKE_TEST_EMAIL_TO not set for --full') };
+        return {
+          name: 'SMTP',
+          ok: false,
+          message: chalkRed('SMOKE_TEST_EMAIL_TO not set for --full'),
+        };
       }
       await transport.sendMail({
         from: EMAIL_SMTP_USER,
@@ -117,7 +125,11 @@ export async function checkOpenAI(): Promise<CheckResult> {
     const OpenAI = require('openai').default || require('openai');
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const models = await client.models.list({ limit: 1 });
-    return { name: 'OpenAI', ok: true, message: chalkGreen(`Models retrieved (${models.data.length})`) };
+    return {
+      name: 'OpenAI',
+      ok: true,
+      message: chalkGreen(`Models retrieved (${models.data.length})`),
+    };
   } catch (err: unknown) {
     return { name: 'OpenAI', ok: false, message: chalkRed(`API error: ${(err as Error).message}`) };
   }
@@ -133,7 +145,11 @@ export async function checkHealthRoute(): Promise<CheckResult> {
     }
     return { name: 'Health Endpoint', ok: false, message: chalkRed(`Status ${res.status}`) };
   } catch (err: unknown) {
-    return { name: 'Health Endpoint', ok: false, message: chalkRed(`Fetch error: ${(err as Error).message}`) };
+    return {
+      name: 'Health Endpoint',
+      ok: false,
+      message: chalkRed(`Fetch error: ${(err as Error).message}`),
+    };
   }
 }
 
@@ -142,7 +158,7 @@ export async function checkPM2(): Promise<CheckResult> {
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const pm2 = require('pm2');
-    return new Promise<CheckResult>((resolve) => {
+    return new Promise<CheckResult>(resolve => {
       pm2.connect((connectErr: Error | null) => {
         if (connectErr) {
           resolve({ name: 'PM2', ok: false, message: chalkRed(connectErr.message) });
@@ -161,4 +177,4 @@ export async function checkPM2(): Promise<CheckResult> {
   } catch (err: unknown) {
     return { name: 'PM2', ok: true, message: 'PM2 not installed (skipped)' };
   }
-} 
+}

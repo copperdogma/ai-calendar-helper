@@ -52,23 +52,23 @@ async function run() {
     checkPM2,
   ];
 
-  const results = await Promise.all(checks.map((fn) => fn()));
+  const results = await Promise.all(checks.map(fn => fn()));
 
   if (outputJson) {
     console.log(JSON.stringify(results, null, 2));
   } else {
     const table = new Table({ head: ['Subsystem', 'Status', 'Details'] });
-    results.forEach((r) => {
+    results.forEach(r => {
       table.push([r.name, r.ok ? chalkGreen('OK') : chalkRed('FAIL'), r.message]);
     });
     console.log(table.toString());
   }
 
-  const failed = results.some((r) => !r.ok);
+  const failed = results.some(r => !r.ok);
   process.exitCode = failed ? 1 : 0;
 }
 
-run().catch((err) => {
+run().catch(err => {
   console.error(chalkRed('Smoke test encountered an error:'), err);
   process.exitCode = 1;
-}); 
+});

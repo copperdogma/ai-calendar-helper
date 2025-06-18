@@ -37,4 +37,4 @@ describe('checkRequiredEnvVars', () => {
     expect(result.ok).toBe(false);
     expect(result.message).toContain('DATABASE_URL');
   });
-}); 
+});

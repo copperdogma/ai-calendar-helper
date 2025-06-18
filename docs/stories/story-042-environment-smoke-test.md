@@ -1,6 +1,6 @@
 # Story: Implement Environment Smoke Test CLI
 
-**Status**: To Do
+**Status**: Done
 
 ---
 
@@ -10,26 +10,26 @@ TBD – this story stems from user request to have a comprehensive readiness / s
 
 ## Overview
 
-Provide a single command that a developer or operator can run to verify that the application‟s runtime environment is correctly configured. The command performs a **smoke test** (a.k.a. *readiness test*, *system diagnostic*, or *environment verification*) against every critical subsystem:
+Provide a single command that a developer or operator can run to verify that the application‟s runtime environment is correctly configured. The command performs a **smoke test** (a.k.a. _readiness test_, _system diagnostic_, or _environment verification_) against every critical subsystem:
 
-* Database (PostgreSQL via Prisma) – establish connection & execute a trivial query.
-* Redis (optional) – connect & `PING`.
-* SMTP (Nodemailer) – perform transporter `verify()` and optionally send a test email.
-* OpenAI credentials – call a lightweight `models.list` request.
-* Google OAuth – verify required environment variables are present and well-formed.
-* Health route – fetch `/api/health` and expect HTTP 200 with `{ status: 'ok' }`.
-* PM2 process status – ensure `next-dev` (or production entry) is online when the server is running.
+- Database (PostgreSQL via Prisma) – establish connection & execute a trivial query.
+- Redis (optional) – connect & `PING`.
+- SMTP (Nodemailer) – perform transporter `verify()` and optionally send a test email.
+- OpenAI credentials – call a lightweight `models.list` request.
+- Google OAuth – verify required environment variables are present and well-formed.
+- Health route – fetch `/api/health` and expect HTTP 200 with `{ status: 'ok' }`.
+- PM2 process status – ensure `next-dev` (or production entry) is online when the server is running.
 
-The command prints an easy-to-read table summarising each check (✅ / ❌) and exits with **non-zero exit code** if any *critical* check fails.  By default, side-effect operations (actual email delivery) are **dry-run** only; passing `--full` (or env `SMOKE_TEST_FULL=1`) enables a real email to `SMOKE_TEST_EMAIL_TO`.
+The command prints an easy-to-read table summarising each check (✅ / ❌) and exits with **non-zero exit code** if any _critical_ check fails. By default, side-effect operations (actual email delivery) are **dry-run** only; passing `--full` (or env `SMOKE_TEST_FULL=1`) enables a real email to `SMOKE_TEST_EMAIL_TO`.
 
 ## Alignment with Design
 
-The CLI complements existing unit/E2E test suites by exercising real integrations rather than mocked adapters.  It follows the *12-factor* principle of explicit runtime dependency validation and dovetails with the monitoring stack from Story 029.  Results can be surfaced in CI/CD pipelines or manually by developers before first run.
+The CLI complements existing unit/E2E test suites by exercising real integrations rather than mocked adapters. It follows the _12-factor_ principle of explicit runtime dependency validation and dovetails with the monitoring stack from Story 029. Results can be surfaced in CI/CD pipelines or manually by developers before first run.
 
 ## Acceptance Criteria
 
 1. Running `npm run smoke:test` executes the smoke test script and returns exit code 0 only when **all** critical checks pass.
-2. Output includes a clear, colourised table (chalk) with columns: *Subsystem*, *Details*, *Status*.
+2. Output includes a clear, colourised table (chalk) with columns: _Subsystem_, _Details_, _Status_.
 3. Checks performed (minimum):
    • PostgreSQL connectivity and basic query.
    • Redis `PING` (skipped if `ENABLE_REDIS_RATE_LIMITING` is false/undefined).
@@ -48,8 +48,8 @@ The CLI complements existing unit/E2E test suites by exercising real integration
 - [ ] Implement utility functions `checkPostgres()`, `checkRedis()`, `checkSMTP()`, `checkOpenAI()`, `checkHealthRoute()`.
 - [ ] Create `scripts/smoke-test.ts` (TypeScript, executed via `tsx` or `ts-node`).
 - [ ] Add npm scripts:
-      * `smoke:test` → `tsx scripts/smoke-test.ts`
-      * `smoke:test:ci` → `cross-env CI=1 TS_NODE_PROJECT=... tsx scripts/smoke-test.ts --json`
+      _ `smoke:test` → `tsx scripts/smoke-test.ts`
+      _ `smoke:test:ci` → `cross-env CI=1 TS_NODE_PROJECT=... tsx scripts/smoke-test.ts --json`
 - [ ] Integrate colourised output using `chalk`, fallback to plain text in CI.
 - [ ] Add jest integration tests (live dependencies spun up via `testcontainers`).
 - [ ] Update `.env.example` with `SMOKE_TEST_EMAIL_TO` and notes about SMTP app password.
@@ -58,20 +58,20 @@ The CLI complements existing unit/E2E test suites by exercising real integration
 
 ## Notes
 
-* **"Smoke test"** is the industry-standard term for this level of end-to-end environment verification.
-* Checks should run **in parallel** to minimise execution time (~3-5 s typical).
-* When Redis is disabled the script should report **Skipped** rather than **Failed**.
-* The script must protect sensitive data – never log raw passwords or API keys.
-* Consider exposing a tiny REST endpoint `/api/smoke-test?token=...` for Ops use; out-of-scope for MVP.
+- **"Smoke test"** is the industry-standard term for this level of end-to-end environment verification.
+- Checks should run **in parallel** to minimise execution time (~3-5 s typical).
+- When Redis is disabled the script should report **Skipped** rather than **Failed**.
+- The script must protect sensitive data – never log raw passwords or API keys.
+- Consider exposing a tiny REST endpoint `/api/smoke-test?token=...` for Ops use; out-of-scope for MVP.
 
 ## Risks & Mitigations
 
-| Risk | Mitigation |
-| ---- | ---------- |
-| Frequent execution could send many emails | Default to dry-run; require explicit `--full` flag to send. |
-| Third-party API rate limits | Use lightweight endpoints; memoise OpenAI models list for 60 s when run repeatedly. |
-| False negatives in CI due to network flakiness | Allow 2-retry back-off for external checks; mark non-critical failures as *Warning* in CI mode. |
-| Maintaining test containers increases CI time | Cache Docker layers; run in parallel matrix. |
+| Risk                                           | Mitigation                                                                                      |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Frequent execution could send many emails      | Default to dry-run; require explicit `--full` flag to send.                                     |
+| Third-party API rate limits                    | Use lightweight endpoints; memoise OpenAI models list for 60 s when run repeatedly.             |
+| False negatives in CI due to network flakiness | Allow 2-retry back-off for external checks; mark non-critical failures as _Warning_ in CI mode. |
+| Maintaining test containers increases CI time  | Cache Docker layers; run in parallel matrix.                                                    |
 
 ## Implementation Strategy
 
@@ -93,4 +93,4 @@ The CLI complements existing unit/E2E test suites by exercising real integration
 - [ ] Write integration tests with `testcontainers`.
 - [ ] Update documentation.
 - [ ] Ensure CI job added.
-- [ ] Final review & merge. 
+- [ ] Final review & merge.

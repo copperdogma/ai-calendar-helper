@@ -23,19 +23,19 @@ AI Calendar Helper
 
 ### Phase 2: Text-to-Calendar Feature (Priority: High)
 
-| Story ID | Title                                            | Priority | Status    | Link                                            |
-| -------- | ------------------------------------------------ | -------- | --------- | ----------------------------------------------- |
-| 005      | Create text input UI component                   | High     | Done      | /docs/stories/story-005-text-input-ui.md        |
-| 004      | Implement OpenAI text processing service         | High     | Done      | /docs/stories/story-004-openai-service.md       |
-| 006      | Build event preview & editing component          | High     | Done      | /docs/stories/story-006-event-preview.md        |
-| 007      | Add calendar integration buttons                 | High     | Done      | /docs/stories/story-007-calendar-integration.md |
-| 008      | Add ICS file generation & download               | Medium   | Done      | /docs/stories/story-008-ics-generation.md       |
-| 009      | Implement confidence scoring display             | Medium   | Done      | /docs/stories/story-009-confidence-scoring.md   |
-| 010      | Add batch calendar actions                       | Medium   | Cancelled | /docs/stories/story-010-batch-actions.md        |
-| 011      | Create smart defaults & preferences              | Medium   | Cancelled | /docs/stories/story-011-user-preferences.md     |
-| 012      | Implement timezone detection/selection           | Medium   | Done      | /docs/stories/story-012-timezone-handling.md    |
-| 035      | Enhance AI parsing for multiple events           | High     | Done      | /docs/stories/story-035-multi-event-parsing.md  |
-| 032      | Implement Calendar Parser page & default routing | High     | Done      | /docs/stories/story-032-calendar-parser-page.md |
+| Story ID | Title                                            | Priority | Status    | Link                                              |
+| -------- | ------------------------------------------------ | -------- | --------- | ------------------------------------------------- |
+| 005      | Create text input UI component                   | High     | Done      | /docs/stories/story-005-text-input-ui.md          |
+| 004      | Implement OpenAI text processing service         | High     | Done      | /docs/stories/story-004-openai-service.md         |
+| 006      | Build event preview & editing component          | High     | Done      | /docs/stories/story-006-event-preview.md          |
+| 007      | Add calendar integration buttons                 | High     | Done      | /docs/stories/story-007-calendar-integration.md   |
+| 008      | Add ICS file generation & download               | Medium   | Done      | /docs/stories/story-008-ics-generation.md         |
+| 009      | Implement confidence scoring display             | Medium   | Done      | /docs/stories/story-009-confidence-scoring.md     |
+| 010      | Add batch calendar actions                       | Medium   | Cancelled | /docs/stories/story-010-batch-actions.md          |
+| 011      | Create smart defaults & preferences              | Medium   | Cancelled | /docs/stories/story-011-user-preferences.md       |
+| 012      | Implement timezone detection/selection           | Medium   | Done      | /docs/stories/story-012-timezone-handling.md      |
+| 035      | Enhance AI parsing for multiple events           | High     | Done      | /docs/stories/story-035-multi-event-parsing.md    |
+| 032      | Implement Calendar Parser page & default routing | High     | Done      | /docs/stories/story-032-calendar-parser-page.md   |
 | 041      | Implement image-based event extraction           | High     | To Do     | /docs/stories/story-041-image-event-extraction.md |
 
 ### Phase 3: UX Enhancements (Priority: Medium)
@@ -68,14 +68,14 @@ AI Calendar Helper
 
 ### Phase 6: Testing & Deployment (Priority: Medium)
 
-| Story ID | Title                                     | Priority | Status | Link                                  |
-| -------- | ----------------------------------------- | -------- | ------ | ------------------------------------- |
-| 026      | Write unit tests for core functionality   | Medium   | Done   | /docs/stories/story-026-unit-tests.md |
-| 027      | Implement E2E testing with Playwright     | Medium   | Done   | /docs/stories/story-027-e2e-tests.md  |
-| 028      | Set up fly.io deployment pipeline         | Medium   | Done   | /docs/stories/story-028-deployment.md |
-| 029      | Configure monitoring & error tracking     | Low      | To Do  | /docs/stories/story-029-monitoring.md |
-| 037      | Fix production profile auth/session issue | Critical | Done   | /docs/stories/story-037-auth-bug.md   |
-| 042      | Implement environment smoke test CLI     | Medium   | To Do  | /docs/stories/story-042-environment-smoke-test.md |
+| Story ID | Title                                     | Priority | Status | Link                                              |
+| -------- | ----------------------------------------- | -------- | ------ | ------------------------------------------------- |
+| 026      | Write unit tests for core functionality   | Medium   | Done   | /docs/stories/story-026-unit-tests.md             |
+| 027      | Implement E2E testing with Playwright     | Medium   | Done   | /docs/stories/story-027-e2e-tests.md              |
+| 028      | Set up fly.io deployment pipeline         | Medium   | Done   | /docs/stories/story-028-deployment.md             |
+| 029      | Configure monitoring & error tracking     | Low      | To Do  | /docs/stories/story-029-monitoring.md             |
+| 037      | Fix production profile auth/session issue | Critical | Done   | /docs/stories/story-037-auth-bug.md               |
+| 042      | Implement environment smoke test CLI      | Medium   | Done   | /docs/stories/story-042-environment-smoke-test.md |
 
 ### Phase 7: Optimization & Research (Priority: Medium)
 
