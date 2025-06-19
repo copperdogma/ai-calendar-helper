@@ -1,0 +1,27 @@
+providers:
+  - openai:
+      model: ${OPENAI_IMAGE_MODEL|gpt-4o-mini}
+
+scorers:
+  - path: ./scorers/image-json-valid.js
+
+prompts:
+  - name: extract-image-event
+    prompt:
+      messages:
+        - role: system
+          content: |
+            You are an assistant that extracts a single calendar event from images and optional text.  Return valid JSON ONLY with keys title, startDate, endDate, location, description, timezone, confidence.
+        - role: user
+          content:
+            - type: text
+              text: "Extract event details from the following flyer image and return JSON only."
+            - type: image_url
+              image_url:
+                url: "data:image/jpeg;base64,{{ fileBase64(image) }}"
+                detail: auto
+            - type: text
+              text: "{{text}}"
+
+samples:
+  path: ./fixtures/image-events-dataset.jsonl 

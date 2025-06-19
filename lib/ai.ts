@@ -59,6 +59,14 @@ export interface AIProcessingOptions {
   model?: string; // Allow model override for testing
   multiEvent?: boolean;
   originalLength?: number;
+  /**
+   * Optional additional natural-language text supplied by the user along with
+   * an image.  The text will be included verbatim in the user prompt so the
+   * model can combine clues from the flyer with any missing details the user
+   * types.
+   */
+  additionalText?: string;
+  imageMime?: string;
 }
 
 /**
@@ -574,6 +582,70 @@ ${multi ? '- If more than 10 events are found, include only the 10 most salient 
     }
     throw lastError || new Error('Max retries exceeded');
   }
+
+  /**
+   * Extract structured event details from an image (base64 string or Buffer).
+   * This is an initial implementation intended for GPT-4o Vision-style models.
+   *
+   * The method reuses the simplified system prompt from text extraction so that
+   * responses remain consistent JSON.  For now we embed the base64 directly in
+   * the user message. A follow-up iteration can switch to the official
+   * `image_url` chat format once the OpenAI SDK supports the type definitions
+   * out of the box.
+   */
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  async parseEventImage(
+    image: string | Buffer,
+    options: AIProcessingOptions = {}
+  ): Promise<ExtractedEventData> {
+    const base64Image = Buffer.isBuffer(image)
+      ? image.toString('base64')
+      : image.replace(/^data:image\/[^;]+;base64,/, '').trim();
+
+    const mime = options.imageMime || 'image/jpeg';
+
+    const model = options.model || this.defaultModel;
+    const systemPrompt = this.buildSystemPrompt(options);
+
+    const userMessageContent: any[] = [
+      {
+        type: 'text',
+        text: 'Extract the event details from this image and return valid JSON only (no markdown). The JSON must include at minimum the keys title, description, startDate, endDate, location, timezone, summary, confidence, isAllDay, recurrence.  Put ANY additional text that appears in the invitation/ticket but is not already covered by the structured fields (e.g. seat numbers, RSVP phone, dress code, special instructions) into the description field so nothing important is lost.',
+      },
+      {
+        type: 'image_url',
+        image_url: {
+          url: `data:${mime};base64,${base64Image}`,
+          detail: 'auto',
+        },
+      },
+    ];
+
+    if (options.additionalText) {
+      userMessageContent.push({
+        type: 'text',
+        text: `Additional context provided by the user: ${options.additionalText.trim()}`,
+      });
+    }
+
+    const response = await this.openai.chat.completions.create({
+      model,
+      temperature: 0.1,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        {
+          role: 'user',
+          content: userMessageContent,
+        } as any,
+      ],
+    } as any);
+
+    const rawContent: string = (response as any)?.choices?.[0]?.message?.content ?? '';
+
+    const parsed = this.parseResponse(rawContent);
+    return this.validateAndEnhanceData(parsed);
+  }
+  /* eslint-enable @typescript-eslint/no-explicit-any */
 }
 
 // Factory function for creating service instances with configurable model

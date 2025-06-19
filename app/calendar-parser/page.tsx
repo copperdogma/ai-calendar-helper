@@ -2,7 +2,8 @@
 
 import React from 'react';
 import PageLayout from '@/components/layouts/PageLayout';
-import TextInputForm from '@/components/calendar/TextInputForm';
+import TextInputForm, { ParsedEvent } from '@/components/calendar/TextInputForm';
+import EventPreviewList from '@/components/calendar/EventPreviewList';
 import { ExtractedEvent } from '@/types/events';
 import { useTimezone } from '@/lib/hooks/useTimezone';
 import TimezoneSelector from '@/components/ui/TimezoneSelector';
@@ -10,6 +11,7 @@ import { guessTimezone } from '@/lib/utils/calendarLinks';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezonePlugin from 'dayjs/plugin/timezone';
+import { Box } from '@mui/material';
 
 dayjs.extend(utc);
 dayjs.extend(timezonePlugin);
@@ -197,17 +199,28 @@ function useParseEventsWithAi() {
 
 export default function CalendarParserPage() {
   const parseEventsWithAi = useParseEventsWithAi();
+  const [events, setEvents] = React.useState<ParsedEvent[]>([]);
+
+  // Each parse is treated as a fresh run – clear the old previews first.
+  const handleParsedEvents = React.useCallback((newEvents: ParsedEvent[]) => {
+    setEvents(newEvents);
+  }, []);
 
   return (
     <PageLayout
       title="Calendar Parser"
-      subtitle="Extract events from free-form text"
+      subtitle="Extract events from free-form text or images"
       action={<TimezoneSelector dense />}
       headerSx={{ mb: 1, pb: 0.5 }}
       contentSx={{ mt: 0.5 }}
       rootSx={{ pt: 1 }}
     >
-      <TextInputForm onParseEvents={parseEventsWithAi} />
+      <TextInputForm onParseEvents={parseEventsWithAi} onEventsParsed={handleParsedEvents} />
+      {events.length > 0 && (
+        <Box mt={4}>
+          <EventPreviewList events={events} />
+        </Box>
+      )}
     </PageLayout>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, DragEvent } from 'react';
 import {
   Box,
   TextField,
@@ -9,14 +9,19 @@ import {
   Alert,
   CircularProgress,
   Tooltip,
+  IconButton,
 } from '@mui/material';
 import EventPreviewCard from './EventPreviewCard';
+import CloseIcon from '@mui/icons-material/Close';
+import UploadFileIcon from '@mui/icons-material/AttachFile';
+import { ExtractedEvent } from '@/types/events';
 
-interface ParsedEvent {
+export interface ParsedEvent {
   id: string;
   title: string;
   date: string;
   time?: string;
+  endTime?: string;
   duration?: string;
   location?: string;
   description?: string;
@@ -25,27 +30,38 @@ interface ParsedEvent {
   rawResponse?: unknown;
   originalText?: string;
   debugCombined?: string;
+  timezone?: string;
 }
 
-interface TextInputFormProps {
+export interface TextInputFormProps {
   onParseEvents?: (
     text: string,
     /** Optional callback used by the parser to push granular progress messages */
     onProgress?: (message: string) => void
   ) => Promise<ParsedEvent[]>;
+  /**
+   * When provided, parsed events will be forwarded to this callback and the
+   * local preview inside TextInputForm will be suppressed (parent component
+   * becomes the single source of truth).
+   */
+  onEventsParsed?: (events: ParsedEvent[]) => void;
 }
 
-const TextInputForm: React.FC<TextInputFormProps> = ({ onParseEvents }) => {
+const TextInputForm: React.FC<TextInputFormProps> = ({ onParseEvents, onEventsParsed }) => {
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState<string>('Parsing...');
   const [results, setResults] = useState<ParsedEvent[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [debugData, setDebugData] = useState<unknown>(null);
+  const [attachedImage, setAttachedImage] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [isDragActive, setIsDragActive] = useState(false);
+  const dragCounter = useRef(0);
 
   const handleParseEvents = async () => {
-    if (!inputText.trim()) {
-      setError('Please enter some text to parse');
+    if (!inputText.trim() && !attachedImage) {
+      setError('Please enter some text or attach an image');
       return;
     }
 
@@ -63,13 +79,18 @@ const TextInputForm: React.FC<TextInputFormProps> = ({ onParseEvents }) => {
     setLoadingMessage('Parsing...');
 
     try {
-      if (onParseEvents) {
+      if (onParseEvents && !attachedImage) {
+        // Text-only flow
         const parsedEvents = await onParseEvents(inputText.trim(), message => {
           // Update the UI with progress coming from the server (via SSE/stream)
           setLoadingMessage(message);
         });
 
-        setResults(parsedEvents);
+        if (onEventsParsed) {
+          onEventsParsed(parsedEvents);
+        } else {
+          setResults(parsedEvents);
+        }
 
         // Use explicit typing for the debugCombined property
         interface EventWithDebug extends ParsedEvent {
@@ -82,6 +103,51 @@ const TextInputForm: React.FC<TextInputFormProps> = ({ onParseEvents }) => {
         } else {
           setDebugData(parsedEvents);
         }
+      } else if (attachedImage) {
+        // Image (with optional text) flow – call the image parsing endpoint directly
+        const formData = new FormData();
+        formData.append('image', attachedImage);
+        formData.append('text', inputText.trim());
+
+        // Allow downstream options via onParseEvents helper (timezone, etc.)
+        // For now we keep it simple and just submit raw.
+        const response = await fetch('/api/ai/parse-image-event', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          throw new Error(err.message || `HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (!data.success || !Array.isArray(data.events) || data.events.length === 0) {
+          throw new Error('No events found in image');
+        }
+
+        const parsedEvents: ParsedEvent[] = data.events.map((evt: ExtractedEvent, idx: number) => ({
+          id: `img-${Date.now()}-${idx}`,
+          title: evt.title,
+          date: evt.startDate.split('T')[0],
+          time: evt.startDate.split('T')[1]?.substring(0, 5),
+          endTime: evt.endDate.split('T')[1]?.substring(0, 5),
+          duration: undefined,
+          location: evt.location,
+          description: evt.description,
+          summary: evt.summary,
+          confidence: Math.round((evt.confidence || 1) * 100),
+          rawResponse: evt,
+        }));
+
+        if (onEventsParsed) {
+          onEventsParsed(parsedEvents);
+        } else {
+          setResults(parsedEvents);
+        }
+
+        setAttachedImage(null); // clear after successful parse
       } else {
         // Mock response for testing UI without AI integration
         setTimeout(() => {
@@ -122,6 +188,7 @@ const TextInputForm: React.FC<TextInputFormProps> = ({ onParseEvents }) => {
     setInputText('');
     setResults(null);
     setError(null);
+    setAttachedImage(null);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -137,26 +204,135 @@ const TextInputForm: React.FC<TextInputFormProps> = ({ onParseEvents }) => {
         role="form"
         aria-labelledby="event-parser-heading"
         style={{ width: '100%' }}
-      >
-        <TextField
-          multiline
-          rows={6}
-          fullWidth
-          variant="outlined"
-          placeholder="Enter your event text here (e.g., 'Team meeting tomorrow at 2pm in conference room A')"
-          value={inputText}
-          onChange={e => setInputText(e.target.value)}
-          onKeyDown={e => {
-            if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-              e.preventDefault();
-              handleParseEvents();
+        onDragEnter={e => {
+          e.preventDefault();
+          dragCounter.current += 1;
+          setIsDragActive(true);
+        }}
+        onDragOver={e => {
+          e.preventDefault();
+          if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+        }}
+        onDragLeave={e => {
+          e.preventDefault();
+          dragCounter.current -= 1;
+          if (dragCounter.current === 0) {
+            setIsDragActive(false);
+          }
+        }}
+        onDrop={(e: DragEvent<HTMLFormElement>) => {
+          e.preventDefault();
+          dragCounter.current = 0;
+          setIsDragActive(false);
+          const file = e.dataTransfer.files?.[0];
+          if (file) {
+            // Basic validation (mime & size up to 5MB)
+            if (!file.type.startsWith('image/')) {
+              setError('Only image files are supported');
+              return;
             }
+            if (file.size > 5 * 1024 * 1024) {
+              setError('Image exceeds 5 MB size limit');
+              return;
+            }
+            setAttachedImage(file);
+          }
+        }}
+      >
+        <Box sx={{ position: 'relative', mb: 2 }}>
+          <TextField
+            multiline
+            rows={6}
+            fullWidth
+            variant="outlined"
+            placeholder="Enter your event text and/or drag an image here (e.g., 'Team meeting tomorrow at 2pm in conference room A')"
+            value={inputText}
+            onChange={e => setInputText(e.target.value)}
+            onKeyDown={e => {
+              if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                e.preventDefault();
+                handleParseEvents();
+              }
+            }}
+            aria-label="Enter your event text and/or drag an image here to extract calendar events using AI"
+            aria-describedby="event-input-help"
+            data-testid="event-text-input"
+            disabled={isLoading}
+            sx={{
+              opacity: isDragActive ? 0.9 : 1,
+              transition: 'opacity 0.15s',
+            }}
+          />
+
+          {isDragActive && (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                border: '2px dashed',
+                borderColor: 'primary.main',
+                borderRadius: 1,
+                backgroundColor: theme => theme.palette.primary.main + 'E6',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                pointerEvents: 'none',
+                color: 'common.white',
+              }}
+            >
+              <Typography variant="h6">Drop to attach image</Typography>
+            </Box>
+          )}
+        </Box>
+
+        {/* Attached image preview */}
+        {attachedImage && (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              mb: 2,
+              p: 1,
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 1,
+              position: 'relative',
+              width: 200,
+            }}
+          >
+            <img
+              src={URL.createObjectURL(attachedImage)}
+              alt={attachedImage.name}
+              style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 4 }}
+            />
+            <Typography variant="body2" noWrap maxWidth={100}>
+              {attachedImage.name}
+            </Typography>
+            <IconButton
+              size="small"
+              sx={{ position: 'absolute', top: 0, right: 0 }}
+              aria-label="Remove image"
+              onClick={() => setAttachedImage(null)}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        )}
+
+        {/* Hidden file input & attach button */}
+        <input
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          ref={fileInputRef}
+          onChange={e => {
+            const file = e.target.files?.[0];
+            if (file) setAttachedImage(file);
           }}
-          aria-label="Enter your event text here to extract calendar events using AI"
-          aria-describedby="event-input-help"
-          data-testid="event-text-input"
-          disabled={isLoading}
-          sx={{ mb: 2 }}
         />
 
         <Typography
@@ -170,14 +346,25 @@ const TextInputForm: React.FC<TextInputFormProps> = ({ onParseEvents }) => {
           Separate multiple events with blank lines.
         </Typography>
 
-        {/* Action Buttons */}
+        {/* Action Buttons & attach */}
         <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+          <Tooltip title="Attach image (⌘/Ctrl + U)">
+            <span>
+              <IconButton
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading}
+                aria-label="Attach image"
+              >
+                <UploadFileIcon />
+              </IconButton>
+            </span>
+          </Tooltip>
           <Tooltip title="Parse (⌘/Ctrl + Enter)">
             <span>
               <Button
                 variant="contained"
                 type="submit"
-                disabled={isLoading || !inputText.trim()}
+                disabled={isLoading || (!inputText.trim() && !attachedImage)}
                 startIcon={isLoading ? <CircularProgress size={20} /> : null}
                 sx={{ minWidth: 160 }}
               >
@@ -192,7 +379,7 @@ const TextInputForm: React.FC<TextInputFormProps> = ({ onParseEvents }) => {
       </form>
 
       {/* Results Section - placed outside the form to prevent Enter key in edits from re-triggering form submit */}
-      {((results && results.length > 0) || error) && (
+      {!onEventsParsed && ((results && results.length > 0) || error) && (
         <Box sx={{ mt: 4 }} role="region" aria-labelledby="results-heading">
           <Typography
             variant="h3"

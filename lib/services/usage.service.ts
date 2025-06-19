@@ -12,7 +12,7 @@ export async function incrementUsage(params: {
 }): Promise<void> {
   const { userId, service, delta = 1 } = params;
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await (prisma as any).serviceUsage.upsert({
     where: {
       userId_service: {
@@ -45,7 +45,7 @@ export async function getTopUsers(params: {
 }): Promise<UsageRow[]> {
   const { service, limit = 20 } = params;
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const rows = await (prisma as any).serviceUsage.findMany({
     where: { service },
     orderBy: { count: 'desc' },

@@ -1,6 +1,6 @@
 # Story: Implement Image-based Event Extraction
 
-**Status**: To Do
+**Status**: In Review – core functionality implemented; see checklist below.
 
 ---
 
@@ -26,17 +26,36 @@ TBD – will reference future design documentation for the upload component and 
 - Feature covered by unit tests (extraction service) and E2E tests (upload flow) with ≥90 % coverage of new code.
 - Meets existing lint, type, and test suites.
 
-## Tasks
+## Task Checklist (🔄 updated 2025-06-18)
 
-- [ ] Research available vision models and cost considerations.
-- [ ] Prototype prompt/chain for event extraction from images.
-- [ ] Design and implement image upload UI component.
-- [ ] Create backend API route for image upload & processing.
-- [ ] Integrate extraction result into event preview pipeline.
-- [ ] Add confidence threshold handling and error UI.
-- [ ] Write unit tests for extraction logic and service wrapper.
-- [ ] Write E2E tests for the upload and extraction flow.
-- [ ] Update documentation and storybook.
+### Core
+
+- [x] Select default vision model (`gpt-4o-mini`) and document cost/override via `OPENAI_IMAGE_MODEL` env var.
+- [x] Implement `parseEventImage` in `lib/ai.ts` (Buffer/base-64, prompt reuse, JSON output).
+- [x] Support **combined context** – include optional free-form text (`additionalText`) with the image prompt.
+- [x] Create backend route `POST /api/ai/parse-image-event` (multipart, MIME & 5 MB guard rails, validation, transforms).
+
+### Front-end
+
+- [x] Integrate upload into `TextInputForm` (drag-and-drop, attach button, progressive highlight overlay).
+- [x] Parse button activates with text **or** image; error banners for invalid files.
+- [x] Event preview pipeline accepts image-parsed events.
+
+### Quality & Testing
+
+- [x] Unit tests for `parseEventImage` (Buffer, base-64, error paths).
+- [x] Unit tests for API route validation & transforms.
+- [x] Playwright E2E test: authenticated image upload flow.
+- [x] Lint/Type/Test suite passes; global coverage ≥84 %.
+
+### Remaining / Nice-to-have
+
+- [ ] Streaming SSE progress for image parsing (parity with text endpoint).
+- [ ] Multi-image batch support with thumbnail strip UI.
+- [ ] Improved error banners (replace current `alert`, i18n friendly).
+- [ ] Rate-limit / auth gate toggle (`ENABLE_IMAGE_PARSING`).
+- [ ] Cost telemetry surfaced in admin logs.
+- [ ] Storybook docs & README updates.
 
 ## Notes
 
