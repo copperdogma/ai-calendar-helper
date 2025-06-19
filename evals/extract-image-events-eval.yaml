@@ -15,13 +15,13 @@ prompts:
         - role: user
           content:
             - type: text
-              text: "Extract event details from the following flyer image and return JSON only."
+              text: 'Extract event details from the following flyer image and return JSON only.'
             - type: image_url
               image_url:
-                url: "data:image/jpeg;base64,{{ fileBase64(image) }}"
+                url: 'data:image/jpeg;base64,{{ fileBase64(image) }}'
                 detail: auto
             - type: text
-              text: "{{text}}"
+              text: '{{text}}'
 
 samples:
-  path: ./fixtures/image-events-dataset.jsonl 
+  path: ./fixtures/image-events-dataset.jsonl
