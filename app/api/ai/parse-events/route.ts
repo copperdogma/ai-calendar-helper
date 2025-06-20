@@ -108,6 +108,17 @@ export async function POST(req: NextRequest) {
 
     const { text, options } = validateRequest(requestBody);
 
+    // Increment usage when authenticated (streaming mode)
+    try {
+      const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+      if (token?.sub) {
+        // @ts-ignore literal enum string
+        await incrementUsage({ userId: token.sub, service: 'CALENDAR_PARSER' });
+      }
+    } catch {
+      // swallow usage-tracking errors
+    }
+
     const aiService = new AIProcessingService();
     const aiOpts = toAIOptions(options);
 
