@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useSession } from 'next-auth/react';
 import PageLayout from '@/components/layouts/PageLayout';
 import TextInputForm, { ParsedEvent } from '@/components/calendar/TextInputForm';
 import EventPreviewList from '@/components/calendar/EventPreviewList';
@@ -11,7 +12,7 @@ import { guessTimezone } from '@/lib/utils/calendarLinks';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezonePlugin from 'dayjs/plugin/timezone';
-import { Box } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 
 dayjs.extend(utc);
 dayjs.extend(timezonePlugin);
@@ -19,14 +20,16 @@ dayjs.extend(timezonePlugin);
 // In-component helper to use the active timezone from context/hook
 function useParseEventsWithAi() {
   const { timezone } = useTimezone();
+  const { data: session } = useSession();
 
   return React.useCallback(
     async (text: string, onProgress?: (message: string) => void) => {
-      const response = await fetch('/api/ai/parse-events?stream=true', {
+      const response = await fetch('/api/ai/parse-events', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Accept: 'text/event-stream',
+          ...(session?.user?.id ? { 'x-user-id': session.user.id } : {}),
         },
         body: JSON.stringify({
           text,
@@ -35,6 +38,7 @@ function useParseEventsWithAi() {
             currentDate: new Date().toISOString(),
           },
         }),
+        credentials: 'include',
       });
 
       // If backend supports streaming progress, we'll parse it; otherwise fall back to JSON response.
@@ -193,7 +197,7 @@ function useParseEventsWithAi() {
         }
       });
     },
-    [timezone]
+    [timezone, session]
   );
 }
 
@@ -218,6 +222,13 @@ export default function CalendarParserPage() {
       <TextInputForm onParseEvents={parseEventsWithAi} onEventsParsed={handleParsedEvents} />
       {events.length > 0 && (
         <Box mt={4}>
+          <Typography
+            variant="h3"
+            component="h2"
+            sx={{ fontSize: '1.25rem', fontWeight: 600, mb: 2 }}
+          >
+            {`Found ${events.length} event${events.length !== 1 ? 's' : ''}`}
+          </Typography>
           <EventPreviewList events={events} />
         </Box>
       )}

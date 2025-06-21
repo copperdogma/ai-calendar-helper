@@ -257,6 +257,21 @@ const EventPreviewCard: React.FC<EventPreviewCardProps> = ({ event, onUpdate }) 
                     aria-label="Add event to Google Calendar"
                     size="small"
                     data-testid="google-calendar-button"
+                    onClick={() =>
+                      fetch('/api/log/client', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          calendarAction: 'google',
+                          deviceType: /Mobi|Android/i.test(navigator.userAgent)
+                            ? 'mobile'
+                            : 'desktop',
+                          os: navigator.platform,
+                          browser: navigator.userAgent,
+                          locale: navigator.language,
+                        }),
+                      }).catch(() => {})
+                    }
                     sx={{
                       '&:focus-visible': {
                         outline: '2px solid',
@@ -277,6 +292,21 @@ const EventPreviewCard: React.FC<EventPreviewCardProps> = ({ event, onUpdate }) 
                     aria-label="Add event to Outlook Calendar"
                     size="small"
                     data-testid="outlook-calendar-button"
+                    onClick={() =>
+                      fetch('/api/log/client', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          calendarAction: 'outlook',
+                          deviceType: /Mobi|Android/i.test(navigator.userAgent)
+                            ? 'mobile'
+                            : 'desktop',
+                          os: navigator.platform,
+                          browser: navigator.userAgent,
+                          locale: navigator.language,
+                        }),
+                      }).catch(() => {})
+                    }
                     sx={{
                       '&:focus-visible': {
                         outline: '2px solid',
@@ -296,6 +326,21 @@ const EventPreviewCard: React.FC<EventPreviewCardProps> = ({ event, onUpdate }) 
                     aria-label="Download ICS file for Apple Calendar"
                     size="small"
                     data-testid="apple-calendar-button"
+                    onClick={() =>
+                      fetch('/api/log/client', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          calendarAction: 'ics',
+                          deviceType: /Mobi|Android/i.test(navigator.userAgent)
+                            ? 'mobile'
+                            : 'desktop',
+                          os: navigator.platform,
+                          browser: navigator.userAgent,
+                          locale: navigator.language,
+                        }),
+                      }).catch(() => {})
+                    }
                     sx={{
                       '&:focus-visible': {
                         outline: '2px solid',

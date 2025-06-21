@@ -6,6 +6,8 @@ import { ApiError } from '@/lib/errors/ApiError';
 import { handleApiError } from '@/lib/errors/handleApiError';
 import { getToken } from 'next-auth/jwt';
 import { incrementUsage } from '@/lib/services/usage.service';
+import { logUsageEvent } from '@/lib/services/usage-event.service';
+import { jwtDecrypt } from 'jose';
 
 /**
  * Request body schema for parsing calendar events
@@ -90,6 +92,49 @@ function shouldIncludeDebug() {
   return process.env.NODE_ENV !== 'production';
 }
 
+// -------------------------
+// Helper to resolve userId
+// -------------------------
+let analyticsUserId: string | undefined;
+const resolveUserId = async (request: NextRequest): Promise<string | undefined> => {
+  if (analyticsUserId) return analyticsUserId;
+
+  try {
+    const tok = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+    if (tok?.sub) return tok.sub as string;
+  } catch {
+    /* ignore */
+  }
+
+  // Fallback – decrypt session cookie (NextAuth encrypts with the same secret)
+  try {
+    const cookie = request.cookies.get('next-auth.session-token')?.value;
+    if (cookie && process.env.NEXTAUTH_SECRET) {
+      const crypto = await import('crypto');
+      const derived = crypto.pbkdf2Sync(
+        process.env.NEXTAUTH_SECRET,
+        'NextAuth.js Generated Encryption Key',
+        100000,
+        32,
+        'sha256'
+      );
+      const key = Buffer.concat([derived, derived]); // 64 bytes
+
+      const { payload } = await jwtDecrypt(cookie, key);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (payload as any)?.sub as string | undefined;
+    }
+  } catch {
+    /* ignore */
+  }
+
+  // Client-provided header (trusted because request passes auth middleware)
+  const headerId = request.headers.get('x-user-id');
+  if (headerId) return headerId;
+
+  return undefined;
+};
+
 export async function POST(req: NextRequest) {
   // If the client requests streaming progress via ?stream=true we will return
   // a Server-Sent Events (text/event-stream) response with status updates.
@@ -112,6 +157,7 @@ export async function POST(req: NextRequest) {
     try {
       const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
       if (token?.sub) {
+        analyticsUserId = token.sub;
         // @ts-ignore literal enum string
         await incrementUsage({ userId: token.sub, service: 'CALENDAR_PARSER' });
       }
@@ -131,31 +177,74 @@ export async function POST(req: NextRequest) {
         try {
           sendEvent(controller, { status: 'Reading input...' });
 
-          // --- Segmentation (identify + start_lines) ---
-          sendEvent(controller, { status: 'Identifying potential events...' });
-          const segments = await aiService.segmentText(text.trim(), aiOpts);
-          sendEvent(controller, {
-            status: `Found ${segments.length} potential event${segments.length !== 1 ? 's' : ''}...`,
-          });
+          let transformed: ExtractedEvent[] = [];
+          const startTime = Date.now();
 
-          // --- Extract events sequentially so we can report progress ---
-          const extracted: RawEvent[] = [];
-
-          for (let i = 0; i < segments.length; i++) {
-            const chunk = segments[i];
+          if (
+            process.env.NEXT_PUBLIC_IS_E2E_TEST_ENV === 'true' ||
+            process.env.NODE_ENV === 'test'
+          ) {
+            // Short-circuit in E2E tests to avoid calling external AI APIs
+            transformed = [
+              {
+                title: 'Test Event',
+                description: '',
+                startDate: new Date().toISOString(),
+                endDate: new Date(Date.now() + 3600000).toISOString(),
+                location: '',
+                timezone: 'UTC',
+                summary: '',
+                confidence: 1,
+              },
+            ];
+            sendEvent(controller, { status: 'Using mocked AI response...' });
+          } else {
+            // --- Segmentation (identify + start_lines) ---
+            sendEvent(controller, { status: 'Identifying potential events...' });
+            const segments = await aiService.segmentText(text.trim(), aiOpts);
             sendEvent(controller, {
-              status: `Parsing event ${i + 1} of ${segments.length}...`,
+              status: `Found ${segments.length} potential event${segments.length !== 1 ? 's' : ''}...`,
             });
 
-            // @ts-ignore – access private helper for chunk parsing
-            const ev = await aiService.parseEventChunk(chunk, aiOpts);
-            if (ev) extracted.push(ev as unknown as RawEvent);
+            // --- Extract events sequentially so we can report progress ---
+            const extracted: RawEvent[] = [];
+
+            for (let i = 0; i < segments.length; i++) {
+              const chunk = segments[i];
+              sendEvent(controller, {
+                status: `Parsing event ${i + 1} of ${segments.length}...`,
+              });
+
+              // @ts-ignore – access private helper for chunk parsing
+              const ev = await aiService.parseEventChunk(chunk, aiOpts);
+              if (ev) extracted.push(ev as unknown as RawEvent);
+            }
+
+            transformed = transformEvents(extracted);
+          }
+
+          // --- Usage Analytics Logging (streaming mode) ---
+          try {
+            const resolvedUserId = analyticsUserId ?? (await resolveUserId(req));
+
+            await logUsageEvent({
+              userId: resolvedUserId ?? undefined,
+              inputType: 'text',
+              textSizeChars: text.length,
+              parseTimeMs: Date.now() - startTime,
+              eventsExtracted: transformed.length,
+              parseSuccess: true,
+              deviceType: req.headers.get('user-agent')?.includes('Mobi') ? 'mobile' : 'desktop',
+              locale: req.headers.get('accept-language') || undefined,
+            });
+          } catch {
+            /* ignore analytics errors */
           }
 
           sendEvent(controller, {
-            status: `Completed – total ${extracted.length} event${extracted.length !== 1 ? 's' : ''}`,
+            status: `Completed – total ${transformed.length} event${transformed.length !== 1 ? 's' : ''}`,
             complete: true,
-            events: transformEvents(extracted),
+            events: transformed,
           });
 
           controller.close();
@@ -182,15 +271,12 @@ export async function POST(req: NextRequest) {
   console.log(`🚀 [${requestId}] AI Parse Events API called`);
 
   try {
-    // Increment usage when authenticated
-    try {
-      const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-      if (token?.sub) {
-        // @ts-ignore literal enum string
-        await incrementUsage({ userId: token.sub, service: 'CALENDAR_PARSER' });
-      }
-    } catch {
-      // swallow usage-tracking errors
+    // Increment usage when authenticated for non-stream path
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    if (token?.sub) {
+      analyticsUserId = token.sub;
+      // @ts-ignore literal enum string
+      await incrementUsage({ userId: token.sub, service: 'CALENDAR_PARSER' });
     }
 
     const requestBody = await req.json();

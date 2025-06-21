@@ -1,81 +1,65 @@
+// Replacing file with minimal analytics logging API route
+
 import { NextRequest, NextResponse } from 'next/server';
-// import baseLogger from '@/lib/logger'; // Remove Pino import
-import { createLogger } from '@/lib/logger'; // Use the createLogger function
 import { z } from 'zod';
-import {
-  generalApiLimiter,
-  consumeRateLimit,
-  addRateLimitHeaders,
-} from '@/lib/utils/rate-limiters-middleware'; // Path to our rate limiter utils
+import { logUsageEvent, DeviceType, CalendarAction } from '@/lib/services/usage-event.service';
+import { getToken } from 'next-auth/jwt';
 import { ApiError } from '@/lib/errors/ApiError';
 import { handleApiError } from '@/lib/errors/handleApiError';
 
-// Define Zod schema for expected log entry structure
-const ClientLogSchema = z.object({
-  level: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']),
-  message: z.string().min(1, 'Log message cannot be empty'),
-  context: z.record(z.unknown()).optional(), // Record<string, unknown>
-  timestamp: z.string().datetime({ offset: true }).optional(), // ISO 8601 string
-});
+const RequestSchema = z
+  .object({
+    calendarAction: z.enum(['google', 'outlook', 'ics']).nullable().optional(),
+    deviceType: z.enum(['mobile', 'desktop']).optional(),
+    os: z.string().optional(),
+    browser: z.string().optional(),
+    locale: z.string().optional(),
+  })
+  .passthrough(); // allow other logger fields
 
-// Infer the type from the schema
-// type ClientLogEntry = z.infer<typeof ClientLogSchema>; // Removed unused type alias
-
-// Create a logger instance for this API route
-const logger = createLogger('client-log-api');
-
-async function handleLogProcessing(body: unknown): Promise<NextResponse> {
-  const result = ClientLogSchema.safeParse(body);
-
-  if (!result.success) {
-    // Log validation error using the logger
-    logger.warn(
-      {
-        validationErrors: result.error.format(),
-        location: 'client-log-api-validation',
-      },
-      'Invalid client log entry received'
-    );
-    throw new ApiError(400, 'Invalid log entry', 'BAD_REQUEST');
-  }
-
-  const { level, message, context: clientContext, timestamp: clientTimestamp } = result.data;
-  // const logMethod = getConsoleMethod(level); // Removed
-
-  // Log the message with context using the logger's level methods
-  logger[level](
-    {
-      clientContext,
-      clientTimestamp,
-    },
-    `[Client Log] ${message}` // Simplified prefix
-  );
-
-  return NextResponse.json({ success: true }, { status: 200 });
-}
-
-export async function POST(request: NextRequest): Promise<NextResponse> {
-  // Apply rate limiting before processing the request
-  // Bypass rate limiting in E2E test environment
-  if (process.env.NEXT_PUBLIC_IS_E2E_TEST_ENV !== 'true') {
-    const rateLimitResponse = await consumeRateLimit(request, generalApiLimiter);
-    if (rateLimitResponse) {
-      return rateLimitResponse; // Rate limit exceeded, return 429 response
-    }
-  }
-
-  let response: NextResponse;
+export async function POST(req: NextRequest) {
   try {
-    const body = await request.json();
-    response = await handleLogProcessing(body);
-  } catch (error) {
-    response = handleApiError(error);
-  }
+    let jsonBody: unknown = {};
+    try {
+      jsonBody = await req.json();
+    } catch {
+      // no body or invalid JSON – treat as empty
+    }
 
-  // Add rate limit headers to the successful response or caught error response
-  // Only add headers if not in E2E test environment (where they might be misleading)
-  if (process.env.NEXT_PUBLIC_IS_E2E_TEST_ENV !== 'true') {
-    return addRateLimitHeaders(request, response, generalApiLimiter);
+    const parsed = RequestSchema.safeParse(jsonBody);
+    if (!parsed.success) {
+      throw new ApiError(400, parsed.error.message, 'VALIDATION_ERROR');
+    }
+
+    const { calendarAction, deviceType, os, browser, locale } = parsed.data as Record<
+      string,
+      unknown
+    >;
+
+    // Only create analytics row if we have a deviceType or calendarAction to record
+    if (deviceType || calendarAction) {
+      // Resolve userId if logged in
+      let userId: string | undefined;
+      try {
+        const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+        userId = token?.sub;
+      } catch {
+        /* ignore */
+      }
+
+      await logUsageEvent({
+        userId,
+        inputType: 'text', // treat as text interaction from client side
+        deviceType: (deviceType as DeviceType) ?? 'desktop',
+        os: os as string | undefined,
+        browser: browser as string | undefined,
+        locale: locale as string | undefined,
+        calendarAction: (calendarAction as CalendarAction | null) ?? null,
+      });
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    return handleApiError(err);
   }
-  return response;
 }

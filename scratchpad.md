@@ -16,11 +16,11 @@ Implement AIProcessingService.parseEventImage with TDD (unit tests + minimal imp
 
 ## Future ToDo Items
 
-- IS the table being updated when anyone uses the calendar parser? Every time soemone uses it, it should increment the count for that user. This is used by the daily 7am report on usage stats.
 - Apparently gpt-4.1-nano can ALSO do image processing. We should try that.
 - Run evals for image processing, optimize prompt, try gpt-4.1-nano as the model
 
 ## Advanced Usage Stats Research & Planning Checklist
+
 - [ ] Initial research questions identified
 - [ ] Web research completed
 - [ ] Codebase analysis completed
@@ -31,6 +31,7 @@ Implement AIProcessingService.parseEventImage with TDD (unit tests + minimal imp
 - [ ] Plan reviewed and approved by user
 
 ### Initial Research Questions
+
 1. What level of granularity do we need for usage data (raw per-event logs vs. aggregated summaries)?
 2. Should we store detailed usage events in our PostgreSQL database, or integrate an analytics platform (e.g., self-hosted PostHog) to avoid vendor lock-in/costs?
 3. How long should we retain raw usage data, and do we need GDPR-style deletion controls?
@@ -39,6 +40,7 @@ Implement AIProcessingService.parseEventImage with TDD (unit tests + minimal imp
 6. What reporting cadence is expected (daily, weekly dashboards, real-time)?
 
 ### Other Potentially Helpful Stats (Brainstorm)
+
 - Parsing success vs. failure rates and associated error types
 - Time taken to parse text or image inputs
 - Number of calendar events extracted per request
@@ -49,12 +51,14 @@ Implement AIProcessingService.parseEventImage with TDD (unit tests + minimal imp
 - Accessibility of features on small vs large screens (screen size buckets)
 
 ### Tracking Approaches (Preliminary)
+
 - **Database Event Log**: Create a `UsageEvent` table capturing the requested fields + extras (timestamp, userAgent, deviceType). Use existing Prisma setup.
 - **Client Instrumentation**: Emit a POST to `/api/log/client` when a calendar button is clicked with device info (use existing API logger pattern).
 - **Server Middleware**: Augment existing `incrementUsage` flow to also write a detailed event record.
 - **Self-Hosted Analytics**: Consider PostHog (OSS) if we need advanced funnels/heatmaps; integrates well, remains free/self-hosted.
 
 ### User Preferences (2025-06-20)
+
 - Storage: **PostgreSQL UsageEvent table** (no external analytics platform)
 - Privacy constraints: **None** (no special retention policy requested)
 - Granularity: **Raw per-event rows**
@@ -66,5 +70,19 @@ Implement AIProcessingService.parseEventImage with TDD (unit tests + minimal imp
   - Number of events extracted per request
 
 ### Checklist Updates
+
 - [x] User preference questions identified and asked
 - [x] Plan reviewed and approved by user (initial preferences confirmed)
+
+### Implementation Progress (Advanced Usage Stats)
+
+- [x] Define `UsageEvent` model in `prisma/schema.prisma`
+- [x] Add `usageEvents` relation to `User` model
+- [x] Implement `logUsageEvent` service in `lib/services/usage-event.service.ts`
+- [x] Write Jest unit tests with ≥80 % coverage for the service
+- [x] Generate and apply Prisma migration (`npx prisma migrate dev --name add_usage_event`)
+- [x] Create `/api/log/client` route + Zod validation
+- [x] Emit client events from export buttons
+- [~] Instrument parse endpoints to log events & timings (parse-events done; image endpoint pending)
+- [x] Update daily report job to include new metrics
+- [ ] Additional unit & E2E tests

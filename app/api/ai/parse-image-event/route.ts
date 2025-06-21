@@ -4,6 +4,8 @@ import { AIProcessingService } from '@/lib/ai';
 import { ExtractedEvent } from '@/types/events';
 import { ApiError } from '@/lib/errors/ApiError';
 import { handleApiError } from '@/lib/errors/handleApiError';
+import { logUsageEvent } from '@/lib/services/usage-event.service';
+import { getToken } from 'next-auth/jwt';
 
 // Allowed MIME types and size limit (5 MB)
 const ALLOWED_MIME = new Set([
@@ -117,6 +119,26 @@ export async function POST(req: NextRequest) {
       imageMime: file.type,
     });
     const transformed = transformEvent(event);
+
+    // Usage analytics logging
+    try {
+      const ua = req.headers.get('user-agent') || '';
+      const isMobile = /Mobi|Android/i.test(ua);
+      const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+
+      await logUsageEvent({
+        userId: token?.sub,
+        inputType: additionalTextField ? 'text+image' : 'image',
+        imageSizeBytes: file.size,
+        parseTimeMs: Date.now() - start,
+        eventsExtracted: 1,
+        parseSuccess: true,
+        deviceType: isMobile ? 'mobile' : 'desktop',
+        locale: req.headers.get('accept-language') || undefined,
+      });
+    } catch {
+      /* ignore */
+    }
 
     return NextResponse.json(
       {

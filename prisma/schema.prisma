@@ -23,6 +23,7 @@ model User {
   accounts       Account[]
   sessions       Session[]
   serviceUsage   ServiceUsage[]
+  usageEvents    UsageEvent[]
 
   @@index([role])
   @@index([createdAt])
@@ -86,4 +87,55 @@ model ServiceUsage {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, service])
+}
+
+/// ---------------------
+/// Usage Analytics Models
+/// ---------------------
+
+enum InputType {
+  TEXT
+  IMAGE
+  TEXT_IMAGE @map("TEXT+IMAGE")
+}
+
+enum DeviceType {
+  MOBILE
+  DESKTOP
+}
+
+enum CalendarAction {
+  GOOGLE
+  OUTLOOK
+  ICS
+}
+
+model UsageEvent {
+  id               String          @id @default(uuid())
+  createdAt        DateTime        @default(now())
+  userId           String?
+  user             User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Event specifics
+  inputType        InputType
+  textSizeChars    Int?
+  imageSizeBytes   Int?
+  imageWidth       Int?
+  imageHeight      Int?
+  parseTimeMs      Int?
+  eventsExtracted  Int?
+  parseSuccess     Boolean?
+  errorReason      String?
+
+  // Client / device context
+  deviceType       DeviceType
+  os               String?
+  browser          String?
+  locale           String?
+
+  // Post-parse action
+  calendarAction   CalendarAction?
+
+  @@index([createdAt])
+  @@index([userId])
 }

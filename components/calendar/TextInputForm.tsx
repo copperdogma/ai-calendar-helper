@@ -379,18 +379,20 @@ const TextInputForm: React.FC<TextInputFormProps> = ({ onParseEvents, onEventsPa
       </form>
 
       {/* Results Section - placed outside the form to prevent Enter key in edits from re-triggering form submit */}
-      {!onEventsParsed && ((results && results.length > 0) || error) && (
+      {!onEventsParsed && ((results && results.length > 0) || error || !!debugData) && (
         <Box sx={{ mt: 4 }} role="region" aria-labelledby="results-heading">
-          <Typography
-            variant="h3"
-            component="h2"
-            id="results-heading"
-            sx={{ fontSize: '1.25rem', fontWeight: 600, mb: 2 }}
-          >
-            {error
-              ? 'Error'
-              : `Found ${results?.length || 0} event${(results?.length || 0) !== 1 ? 's' : ''}`}
-          </Typography>
+          {(error || (results && results.length > 0)) && (
+            <Typography
+              variant="h3"
+              component="h2"
+              id="results-heading"
+              sx={{ fontSize: '1.25rem', fontWeight: 600, mb: 2 }}
+            >
+              {error
+                ? 'Error'
+                : `Found ${results!.length} event${results!.length !== 1 ? 's' : ''}`}
+            </Typography>
+          )}
 
           {error && (
             <Alert severity="error" sx={{ mb: 2 }} role="alert" aria-live="polite">
