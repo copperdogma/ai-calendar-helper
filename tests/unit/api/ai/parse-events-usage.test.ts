@@ -114,4 +114,4 @@ describe('/api/ai/parse-events - usage tracking', () => {
 
     expect(mockedIncrementUsage).not.toHaveBeenCalled();
   });
-}); 
+});
