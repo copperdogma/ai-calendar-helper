@@ -1,27 +1,79 @@
+# Image event extraction eval – updated to promptfoo v0.115 schema
 providers:
-  - openai:
-      model: ${OPENAI_IMAGE_MODEL|gpt-4o-mini}
+  # Local custom provider that wraps OpenAI Responses API and always returns JSON object
+  - id: openai:responses:gpt-4.1-nano
 
+# Custom binary scorer for JSON validity remains under scorers
 scorers:
   - path: ./scorers/image-json-valid.js
+  - path: ./scorers/description-similarity-threshold.js
+
+# Nunjucks filters for templating
+nunjucksFilters:
+  base64: ./helpers/base64.js
+  dataUrl: ./helpers/base64.js
+
+# Numeric metric for description similarity
+metrics:
+  descriptionSimilarity:
+    path: ./scorers/description-similarity.js
 
 prompts:
-  - name: extract-image-event
-    prompt:
-      messages:
-        - role: system
-          content: |
-            You are an assistant that extracts a single calendar event from images and optional text.  Return valid JSON ONLY with keys title, startDate, endDate, location, description, timezone, confidence.
-        - role: user
-          content:
-            - type: text
-              text: 'Extract event details from the following flyer image and return JSON only.'
-            - type: image_url
-              image_url:
-                url: 'data:image/jpeg;base64,{{ fileBase64(image) }}'
-                detail: auto
-            - type: text
-              text: '{{text}}'
+  - file://prompts/extract-image-event.js
 
-samples:
+tests:
   path: ./fixtures/image-events-dataset.jsonl
+
+defaultTest:
+  assert:
+    - type: is-json
+    - type: javascript
+      value: (output && typeof output === 'object' && output.description && output.description.trim().length >= 10)
+  options:
+    transformVars: file://helpers/upload-image-file.js
+    transform: |
+      /* Normalize the assistant response so assertions always receive a plain JS object.
+         Handles several variants:
+         1. The provider already returned a JSON object (desired).
+         2. The provider returned { output_text: '{...}' }.
+         3. The provider returned a raw string with or without ``` fences.
+      */
+
+      // Case 1 – already an object
+      if (output && typeof output === 'object' && !Array.isArray(output)) {
+        if (output.title || output.output_text === undefined) {
+          return output;
+        }
+        // Case 2 – object wrapper with output_text string
+        if (typeof output.output_text === 'string') {
+          let txt = output.output_text.trim();
+          if (txt.startsWith('```')) {
+            txt = txt.replace(/^```[a-zA-Z]*\s*/, '').replace(/```\s*$/, '').trim();
+          }
+          try {
+            return JSON.parse(txt);
+          } catch (_) {
+            return txt;
+          }
+        }
+      }
+
+      // Case 3 – plain string
+      if (typeof output === 'string') {
+        let txt = output.trim();
+        if (txt.startsWith('```')) {
+          txt = txt.replace(/^```[a-zA-Z]*\s*/, '').replace(/```\s*$/, '').trim();
+        }
+        try {
+          return JSON.parse(txt);
+        } catch (_) {
+          return txt;
+        }
+      }
+
+      return output;
+
+      // Final fallback
+      if (output == null) {
+        return {};
+      }
