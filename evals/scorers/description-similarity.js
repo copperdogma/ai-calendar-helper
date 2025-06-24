@@ -47,4 +47,4 @@ export async function score(prediction, groundTruth) {
   const tokensA = actual.toLowerCase().split(/\W+/).filter(Boolean);
   const tokensB = expected.toLowerCase().split(/\W+/).filter(Boolean);
   return jaccard(tokensA, tokensB);
-} 
+}

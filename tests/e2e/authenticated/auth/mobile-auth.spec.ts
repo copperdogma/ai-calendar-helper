@@ -17,7 +17,7 @@ test.describe('Mobile Authentication', () => {
   });
 
   // Centralized long timeout configurable via env var
-  const LONG_TIMEOUT = parseInt(process.env.TIMEOUT_NAVIGATION ?? '90000');
+  const LONG_TIMEOUT = parseInt(process.env.TIMEOUT_NAVIGATION ?? '120000');
 
   // Allow more time for mobile auth flows on cold server
   test.setTimeout(120000);

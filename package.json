@@ -145,13 +145,15 @@
     "playwright-core": "^1.52.0",
     "pm2": "^6.0.5",
     "prettier": "^3.5.3",
-    "promptfoo": "^0.115.0",
+    "promptfoo": "^0.115.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-intersection-observer": "^9.16.0",
     "server-only": "^0.0.1",
     "tsx": "^4.20.1",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "@xenova/transformers": "^2.4.0",
+    "yargs": "^17.7.2"
   },
   "description": "A Next.js application with NextAuth.js and PostgreSQL",
   "repository": {

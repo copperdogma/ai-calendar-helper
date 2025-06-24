@@ -21,4 +21,4 @@ module.exports.dataUrl = function dataUrl(filePath) {
   const mime = mimeMap[ext] || 'jpeg';
   const b64 = fs.readFileSync(abs, { encoding: 'base64' });
   return `data:image/${mime};base64,${b64}`;
-}; 
+};

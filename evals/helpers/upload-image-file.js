@@ -40,4 +40,4 @@ module.exports = async function transformVars(vars) {
   return {
     fileId: cache[abs],
   };
-}; 
+};

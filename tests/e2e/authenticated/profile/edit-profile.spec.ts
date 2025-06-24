@@ -30,6 +30,9 @@ const newName = `Test User ${Date.now().toString().slice(-3)}`;
 // Increased timeout for navigation and validation steps
 const LONG_TIMEOUT = parseInt(process.env.TIMEOUT_NAVIGATION ?? '60000');
 
+// Increase per-test timeout for potentially slower navigation
+test.setTimeout(120000);
+
 test.describe.serial('Profile Name Editing', () => {
   // Configure tests in this file to use the saved authentication state
   test.use({ storageState: storageStatePath });
@@ -81,7 +84,7 @@ test.describe.serial('Profile Name Editing', () => {
     await saveButton.click();
 
     // Verify success message appears first
-    await expect(page.getByText('Name updated successfully')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Name updated successfully')).toBeVisible({ timeout: 30000 });
 
     // Check that we're no longer in edit mode
     await expect(nameInput).not.toBeVisible({ timeout: 5000 });

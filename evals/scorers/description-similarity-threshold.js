@@ -5,4 +5,4 @@ import { score as similarity } from './description-similarity.js';
 export async function score(prediction, groundTruth) {
   const sim = await similarity(prediction, groundTruth);
   return sim >= 0.85 ? 1 : 0;
-} 
+}

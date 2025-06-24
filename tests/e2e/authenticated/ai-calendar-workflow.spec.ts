@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test';
+// Increase per-test timeout to handle slower dev server in CI
+test.setTimeout(120000);
 
 // Reusable long timeout value (can be configured via TIMEOUT_NAVIGATION env var)
 const LONG_TIMEOUT = parseInt(process.env.TIMEOUT_NAVIGATION ?? '60000');

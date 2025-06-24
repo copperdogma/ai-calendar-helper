@@ -15,7 +15,7 @@ Requirements for the description field:
 • Never leave description blank.
 
 Example output:
-{"title":"Birthday Party","startDate":"2025-07-15T14:00:00","endDate":"2025-07-15T16:00:00","location":"123 Maple St","description":"Join us to celebrate Amanda's birthday!","timezone":"UTC","confidence":0.92}`
+{"title":"Birthday Party","startDate":"2025-07-15T14:00:00","endDate":"2025-07-15T16:00:00","location":"123 Maple St","description":"Join us to celebrate Amanda's birthday!","timezone":"UTC","confidence":0.92}`,
   },
   {
     role: 'user',
@@ -23,12 +23,12 @@ Example output:
       {
         type: 'input_image',
         file_id: vars.fileId,
-        detail: 'high'
+        detail: 'high',
       },
       {
         type: 'input_text',
-        text: `Extract the event details from this flyer and return JSON only. ${vars.text || ''}`
-      }
-    ]
-  }
-]; 
+        text: `Extract the event details from this flyer and return JSON only. ${vars.text || ''}`,
+      },
+    ],
+  },
+];

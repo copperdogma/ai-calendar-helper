@@ -190,3 +190,12 @@ evals/results-split-count*.json
 evals/results-split*.json
 # Sentry Config File
 .env.sentry-build-plugin
+
+# Promptfoo ad-hoc JSON outputs (root-level transient evaluation files)
+eval_*.json
+eval*.json
+latest*.json
+out*.json
+tmp*.json
+evals/helpers/fileIdCache.json
+# End evaluation artifacts
