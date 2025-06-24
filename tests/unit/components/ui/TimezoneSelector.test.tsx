@@ -10,18 +10,17 @@ describe('TimezoneSelector', () => {
     render(<TimezoneSelector />);
 
     // Open the select field
-    const selectInput = screen.getByLabelText('Timezone');
+    const [selectInput] = screen.getAllByLabelText('Timezone');
     await user.click(selectInput);
 
     // Choose the first available option
     const options = await screen.findAllByRole('option');
-    expect(options.length).toBeGreaterThan(0);
-    const firstOption = options[0];
-    const value = firstOption.getAttribute('data-value') || firstOption.textContent || '';
+    const firstOption = options.find(o => o.getAttribute('data-value')) as HTMLElement;
+    const value = firstOption.getAttribute('data-value') as string;
 
     await user.click(firstOption);
 
     // Select component should now show chosen value
-    expect(screen.getByLabelText('Timezone')).toHaveTextContent(value);
+    expect(screen.getAllByLabelText('Timezone')[0]).toHaveTextContent(value);
   });
 });

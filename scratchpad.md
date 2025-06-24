@@ -4,7 +4,6 @@
 
 - Apparently gpt-4.1-nano can ALSO do image processing. We should try that.
 - Run evals for image processing, optimize prompt, try gpt-4.1-nano as the model
-- If the user changes the timezone in the UI, change the timezone in the calendar export buttons
 
 ## Vision Model Experimentation Research & Planning Checklist
 

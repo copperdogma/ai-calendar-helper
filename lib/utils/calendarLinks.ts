@@ -19,6 +19,12 @@ const LOCATION_TIMEZONE_MAP: Record<string, string> = {
 };
 
 function guessTimezone(fallback: string | undefined, location?: string): string {
+  // If an explicit fallback (e.g., user-selected timezone) is provided, prefer it.
+  if (fallback && /\//.test(fallback)) {
+    return fallback;
+  }
+
+  // Otherwise attempt to infer from location keywords.
   if (location) {
     const key = location.toLowerCase();
     for (const fragment in LOCATION_TIMEZONE_MAP) {
@@ -28,9 +34,7 @@ function guessTimezone(fallback: string | undefined, location?: string): string 
     }
   }
 
-  if (fallback && /\//.test(fallback)) return fallback; // use provided if no location match
-
-  // Final fallback to browser guess
+  // Final fallback to browser guess.
   return dayjs.tz.guess();
 }
 

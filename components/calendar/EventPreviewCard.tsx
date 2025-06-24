@@ -225,7 +225,7 @@ const EventPreviewCard: React.FC<EventPreviewCardProps> = ({ event, onUpdate }) 
               time: event.time,
               location: event.location,
               description: fullDesc,
-              timezone: event.timezone || timezone,
+              timezone: timezone,
               durationMinutes: event.durationMinutes,
             });
 
@@ -235,7 +235,7 @@ const EventPreviewCard: React.FC<EventPreviewCardProps> = ({ event, onUpdate }) 
               time: event.time,
               location: event.location,
               description: fullDesc,
-              timezone: event.timezone || timezone,
+              timezone: timezone,
               durationMinutes: event.durationMinutes,
             }).ics;
 
