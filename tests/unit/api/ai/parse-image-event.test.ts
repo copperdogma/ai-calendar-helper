@@ -80,4 +80,65 @@ describe('/api/ai/parse-image-event', () => {
 
     expect(response.status).toBe(400);
   });
+
+  it('should convert AVIF image to PNG and parse successfully', async () => {
+    // Mock sharp so that conversion returns a dummy buffer
+    jest.mock('sharp', () => {
+      return () => ({
+        png: () => ({
+          toBuffer: () => Promise.resolve(Buffer.from([0x89, 0x50, 0x4e, 0x47])),
+        }),
+      });
+    });
+
+    const bytes = new Uint8Array([0x00, 0x01, 0x02, 0x03]);
+    const avifBlob = new Blob([bytes], { type: 'image/avif' });
+    const form = new FormData();
+    form.append('image', avifBlob, 'test.avif');
+
+    const mockEvent = {
+      title: 'Converted Event',
+      description: '',
+      startDate: '2025-09-01T09:00:00Z',
+      endDate: '2025-09-01T10:00:00Z',
+      location: 'Room 1',
+      timezone: 'UTC',
+      summary: 'Flyer',
+      confidence: { overall: 0.9 },
+    };
+
+    mockParseEventImage.mockResolvedValue(mockEvent);
+
+    const request = createMockRequest(form);
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data.success).toBe(true);
+    expect(mockParseEventImage).toHaveBeenCalledTimes(1);
+    // Ensure imageMime override to PNG reached the AI layer
+    const passedOptions = mockParseEventImage.mock.calls[0][1];
+    expect(passedOptions.imageMime).toBe('image/png');
+  });
+
+  it('should reject non-image uploads with 415', async () => {
+    const blob = new Blob([new Uint8Array([1, 2, 3])], { type: 'application/pdf' });
+    const form = new FormData();
+    form.append('image', blob, 'doc.pdf');
+
+    const request = createMockRequest(form);
+    const response = await POST(request);
+    expect(response.status).toBe(415);
+  });
+
+  it('should reject images larger than 5 MB with 413', async () => {
+    const bigArray = new Uint8Array(5 * 1024 * 1024 + 10); // just over 5MB
+    const bigBlob = new Blob([bigArray], { type: 'image/png' });
+    const form = new FormData();
+    form.append('image', bigBlob, 'big.png');
+
+    const request = createMockRequest(form);
+    const response = await POST(request);
+    expect(response.status).toBe(413);
+  });
 });

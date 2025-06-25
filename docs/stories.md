@@ -36,7 +36,7 @@ AI Calendar Helper
 | 012      | Implement timezone detection/selection           | Medium   | Done      | /docs/stories/story-012-timezone-handling.md      |
 | 035      | Enhance AI parsing for multiple events           | High     | Done      | /docs/stories/story-035-multi-event-parsing.md    |
 | 032      | Implement Calendar Parser page & default routing | High     | Done      | /docs/stories/story-032-calendar-parser-page.md   |
-| 041      | Implement image-based event extraction           | High     | To Do     | /docs/stories/story-041-image-event-extraction.md |
+| 041      | Implement image-based event extraction           | High     | Done     | /docs/stories/story-041-image-event-extraction.md  |
 
 ### Phase 3: UX Enhancements (Priority: Medium)
 
@@ -84,6 +84,7 @@ AI Calendar Helper
 | 030      | Research optimal AI model for calendar parsing                        | Medium   | Done   | /docs/stories/story-030-model-optimization.md    |
 | 031      | Location parsing and map integration                                  | High     | To Do  | /docs/stories/story-031-location-parsing-maps.md |
 | 034      | Easier service entry points (browser plugin, shortcut, phone service) | Medium   | To Do  | /docs/stories/story-034-entry-points.md          |
+| 044      | Vision Model Experimentation – Evaluate GPT-4.1-nano for Image Event Extraction | Medium   | Done  | /docs/stories/story-044-vision-model-experimentation.md |
 
 ### Phase 8: Prompt Refinement (Priority: Medium)
 
@@ -91,6 +92,7 @@ AI Calendar Helper
 | -------- | ---------------------------------- | -------- | ------ | ---------------------------------------------------- |
 | 036      | Prompt Refinement Harness          | Medium   | Done   | /docs/stories/story-036-prompt-refinement-harness.md |
 | 038      | Event Splitting Evaluation Harness | Medium   | Done   | /docs/stories/story-038-event-splitting-eval.md      |
+| 045      | Image Dataset Description Update – Add Descriptions to Image Events Eval | Medium   | Done   | /docs/stories/story-045-image-description-update.md |
 
 ### Phase 9: Notifications & Reporting (Priority: Medium)
 
@@ -98,6 +100,7 @@ AI Calendar Helper
 | -------- | ----------------------------------------------------- | -------- | ------ | --------------------------------------------- |
 | 039      | Email notification on new user sign-up                | Medium   | To Do  | /docs/stories/story-039-email-on-signup.md    |
 | 040      | Daily usage report email with top 20 users by service | Medium   | To Do  | /docs/stories/story-040-daily-usage-report.md |
+| 043      | Advanced Usage Statistics & Event Analytics | Medium   | Done   | /docs/stories/story-043-advanced-usage-stats.md |
 
 ## Priority Definitions
 

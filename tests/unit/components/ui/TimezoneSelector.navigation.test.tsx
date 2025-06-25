@@ -12,7 +12,7 @@ describe('TimezoneSelector keyboard navigation', () => {
     const combobox = screen.getByLabelText('Timezone');
     await user.click(combobox);
 
-    const searchInput = await screen.findByTestId('tz-search-input');
+    await screen.findByTestId('tz-search-input');
 
     // press ArrowDown
     await user.keyboard('{ArrowDown}');

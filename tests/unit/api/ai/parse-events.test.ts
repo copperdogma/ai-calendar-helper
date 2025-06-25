@@ -324,7 +324,7 @@ describe('/api/ai/parse-events', () => {
       expect(mockExtractEvents).not.toHaveBeenCalled();
     });
 
-    it('should return 500 for empty text', async () => {
+    it('should return 400 for empty text', async () => {
       const request = createMockRequest({
         text: '   ',
         options: { timezone: 'America/New_York' },
@@ -333,7 +333,7 @@ describe('/api/ai/parse-events', () => {
       const response = await POST(request);
       const data = await response.json();
 
-      expect(response.status).toBe(500);
+      expect(response.status).toBe(400);
       expect(data.success).toBe(false);
       expect(data.error).toBeDefined();
       expect(mockExtractEvents).not.toHaveBeenCalled();
@@ -389,6 +389,7 @@ describe('/api/ai/parse-events', () => {
       expect(data.success).toBe(false);
       expect(data.error).toBeDefined();
       expect(data.error.message).toBeDefined();
+      expect(mockExtractEvents).toHaveBeenCalled();
     });
 
     it('should handle malformed JSON gracefully', async () => {
@@ -407,6 +408,7 @@ describe('/api/ai/parse-events', () => {
       expect(data.success).toBe(false);
       expect(data.error).toBeDefined();
       expect(data.error.message).toBeDefined();
+      expect(mockExtractEvents).not.toHaveBeenCalled();
     });
   });
 

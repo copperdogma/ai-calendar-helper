@@ -1,6 +1,6 @@
 # Story: Implement Image-based Event Extraction
 
-**Status**: In Review – core functionality implemented; see checklist below.
+**Status**: Done – 2025-06-24. All acceptance criteria met; feature live in production and covered by unit & E2E tests.
 
 ---
 

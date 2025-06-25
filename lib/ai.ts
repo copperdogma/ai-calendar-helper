@@ -1,14 +1,11 @@
-import OpenAI from 'openai';
 import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
-import { SegmentChunk } from '@/types/events';
 import { buildIdentificationMessages } from './prompts/identificationPrompt';
 import { buildStartLinesMessages } from './prompts/startLinesPrompt';
-import { buildExtractEventMessages } from './prompts/extractEventPrompt';
 import {
   IDENTIFY_EVENTS_FUNCTION,
   START_LINES_FUNCTION,
-  EXTRACT_EVENTS_FUNCTION,
 } from './prompts/schemas';
+import { SegmentChunk } from '@/types/events';
 
 /**
  * Interface for confidence scores on extracted event data fields
@@ -135,7 +132,6 @@ export interface OpenAIClient {
  * AI Processing Service for extracting structured event data from natural language
  */
 export class AIProcessingService {
-  private openai: OpenAIClient;
   private readonly maxRetries = 3;
   private readonly baseDelay = 1000; // 1 second
   private defaultModel: AIModel;
@@ -144,15 +140,15 @@ export class AIProcessingService {
     this.defaultModel = defaultModel;
 
     if (openaiClient) {
-      this.openai = openaiClient;
+      // this.openai = openaiClient;
     } else {
       if (!process.env.OPENAI_API_KEY) {
         throw new Error('OPENAI_API_KEY environment variable is required');
       }
 
-      this.openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY,
-      });
+      // this.openai = new OpenAI({
+      //   apiKey: process.env.OPENAI_API_KEY,
+      // });
     }
   }
 
@@ -259,20 +255,27 @@ ${multi ? '- If more than 10 events are found, include only the 10 most salient 
 
     for (let attempt = 0; attempt < this.maxRetries; attempt++) {
       try {
-        const response = await this.openai.chat.completions.create({
+        const response = await (await import('./openaiResponse')).createResponse<{
+          output_text: string;
+        }>({
           model,
-          temperature: 0.1,
-          max_tokens: 1000,
-          response_format: { type: 'json_object' }, // Enforce JSON output
-          messages: [
+          text: { format: { type: 'json_object' } },
+          input: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userText },
           ],
         });
 
-        const content = response.choices[0]?.message?.content;
+        const content = (response as any).output_text as string | undefined;
         if (!content) {
           throw new Error('Empty response from OpenAI');
+        }
+
+        if (process.env.NODE_ENV !== 'test') {
+          console.log('[DEBUG] Raw OpenAI output_text (truncated):', typeof content === 'string' ? content.slice(0, 500) : content);
+          if (!(response as any).output_text) {
+            console.log('[DEBUG] Full OpenAI response object:', JSON.stringify(response, null, 2));
+          }
         }
 
         return content;
@@ -335,6 +338,17 @@ ${multi ? '- If more than 10 events are found, include only the 10 most salient 
    */
   private validateAndEnhanceData(data: unknown): ExtractedEventData {
     const eventData = data as Record<string, unknown>;
+
+    // Fallback key mapping for models that return shorter keys
+    if (!eventData.title && typeof eventData.summary === 'string') {
+      eventData.title = eventData.summary;
+    }
+    if (!eventData.startDate && eventData.start) {
+      eventData.startDate = eventData.start;
+    }
+    if (!eventData.endDate && eventData.end) {
+      eventData.endDate = eventData.end;
+    }
 
     // Convert string dates to Date objects
     const startDate = new Date(eventData.startDate as string);
@@ -494,32 +508,6 @@ ${multi ? '- If more than 10 events are found, include only the 10 most salient 
 
   /* --------------------------- Chunk event extraction -------------------------- */
 
-  private async parseEventChunk(
-    chunk: SegmentChunk,
-    options: AIProcessingOptions = {}
-  ): Promise<ExtractedEventData | null> {
-    if (!chunk.text) return null;
-
-    const messages = buildExtractEventMessages(chunk.text, options.timezone || 'UTC');
-    let obj;
-    try {
-      const parsed = (await this.callFunctionWithRetry(
-        messages,
-        EXTRACT_EVENTS_FUNCTION,
-        'extract_events',
-        options.model || this.defaultModel
-      )) as { events?: unknown[] };
-
-      obj = Array.isArray(parsed.events) ? parsed.events[0] : parsed;
-      return {
-        ...this.validateAndEnhanceData(obj),
-        originalText: (chunk.text || '').trim(),
-      };
-    } catch {
-      return null; // skip invalid chunk
-    }
-  }
-
   /**
    * Extract multiple events (up to 10) from natural language text
    */
@@ -527,20 +515,44 @@ ${multi ? '- If more than 10 events are found, include only the 10 most salient 
     text: string,
     options: AIProcessingOptions = {}
   ): Promise<ExtractedEventData[]> {
-    // Phase 1: segment text into chunks
-    const chunks = await this.segmentText(text, options);
+    const systemPrompt = this.buildSystemPrompt({ ...options, multiEvent: true });
 
-    const parsePromises = chunks.map(ch => this.parseEventChunk(ch, options));
+    const response = await (await import('./openaiResponse')).createResponse<{ output_text: string }>({
+      model: options.model || this.defaultModel,
+      text: { format: { type: 'json_object' } },
+      input: [
+        { role: 'system', content: `${systemPrompt}\nReturn an array named events with up to 10 items.` },
+        { role: 'user', content: text.trim() },
+      ],
+    });
 
-    const results = await Promise.all(parsePromises);
+    const raw = (response as any).output_text as string | undefined;
+    if (!raw) throw new Error('Empty response from OpenAI');
 
-    const events = results.filter((e): e is ExtractedEventData => e !== null);
-
-    if (events.length === 0) {
-      throw new Error('No valid events extracted');
+    if (process.env.NODE_ENV !== 'test') {
+      console.log('[DEBUG] extractEvents raw output_text (truncated 500):', typeof raw === 'string' ? raw.slice(0, 500) : raw);
+      if (!(response as any).output_text) {
+        console.log('[DEBUG] extractEvents full response object:', JSON.stringify(response, null, 2));
+      }
     }
 
-    return events.slice(0, 10);
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      throw new Error('Invalid JSON array from AI');
+    }
+
+    const arr = (parsed as any).events ?? parsed;
+    if (!Array.isArray(arr) || arr.length === 0) {
+      throw new Error('No events returned');
+    }
+
+    const validated = arr
+      .slice(0, 10)
+      .map((ev: any) => this.validateAndEnhanceData(ev));
+
+    return validated;
   }
 
   /**
@@ -556,19 +568,25 @@ ${multi ? '- If more than 10 events are found, include only the 10 most salient 
 
     for (let attempt = 0; attempt < this.maxRetries; attempt++) {
       try {
-        const response = await this.openai.chat.completions.create({
+        const response = await (await import('./openaiResponse')).createResponse<any>({
           model,
-          temperature: 0.0,
-          messages,
-          functions: [funcDef],
-          function_call: { name: functionName },
+          // Cast to any pending upstream SDK type updates
+          tools: [
+            {
+              type: 'function',
+              name: functionName,
+              ...funcDef,
+            },
+          ] as any,
+          input: messages.map(m => ({ role: m.role, content: m.content })) as any,
+          tool_choice: { type: 'function', function: { name: functionName } } as any,
+          text: { format: { type: 'json_object' } },
         });
 
-        const msg = response.choices[0]?.message;
-        const argStr = (msg?.function_call?.arguments || msg?.content) as string | undefined;
-        if (!argStr) {
-          throw new Error('Empty function_call arguments and content');
-        }
+        // The Responses API returns tool calls under output array
+        const toolCall = (response.output || []).find((o: any) => o.type === 'function_call');
+        const argStr = toolCall?.arguments ?? toolCall?.output_text ?? response.output_text;
+        if (!argStr) throw new Error('Empty tool call arguments');
         return JSON.parse(argStr);
       } catch (error) {
         lastError = error as Error;
@@ -609,38 +627,38 @@ ${multi ? '- If more than 10 events are found, include only the 10 most salient 
 
     const userMessageContent: any[] = [
       {
-        type: 'text',
+        type: 'input_text',
         text: 'Extract the event details from this image and return valid JSON only (no markdown). The JSON must include at minimum the keys title, description, startDate, endDate, location, timezone, summary, confidence, isAllDay, recurrence.  Put ANY additional text that appears in the invitation/ticket but is not already covered by the structured fields (e.g. seat numbers, RSVP phone, dress code, special instructions) into the description field so nothing important is lost.',
       },
       {
-        type: 'image_url',
-        image_url: {
-          url: `data:${mime};base64,${base64Image}`,
-          detail: 'auto',
-        },
+        type: 'input_image',
+        image_url: `data:${mime};base64,${base64Image}`,
+        detail: 'auto',
       },
     ];
 
     if (options.additionalText) {
       userMessageContent.push({
-        type: 'text',
+        type: 'input_text',
         text: `Additional context provided by the user: ${options.additionalText.trim()}`,
       });
     }
 
-    const response = await this.openai.chat.completions.create({
+    const response = await (await import('./openaiResponse')).createResponse<{
+      output_text: string;
+    }>({
       model,
-      temperature: 0.1,
-      messages: [
+      text: { format: { type: 'json_object' } },
+      input: [
         { role: 'system', content: systemPrompt },
-        {
-          role: 'user',
-          content: userMessageContent,
-        } as any,
+        { role: 'user', content: userMessageContent } as any,
       ],
-    } as any);
+    });
 
-    const rawContent: string = (response as any)?.choices?.[0]?.message?.content ?? '';
+    const rawContent = (response as any).output_text as string | undefined;
+    if (!rawContent) {
+      throw new Error('Empty response from OpenAI');
+    }
 
     const parsed = this.parseResponse(rawContent);
     return this.validateAndEnhanceData(parsed);

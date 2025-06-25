@@ -41,6 +41,10 @@ function validateRequest(data: unknown): ParseEventsRequest {
     // Throw a validation ApiError so it propagates to the handler
     throw new ApiError(400, parsed.error.message, 'VALIDATION_ERROR');
   }
+  // Additional check: ensure the text is not just whitespace after trimming
+  if (parsed.data.text.trim().length === 0) {
+    throw new ApiError(400, 'Event text cannot be empty', 'VALIDATION_ERROR');
+  }
   return parsed.data;
 }
 
@@ -199,28 +203,13 @@ export async function POST(req: NextRequest) {
             ];
             sendEvent(controller, { status: 'Using mocked AI response...' });
           } else {
-            // --- Segmentation (identify + start_lines) ---
-            sendEvent(controller, { status: 'Identifying potential events...' });
-            const segments = await aiService.segmentText(text.trim(), aiOpts);
+            // --- Direct AI extraction (no legacy segmentation) ---
+            sendEvent(controller, { status: 'Extracting events...' });
+            const extracted = await aiService.extractEvents(text.trim(), aiOpts);
+            transformed = transformEvents(extracted as unknown as RawEvent[]);
             sendEvent(controller, {
-              status: `Found ${segments.length} potential event${segments.length !== 1 ? 's' : ''}...`,
+              status: `Parsed ${transformed.length} event${transformed.length !== 1 ? 's' : ''}`,
             });
-
-            // --- Extract events sequentially so we can report progress ---
-            const extracted: RawEvent[] = [];
-
-            for (let i = 0; i < segments.length; i++) {
-              const chunk = segments[i];
-              sendEvent(controller, {
-                status: `Parsing event ${i + 1} of ${segments.length}...`,
-              });
-
-              // @ts-ignore – access private helper for chunk parsing
-              const ev = await aiService.parseEventChunk(chunk, aiOpts);
-              if (ev) extracted.push(ev as unknown as RawEvent);
-            }
-
-            transformed = transformEvents(extracted);
           }
 
           // --- Usage Analytics Logging (streaming mode) ---
@@ -296,50 +285,20 @@ export async function POST(req: NextRequest) {
 
     const started = Date.now();
 
-    // 3. Segmentation (always safe – throws handled by outer catch)
-    console.log(`🔍 [${requestId}] Starting text segmentation...`);
-    const segments = await aiService.segmentText(text.trim(), aiOpts);
-    console.log(`📊 [${requestId}] Segmentation complete: ${segments.length} segments`);
+    // 3. Direct AI extraction (no legacy segmentation)
+    console.log(`🤖 [${requestId}] Starting AI event extraction (direct)...`);
+    const extracted = await aiService.extractEvents(text.trim(), aiOpts);
+    const transformed = transformEvents(extracted as unknown as RawEvent[]);
+    console.log(`🎯 [${requestId}] AI extraction complete: ${transformed.length} events found`);
 
-    // Build segmentation debug JSON (starts array + chunkTexts)
-    const startsArr = segments
-      .map(c => c.startLine)
-      .filter((n): n is number => typeof n === 'number');
-    const chunkTextPairs = segments.map(c => ({
-      id: c.id,
-      text:
-        typeof c.startLine === 'number' && typeof c.endLine === 'number'
-          ? text
-              .trim()
-              .split(/\r?\n/)
-              .slice(c.startLine - 1, c.endLine)
-              .join('\n')
-          : (c.text ?? ''),
-    }));
-    const segmentationDebug = JSON.stringify(
-      { starts: startsArr, chunkTexts: chunkTextPairs },
-      null,
-      2
-    );
-
-    // 4. Extract events
-    console.log(`🤖 [${requestId}] Starting AI event extraction...`);
-    const events = await aiService.extractEvents(text.trim(), aiOpts);
-    console.log(`🎯 [${requestId}] AI extraction complete: ${events.length} events found`);
-
-    // 5. Transform + build debug string
+    // 4. Transform events for the client payload
     console.log(`🔄 [${requestId}] Transforming events...`);
-    const transformedEvents = transformEvents(events);
+    const transformedEvents = transformed;
     console.log(`✨ [${requestId}] Events transformed successfully`);
 
-    const DEBUG_SEPARATOR = '\n\n--------------------------\n\n';
-    const debugParts: string[] = [
-      segmentationDebug,
-      ...events.map(e => JSON.stringify(e, null, 2)),
-    ];
-    const combinedDebug = debugParts.join(DEBUG_SEPARATOR);
+    const combinedDebug = extracted.map(e => JSON.stringify(e, null, 2)).join('\n\n');
 
-    // 6. Payload
+    // 5. Payload
     const processingTime = Date.now() - started;
     const payload: Record<string, unknown> = {
       success: true,

@@ -61,7 +61,6 @@ export default function ImageUploadForm({ onEventsParsed, onError }: ImageUpload
       }
 
       onEventsParsed?.(data.events);
-      setSelectedFile(null);
     } catch (error) {
       onError?.(error instanceof Error ? error.message : 'Unknown error');
     } finally {

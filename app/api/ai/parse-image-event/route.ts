@@ -6,6 +6,7 @@ import { ApiError } from '@/lib/errors/ApiError';
 import { handleApiError } from '@/lib/errors/handleApiError';
 import { logUsageEvent } from '@/lib/services/usage-event.service';
 import { getToken } from 'next-auth/jwt';
+import { extname } from 'path';
 
 // Allowed MIME types and size limit (5 MB)
 const ALLOWED_MIME = new Set([
@@ -17,6 +18,14 @@ const ALLOWED_MIME = new Set([
   'image/heic',
 ]);
 const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+
+// Formats the OpenAI Vision endpoint officially supports as of 2025-06
+const OPENAI_SUPPORTED_MIME = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+]);
 
 /**
  * Optional JSON options field schema (identical to text-based options)
@@ -76,8 +85,27 @@ export async function POST(req: NextRequest) {
       throw new ApiError(400, 'Image file is required', 'VALIDATION_ERROR');
     }
 
-    if (!ALLOWED_MIME.has(file.type)) {
-      throw new ApiError(415, 'Unsupported image format', 'UNSUPPORTED_MEDIA');
+    let mimeType = file.type;
+    if (!mimeType) {
+      const ext = extname((file as any).name || '').toLowerCase();
+      const map: Record<string, string> = {
+        '.png': 'image/png',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.webp': 'image/webp',
+        '.gif': 'image/gif',
+        '.heic': 'image/heic',
+        '.avif': 'image/avif',
+      };
+      mimeType = map[ext] || '';
+    }
+
+    if (!ALLOWED_MIME.has(mimeType)) {
+      if (mimeType.startsWith('image/')) {
+        console.warn('⚠️ Unlisted image MIME type accepted:', mimeType);
+      } else {
+        throw new ApiError(415, 'Unsupported image format', 'UNSUPPORTED_MEDIA');
+      }
     }
     if (file.size > MAX_SIZE_BYTES) {
       throw new ApiError(413, 'Image exceeds 5MB limit', 'PAYLOAD_TOO_LARGE');
@@ -102,6 +130,26 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
+    let bufferToSend: Buffer = buffer;
+    let mimeForAI = mimeType;
+
+    // The OpenAI Responses Vision API currently supports only a handful of
+    // formats.  If we encounter something else (e.g. AVIF/HEIC) we transcode
+    // to PNG on the fly so the request doesn't fail.
+    if (!OPENAI_SUPPORTED_MIME.has(mimeType)) {
+      try {
+        // Lazy-load sharp so it's only bundled on the server.
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const sharp = (await import('sharp')).default as typeof import('sharp');
+        bufferToSend = (await sharp(buffer).png().toBuffer()) as Buffer;
+        mimeForAI = 'image/png';
+        console.warn(`ℹ️ Converted unsupported image type (${mimeType}) -> PNG for OpenAI Vision`);
+      } catch (err) {
+        console.error('Failed to convert image to PNG:', err);
+        throw new ApiError(415, 'Unsupported image format and automatic conversion failed', 'UNSUPPORTED_MEDIA');
+      }
+    }
+
     const aiService = new AIProcessingService();
 
     // If the form includes a free-form text field, pass it through so the model
@@ -114,9 +162,9 @@ export async function POST(req: NextRequest) {
       };
     }
 
-    const event = await aiService.parseEventImage(buffer, {
+    const event = await aiService.parseEventImage(bufferToSend, {
       ...aiOptions,
-      imageMime: file.type,
+      imageMime: mimeForAI,
     });
     const transformed = transformEvent(event);
 

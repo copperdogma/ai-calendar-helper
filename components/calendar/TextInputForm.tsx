@@ -147,7 +147,7 @@ const TextInputForm: React.FC<TextInputFormProps> = ({ onParseEvents, onEventsPa
           setResults(parsedEvents);
         }
 
-        setAttachedImage(null); // clear after successful parse
+        // Keep thumbnail visible after parsing – do not reset attachedImage
       } else {
         // Mock response for testing UI without AI integration
         setTimeout(() => {
