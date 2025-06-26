@@ -199,3 +199,6 @@ out*.json
 tmp*.json
 evals/helpers/fileIdCache.json
 # End evaluation artifacts
+
+# Ignore embedded external repo
+external/novel-events-extractor/

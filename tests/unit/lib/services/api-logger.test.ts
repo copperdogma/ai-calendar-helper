@@ -10,8 +10,6 @@ import {
   createErrorResponse,
 } from '@/lib/services/api-logger-service';
 
-import { NextResponse } from 'next/server';
-
 // Mock Request / NextRequest minimal stand-ins
 const mockRequest = new Request('https://example.com/api/test?foo=bar', {
   method: 'POST',
@@ -50,4 +48,4 @@ describe('api-logger-service helpers', () => {
     expect(typeof (res as any).status).toBe('number');
     expect(res.status).toBe(418);
   });
-}); 
+});

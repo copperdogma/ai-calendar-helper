@@ -49,4 +49,4 @@ describe('AIProcessingService.extractEvents', () => {
     (createResponse as jest.Mock).mockResolvedValue({ output_text: 'not-json' });
     await expect(service.extractEvents('Bad')).rejects.toThrow('Invalid JSON array from AI');
   });
-}); 
+});

@@ -1,10 +1,7 @@
 import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import { buildIdentificationMessages } from './prompts/identificationPrompt';
 import { buildStartLinesMessages } from './prompts/startLinesPrompt';
-import {
-  IDENTIFY_EVENTS_FUNCTION,
-  START_LINES_FUNCTION,
-} from './prompts/schemas';
+import { IDENTIFY_EVENTS_FUNCTION, START_LINES_FUNCTION } from './prompts/schemas';
 import { SegmentChunk } from '@/types/events';
 
 /**
@@ -255,7 +252,9 @@ ${multi ? '- If more than 10 events are found, include only the 10 most salient 
 
     for (let attempt = 0; attempt < this.maxRetries; attempt++) {
       try {
-        const response = await (await import('./openaiResponse')).createResponse<{
+        const response = await (
+          await import('./openaiResponse')
+        ).createResponse<{
           output_text: string;
         }>({
           model,
@@ -272,7 +271,10 @@ ${multi ? '- If more than 10 events are found, include only the 10 most salient 
         }
 
         if (process.env.NODE_ENV !== 'test') {
-          console.log('[DEBUG] Raw OpenAI output_text (truncated):', typeof content === 'string' ? content.slice(0, 500) : content);
+          console.log(
+            '[DEBUG] Raw OpenAI output_text (truncated):',
+            typeof content === 'string' ? content.slice(0, 500) : content
+          );
           if (!(response as any).output_text) {
             console.log('[DEBUG] Full OpenAI response object:', JSON.stringify(response, null, 2));
           }
@@ -517,11 +519,16 @@ ${multi ? '- If more than 10 events are found, include only the 10 most salient 
   ): Promise<ExtractedEventData[]> {
     const systemPrompt = this.buildSystemPrompt({ ...options, multiEvent: true });
 
-    const response = await (await import('./openaiResponse')).createResponse<{ output_text: string }>({
+    const response = await (
+      await import('./openaiResponse')
+    ).createResponse<{ output_text: string }>({
       model: options.model || this.defaultModel,
       text: { format: { type: 'json_object' } },
       input: [
-        { role: 'system', content: `${systemPrompt}\nReturn an array named events with up to 10 items.` },
+        {
+          role: 'system',
+          content: `${systemPrompt}\nReturn an array named events with up to 10 items.`,
+        },
         { role: 'user', content: text.trim() },
       ],
     });
@@ -530,9 +537,15 @@ ${multi ? '- If more than 10 events are found, include only the 10 most salient 
     if (!raw) throw new Error('Empty response from OpenAI');
 
     if (process.env.NODE_ENV !== 'test') {
-      console.log('[DEBUG] extractEvents raw output_text (truncated 500):', typeof raw === 'string' ? raw.slice(0, 500) : raw);
+      console.log(
+        '[DEBUG] extractEvents raw output_text (truncated 500):',
+        typeof raw === 'string' ? raw.slice(0, 500) : raw
+      );
       if (!(response as any).output_text) {
-        console.log('[DEBUG] extractEvents full response object:', JSON.stringify(response, null, 2));
+        console.log(
+          '[DEBUG] extractEvents full response object:',
+          JSON.stringify(response, null, 2)
+        );
       }
     }
 
@@ -548,9 +561,7 @@ ${multi ? '- If more than 10 events are found, include only the 10 most salient 
       throw new Error('No events returned');
     }
 
-    const validated = arr
-      .slice(0, 10)
-      .map((ev: any) => this.validateAndEnhanceData(ev));
+    const validated = arr.slice(0, 10).map((ev: any) => this.validateAndEnhanceData(ev));
 
     return validated;
   }
@@ -568,7 +579,9 @@ ${multi ? '- If more than 10 events are found, include only the 10 most salient 
 
     for (let attempt = 0; attempt < this.maxRetries; attempt++) {
       try {
-        const response = await (await import('./openaiResponse')).createResponse<any>({
+        const response = await (
+          await import('./openaiResponse')
+        ).createResponse<any>({
           model,
           // Cast to any pending upstream SDK type updates
           tools: [
@@ -644,7 +657,9 @@ ${multi ? '- If more than 10 events are found, include only the 10 most salient 
       });
     }
 
-    const response = await (await import('./openaiResponse')).createResponse<{
+    const response = await (
+      await import('./openaiResponse')
+    ).createResponse<{
       output_text: string;
     }>({
       model,

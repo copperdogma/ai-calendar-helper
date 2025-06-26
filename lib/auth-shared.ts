@@ -78,6 +78,7 @@ export async function handleSharedSessionCallback({
   if (token) {
     if (token.id) session.user.id = token.id;
     if (token.role) session.user.role = token.role as UserRole;
+    if ((token as any).scope) (session as any).accountScope = (token as any).scope;
     if (token.name) session.user.name = token.name;
     if (token.email) session.user.email = token.email;
     if (token.picture) session.user.image = token.picture;
@@ -109,6 +110,7 @@ export const sharedAuthConfig: Partial<NextAuthConfig> = {
                 prompt: 'select_account',
                 access_type: 'offline',
                 response_type: 'code',
+                scope: 'openid email profile https://www.googleapis.com/auth/calendar.readonly',
               },
             },
           }),

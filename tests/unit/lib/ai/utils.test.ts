@@ -25,4 +25,4 @@ describe('AIProcessingService private helpers', () => {
     expect(is500).toBe(true);
     expect(is400).toBe(false);
   });
-}); 
+});

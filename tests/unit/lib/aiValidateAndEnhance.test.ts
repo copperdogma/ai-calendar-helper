@@ -45,4 +45,4 @@ describe('AIProcessingService.validateAndEnhanceData (private)', () => {
 
     expect(() => validate(raw)).toThrow('Invalid date format');
   });
-}); 
+});

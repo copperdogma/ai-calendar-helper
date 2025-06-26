@@ -41,7 +41,9 @@ describe('AIProcessingService.validateAndEnhanceData', () => {
       recurrence: null,
     };
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    expect(() => (svc as any).validateAndEnhanceData(badData)).toThrow('End date must be after start date');
+    expect(() => (svc as any).validateAndEnhanceData(badData)).toThrow(
+      'End date must be after start date'
+    );
   });
 
   it('throws on invalid date strings', () => {
@@ -59,4 +61,4 @@ describe('AIProcessingService.validateAndEnhanceData', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     expect(() => (svc as any).validateAndEnhanceData(badData)).toThrow('Invalid date format');
   });
-}); 
+});

@@ -20,12 +20,7 @@ const ALLOWED_MIME = new Set([
 const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 
 // Formats the OpenAI Vision endpoint officially supports as of 2025-06
-const OPENAI_SUPPORTED_MIME = new Set([
-  'image/jpeg',
-  'image/png',
-  'image/gif',
-  'image/webp',
-]);
+const OPENAI_SUPPORTED_MIME = new Set(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
 
 /**
  * Optional JSON options field schema (identical to text-based options)
@@ -146,7 +141,11 @@ export async function POST(req: NextRequest) {
         console.warn(`ℹ️ Converted unsupported image type (${mimeType}) -> PNG for OpenAI Vision`);
       } catch (err) {
         console.error('Failed to convert image to PNG:', err);
-        throw new ApiError(415, 'Unsupported image format and automatic conversion failed', 'UNSUPPORTED_MEDIA');
+        throw new ApiError(
+          415,
+          'Unsupported image format and automatic conversion failed',
+          'UNSUPPORTED_MEDIA'
+        );
       }
     }
 

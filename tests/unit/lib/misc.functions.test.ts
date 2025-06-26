@@ -33,4 +33,4 @@ describe('Misc utility function smoke tests', () => {
   it('createCorrelationId generates prefixed id', () => {
     expect(createCorrelationId('test')).toMatch(/^test-/);
   });
-}); 
+});

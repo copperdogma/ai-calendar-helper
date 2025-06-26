@@ -36,26 +36,26 @@ AI Calendar Helper
 | 012      | Implement timezone detection/selection           | Medium   | Done      | /docs/stories/story-012-timezone-handling.md      |
 | 035      | Enhance AI parsing for multiple events           | High     | Done      | /docs/stories/story-035-multi-event-parsing.md    |
 | 032      | Implement Calendar Parser page & default routing | High     | Done      | /docs/stories/story-032-calendar-parser-page.md   |
-| 041      | Implement image-based event extraction           | High     | Done     | /docs/stories/story-041-image-event-extraction.md  |
+| 041      | Implement image-based event extraction           | High     | Done      | /docs/stories/story-041-image-event-extraction.md |
 
 ### Phase 3: UX Enhancements (Priority: Medium)
 
 | Story ID | Title                                      | Priority | Status    | Link                                          |
 | -------- | ------------------------------------------ | -------- | --------- | --------------------------------------------- |
 | 013      | Add conflict detection for existing events | Medium   | Cancelled | /docs/stories/story-013-conflict-detection.md |
-| 014      | Implement comprehensive error handling     | Medium   | To Do     | /docs/stories/story-014-error-handling.md     |
-| 015      | Create empty state & usage examples        | Low      | To Do     | /docs/stories/story-015-empty-state.md        |
-| 016      | Add mobile responsive design               | Medium   | To Do     | /docs/stories/story-016-mobile-responsive.md  |
+| 014      | Implement comprehensive error handling     | Medium   | Done      | /docs/stories/story-014-error-handling.md     |
+| 015      | Create empty state & usage examples        | Low      | Cancelled | /docs/stories/story-015-empty-state.md        |
+| 016      | Add mobile responsive design               | Medium   | Done     | /docs/stories/story-016-mobile-responsive.md  |
 | 017      | Implement keyboard shortcuts               | Low      | Done      | /docs/stories/story-017-keyboard-shortcuts.md |
 
 ### Phase 4: Novel Events Extraction (Priority: Medium)
 
 | Story ID | Title                                    | Priority | Status | Link                                           |
 | -------- | ---------------------------------------- | -------- | ------ | ---------------------------------------------- |
-| 019      | Design novel events filtering logic      | Low      | Parked | /docs/stories/story-019-novel-events-filter.md |
-| 020      | Create background job system             | Low      | Parked | /docs/stories/story-020-background-jobs.md     |
-| 021      | Build email template & delivery service  | Low      | Parked | /docs/stories/story-021-email-service.md       |
-| 022      | Create configuration UI for novel events | Low      | Parked | /docs/stories/story-022-config-ui.md           |
+| 019      | Design novel events filtering logic      | High      | To Do | /docs/stories/story-019-novel-events-filter.md |
+| 020      | Create background job system             | High      | To Do | /docs/stories/story-020-background-jobs.md     |
+| 021      | Build email template & delivery service  | High      | To Do | /docs/stories/story-021-email-service.md       |
+| 022      | Create configuration UI for novel events | High      | To Do | /docs/stories/story-022-config-ui.md           |
 
 ### Phase 5: UI/UX & Polish (Priority: Low-Medium)
 
@@ -79,28 +79,28 @@ AI Calendar Helper
 
 ### Phase 7: Optimization & Research (Priority: Medium)
 
-| Story ID | Title                                                                 | Priority | Status | Link                                             |
-| -------- | --------------------------------------------------------------------- | -------- | ------ | ------------------------------------------------ |
-| 030      | Research optimal AI model for calendar parsing                        | Medium   | Done   | /docs/stories/story-030-model-optimization.md    |
-| 031      | Location parsing and map integration                                  | High     | To Do  | /docs/stories/story-031-location-parsing-maps.md |
-| 034      | Easier service entry points (browser plugin, shortcut, phone service) | Medium   | To Do  | /docs/stories/story-034-entry-points.md          |
-| 044      | Vision Model Experimentation – Evaluate GPT-4.1-nano for Image Event Extraction | Medium   | Done  | /docs/stories/story-044-vision-model-experimentation.md |
+| Story ID | Title                                                                           | Priority | Status | Link                                                    |
+| -------- | ------------------------------------------------------------------------------- | -------- | ------ | ------------------------------------------------------- |
+| 030      | Research optimal AI model for calendar parsing                                  | Medium   | Done   | /docs/stories/story-030-model-optimization.md           |
+| 031      | Location parsing and map integration                                            | High     | To Do  | /docs/stories/story-031-location-parsing-maps.md        |
+| 034      | Easier service entry points (browser plugin, shortcut, phone service)           | Medium   | To Do  | /docs/stories/story-034-entry-points.md                 |
+| 044      | Vision Model Experimentation – Evaluate GPT-4.1-nano for Image Event Extraction | Medium   | Done   | /docs/stories/story-044-vision-model-experimentation.md |
 
 ### Phase 8: Prompt Refinement (Priority: Medium)
 
-| Story ID | Title                              | Priority | Status | Link                                                 |
-| -------- | ---------------------------------- | -------- | ------ | ---------------------------------------------------- |
-| 036      | Prompt Refinement Harness          | Medium   | Done   | /docs/stories/story-036-prompt-refinement-harness.md |
-| 038      | Event Splitting Evaluation Harness | Medium   | Done   | /docs/stories/story-038-event-splitting-eval.md      |
-| 045      | Image Dataset Description Update – Add Descriptions to Image Events Eval | Medium   | Done   | /docs/stories/story-045-image-description-update.md |
+| Story ID | Title                                                                    | Priority | Status | Link                                                 |
+| -------- | ------------------------------------------------------------------------ | -------- | ------ | ---------------------------------------------------- |
+| 036      | Prompt Refinement Harness                                                | Medium   | Done   | /docs/stories/story-036-prompt-refinement-harness.md |
+| 038      | Event Splitting Evaluation Harness                                       | Medium   | Done   | /docs/stories/story-038-event-splitting-eval.md      |
+| 045      | Image Dataset Description Update – Add Descriptions to Image Events Eval | Medium   | Done   | /docs/stories/story-045-image-description-update.md  |
 
 ### Phase 9: Notifications & Reporting (Priority: Medium)
 
-| Story ID | Title                                                 | Priority | Status | Link                                          |
-| -------- | ----------------------------------------------------- | -------- | ------ | --------------------------------------------- |
-| 039      | Email notification on new user sign-up                | Medium   | To Do  | /docs/stories/story-039-email-on-signup.md    |
-| 040      | Daily usage report email with top 20 users by service | Medium   | To Do  | /docs/stories/story-040-daily-usage-report.md |
-| 043      | Advanced Usage Statistics & Event Analytics | Medium   | Done   | /docs/stories/story-043-advanced-usage-stats.md |
+| Story ID | Title                                                 | Priority | Status | Link                                            |
+| -------- | ----------------------------------------------------- | -------- | ------ | ----------------------------------------------- |
+| 039      | Email notification on new user sign-up                | Medium   | Done  | /docs/stories/story-039-email-on-signup.md      |
+| 040      | Daily usage report email with top 20 users by service | Medium   | Done  | /docs/stories/story-040-daily-usage-report.md   |
+| 043      | Advanced Usage Statistics & Event Analytics           | Medium   | Done   | /docs/stories/story-043-advanced-usage-stats.md |
 
 ## Priority Definitions
 

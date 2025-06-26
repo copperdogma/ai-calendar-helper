@@ -184,10 +184,10 @@ const customJestConfig = {
   coverageReporters: ['json', 'lcov', 'text', 'clover', 'text-summary'],
   coverageThreshold: {
     global: {
-      statements: 79,
       branches: 65,
       functions: 75,
       lines: 79,
+      statements: 79,
     },
 
     // Add specific thresholds from tests/config/jest.config.js

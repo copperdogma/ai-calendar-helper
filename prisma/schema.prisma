@@ -20,6 +20,8 @@ model User {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   lastSignedInAt DateTime?
+  calendarSyncStates CalendarSyncState[]
+  settings          UserSettings?
   accounts       Account[]
   sessions       Session[]
   serviceUsage   ServiceUsage[]
@@ -137,5 +139,33 @@ model UsageEvent {
   calendarAction   CalendarAction?
 
   @@index([createdAt])
+  @@index([userId])
+}
+
+model CalendarSyncState {
+  id        String   @id @default(uuid())
+  userId    String
+  calendarId String
+  syncToken String?
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, calendarId])
+  @@index([userId])
+}
+
+model UserSettings {
+  id               String   @id @default(uuid())
+  userId           String   @unique
+  lookAheadDays    Int      @default(14)
+  noveltyThreshold Decimal  @default(0.2)
+  autoBlacklist    Boolean  @default(true)
+  blacklist        Json?
+  whitelist        Json?
+  storePattern     Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
 }

@@ -12,6 +12,7 @@ import LoginIcon from '@mui/icons-material/Login';
 import MobileNavigation from './MobileNavigation';
 import DesktopNavigation from './DesktopNavigation';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 
 // Define navigation links including public/private status
 export const navItems = [
@@ -20,6 +21,13 @@ export const navItems = [
     path: '/calendar-parser',
     href: '/calendar-parser',
     icon: <CalendarMonthIcon />,
+    public: false,
+  },
+  {
+    name: 'Novel Events',
+    path: '/novel-events',
+    href: '/novel-events',
+    icon: <EventAvailableIcon />,
     public: false,
   },
   {

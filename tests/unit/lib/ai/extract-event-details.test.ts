@@ -27,7 +27,15 @@ describe('AIProcessingService.extractEventDetails', () => {
         location: 'Office',
         timezone: 'UTC',
         summary: 'Demo',
-        confidence: { overall: 0.9, title: 0.9, description: 0.9, startDate: 0.9, endDate: 0.9, location: 0.9, timezone: 0.9 },
+        confidence: {
+          overall: 0.9,
+          title: 0.9,
+          description: 0.9,
+          startDate: 0.9,
+          endDate: 0.9,
+          location: 0.9,
+          timezone: 0.9,
+        },
         isAllDay: false,
         recurrence: null,
       }),
@@ -37,4 +45,4 @@ describe('AIProcessingService.extractEventDetails', () => {
     expect(event.title).toBe('Demo');
     expect(createResponse).toHaveBeenCalled();
   });
-}); 
+});

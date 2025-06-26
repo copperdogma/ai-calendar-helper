@@ -37,7 +37,9 @@ describe('AIProcessingService.processWithRetry / isRetryableError', () => {
     (createResponse as jest.Mock).mockRejectedValue({ status: 400 });
     jest.spyOn<any, any>(svc as any, 'sleep').mockImplementation(() => Promise.resolve());
 
-    await expect((svc as any).processWithRetry('SYS', 'data', AIModel.GPT_4O_MINI)).rejects.toBeDefined();
+    await expect(
+      (svc as any).processWithRetry('SYS', 'data', AIModel.GPT_4O_MINI)
+    ).rejects.toBeDefined();
     expect(createResponse).toHaveBeenCalledTimes(1);
   });
 
@@ -46,4 +48,4 @@ describe('AIProcessingService.processWithRetry / isRetryableError', () => {
     const res: boolean = (svc as any).isRetryableError({});
     expect(res).toBe(false);
   });
-}); 
+});

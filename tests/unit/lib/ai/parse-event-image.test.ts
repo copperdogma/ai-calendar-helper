@@ -54,4 +54,4 @@ describe('AIProcessingService.parseEventImage', () => {
     expect(args.input[1].content[0].type).toBe('input_text');
     expect(args.input[1].content[1].type).toBe('input_image');
   });
-}); 
+});

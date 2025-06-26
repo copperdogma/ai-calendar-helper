@@ -24,7 +24,7 @@ class OpenAIClientSingleton {
   }
 }
 
-export type CreateResponseParams = Parameters<OpenAI["responses"]["create"]>[0];
+export type CreateResponseParams = Parameters<OpenAI['responses']['create']>[0];
 
 interface RetryOptions {
   maxRetries?: number;
@@ -75,4 +75,4 @@ export function __resetOpenAIClientSingletonForTests() {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore – accessing private property for test purposes.
   OpenAIClientSingleton.instance = null;
-} 
+}

@@ -40,9 +40,7 @@ describe('openaiResponse helper', () => {
   it('should retry on retryable errors with exponential back-off', async () => {
     const retryableError = Object.assign(new Error('server error'), { status: 500 });
     const createMock = (global as any).__openaiCreateMock as jest.Mock;
-    createMock
-      .mockRejectedValueOnce(retryableError)
-      .mockResolvedValueOnce({ id: 'resp_ok' });
+    createMock.mockRejectedValueOnce(retryableError).mockResolvedValueOnce({ id: 'resp_ok' });
 
     const { createResponse } = require('@/lib/openaiResponse');
     const start = Date.now();
@@ -53,4 +51,4 @@ describe('openaiResponse helper', () => {
     expect(createMock).toHaveBeenCalledTimes(2);
     expect(elapsed).toBeGreaterThanOrEqual(100);
   });
-}); 
+});

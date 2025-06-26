@@ -2,15 +2,9 @@
  * @jest-environment node
  */
 
-import {
-  buildIdentificationMessages,
-} from '@/lib/prompts/identificationPrompt';
-import {
-  buildExtractEventMessages,
-} from '@/lib/prompts/extractEventPrompt';
-import {
-  buildStartLinesMessages,
-} from '@/lib/prompts/startLinesPrompt';
+import { buildIdentificationMessages } from '@/lib/prompts/identificationPrompt';
+import { buildExtractEventMessages } from '@/lib/prompts/extractEventPrompt';
+import { buildStartLinesMessages } from '@/lib/prompts/startLinesPrompt';
 
 describe('Prompt builder helpers', () => {
   it('buildIdentificationMessages returns system and user roles', () => {
@@ -33,4 +27,4 @@ describe('Prompt builder helpers', () => {
     expect(msgs[1].content).toContain('Event summaries');
     expect(msgs[1].content).toContain('Lunch');
   });
-}); 
+});

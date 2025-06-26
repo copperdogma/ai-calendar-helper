@@ -70,6 +70,7 @@ export async function handleOAuthJwtSignIn(args: {
     provider: validAccount?.provider || 'unknown',
     correlationId,
     dependencies: { uuidv4: deps.uuidv4 },
+    scope: validAccount?.scope || null,
   });
 }
 
@@ -292,8 +293,9 @@ export function createOAuthJwtPayload(params: {
   provider: string;
   correlationId: string;
   dependencies: { uuidv4: typeof defaultDependencies.uuidv4 };
+  scope?: string | null;
 }): JWT {
-  const { dbUser, provider, correlationId, dependencies } = params;
+  const { dbUser, provider, correlationId, dependencies, scope } = params;
 
   // Log successful OAuth JWT creation
   logger.info({
@@ -314,5 +316,6 @@ export function createOAuthJwtPayload(params: {
     jti: dependencies.uuidv4(),
     userId: dbUser.userId,
     userRole: dbUser.role || UserRole.USER,
+    scope: scope || undefined,
   };
 }

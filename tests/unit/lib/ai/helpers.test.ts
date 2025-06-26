@@ -17,7 +17,10 @@ describe('AIProcessingService helper functions (private)', () => {
 
   it('buildSystemPrompt includes timezone and multi-event rules', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    const prompt: string = (svc as any).buildSystemPrompt({ timezone: 'America/Denver', multiEvent: true });
+    const prompt: string = (svc as any).buildSystemPrompt({
+      timezone: 'America/Denver',
+      multiEvent: true,
+    });
     expect(prompt).toContain('America/Denver');
     expect(prompt).toContain('"events" array');
   });
@@ -41,7 +44,15 @@ describe('AIProcessingService helper functions (private)', () => {
       description: 'Demo',
       startDate: '2025-01-01T00:00:00Z',
       endDate: '2025-01-01T01:00:00Z',
-      confidence: { overall: 0.9, title: 0.9, description: 0.9, startDate: 0.9, endDate: 0.9, location: 0.9, timezone: 0.9 },
+      confidence: {
+        overall: 0.9,
+        title: 0.9,
+        description: 0.9,
+        startDate: 0.9,
+        endDate: 0.9,
+        location: 0.9,
+        timezone: 0.9,
+      },
     });
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     const obj = (svc as any).parseResponse(json);
@@ -52,4 +63,4 @@ describe('AIProcessingService helper functions (private)', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     expect(() => (svc as any).parseResponse('{ invalid json')).toThrow('Invalid response format');
   });
-}); 
+});
