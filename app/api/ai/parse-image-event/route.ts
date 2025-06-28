@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { AIProcessingService } from '@/lib/ai';
@@ -37,9 +39,7 @@ const OptionsSchema = z
   })
   .partial();
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function transformEvent(event: any): ExtractedEvent {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getConfidence = (conf: any): number => {
     if (typeof conf === 'number') return conf;
     if (conf && typeof conf === 'object' && 'overall' in conf) {
@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
     if (!OPENAI_SUPPORTED_MIME.has(mimeType)) {
       try {
         // Lazy-load sharp so it's only bundled on the server.
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
+
         const sharp = (await import('sharp')).default as typeof import('sharp');
         bufferToSend = (await sharp(buffer).png().toBuffer()) as Buffer;
         mimeForAI = 'image/png';

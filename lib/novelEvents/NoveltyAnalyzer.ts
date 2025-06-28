@@ -1,5 +1,5 @@
-import { PatternDetector } from "./PatternDetector";
-import { CalendarEventLike } from "./EventPattern";
+import { PatternDetector } from './PatternDetector';
+import { CalendarEventLike } from './EventPattern';
 
 export interface NovelEvent {
   event: CalendarEventLike;
@@ -8,18 +8,21 @@ export interface NovelEvent {
 }
 
 export class NoveltyAnalyzer {
-  constructor(private detector: PatternDetector, private threshold = 0.2) {}
+  constructor(
+    private detector: PatternDetector,
+    private threshold = 0.2
+  ) {}
 
   findNovelEvents(events: CalendarEventLike[]): NovelEvent[] {
     const novel: NovelEvent[] = [];
 
-    events.forEach((ev) => {
+    events.forEach(ev => {
       const score = this.detector.getPatternScore(ev);
       if (score < this.threshold) {
         novel.push({
           event: ev,
           noveltyScore: 1 - score,
-          reason: "Event occurs infrequently in your calendar",
+          reason: 'Event occurs infrequently in your calendar',
         });
       }
     });
@@ -29,4 +32,4 @@ export class NoveltyAnalyzer {
       return a.event.start.getTime() - b.event.start.getTime();
     });
   }
-} 
+}

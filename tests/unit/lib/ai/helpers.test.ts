@@ -9,14 +9,13 @@ describe('AIProcessingService helper functions (private)', () => {
 
   it('estimateCost returns sensible positive number', () => {
     // 1K input, 2K output tokens at pricing table should be >0 and <1 USD
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
     const cost: number = (svc as any).estimateCost(1000, 2000, AIModel.GPT_4O_MINI);
     expect(cost).toBeGreaterThan(0);
     expect(cost).toBeLessThan(1);
   });
 
   it('buildSystemPrompt includes timezone and multi-event rules', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     const prompt: string = (svc as any).buildSystemPrompt({
       timezone: 'America/Denver',
       multiEvent: true,
@@ -28,7 +27,7 @@ describe('AIProcessingService helper functions (private)', () => {
   it('sleep resolves after given milliseconds', async () => {
     jest.useFakeTimers();
     const spy = jest.fn();
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
     (svc as any).sleep(50).then(spy);
     jest.advanceTimersByTime(49);
     expect(spy).not.toHaveBeenCalled();
@@ -54,13 +53,12 @@ describe('AIProcessingService helper functions (private)', () => {
         timezone: 0.9,
       },
     });
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
     const obj = (svc as any).parseResponse(json);
     expect(obj).toEqual(expect.objectContaining({ title: 'Test' }));
   });
 
   it('parseResponse throws on malformed JSON', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     expect(() => (svc as any).parseResponse('{ invalid json')).toThrow('Invalid response format');
   });
 });

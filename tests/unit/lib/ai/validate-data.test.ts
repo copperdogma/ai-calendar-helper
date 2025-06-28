@@ -20,7 +20,6 @@ describe('AIProcessingService.validateAndEnhanceData', () => {
       recurrence: null,
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     const enriched = (svc as any).validateAndEnhanceData(rawData);
     expect(enriched.title).toBe('Standup');
     expect(enriched.startDate).toBeInstanceOf(Date);
@@ -40,7 +39,7 @@ describe('AIProcessingService.validateAndEnhanceData', () => {
       isAllDay: false,
       recurrence: null,
     };
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
     expect(() => (svc as any).validateAndEnhanceData(badData)).toThrow(
       'End date must be after start date'
     );
@@ -58,7 +57,7 @@ describe('AIProcessingService.validateAndEnhanceData', () => {
       isAllDay: false,
       recurrence: null,
     };
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
     expect(() => (svc as any).validateAndEnhanceData(badData)).toThrow('Invalid date format');
   });
 });

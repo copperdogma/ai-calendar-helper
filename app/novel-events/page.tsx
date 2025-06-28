@@ -1,32 +1,36 @@
-"use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { useSession, signIn } from "next-auth/react";
-import { CALENDAR_SCOPE, hasCalendarScope } from "@/lib/auth/googleScope";
-import { useState } from "react";
-import { Button } from "@/components/ui/Button";
-import PreferencesForm from "@/components/novel-events/PreferencesForm";
-import PageLayout from "@/components/layouts/PageLayout";
-import {
-  Alert,
-  Card,
-  CardContent,
-  CardHeader,
-  Stack,
-  Typography,
-} from "@mui/material";
+'use client';
+
+import { useSession, signIn } from 'next-auth/react';
+import { CALENDAR_SCOPE, hasCalendarScope } from '@/lib/auth/googleScope';
+import { useState } from 'react';
+import { Button } from '@/components/ui/Button';
+import { Alert, Card, CardContent, CardHeader, Stack, Typography, Snackbar } from '@mui/material';
+import PreferencesForm from '@/components/novel-events/PreferencesForm';
+import PageLayout from '@/components/layouts/PageLayout';
 
 export default function NovelEventsSettingsPage() {
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error';
+  }>({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
 
   const scopeGranted = hasCalendarScope((session as any)?.accountScope);
 
   const handleGrant = () => {
     setLoading(true);
-    void signIn("google", {
-      prompt: "consent",
+    void signIn('google', {
+      prompt: 'consent',
       scope: `openid email profile ${CALENDAR_SCOPE}`,
-      callbackUrl: "/novel-events",
+      callbackUrl: '/novel-events',
     });
   };
 
@@ -49,7 +53,7 @@ export default function NovelEventsSettingsPage() {
                 ❌ Calendar access not yet granted
               </Alert>
               <Button onClick={handleGrant} disabled={loading}>
-                {loading ? "Redirecting…" : "Grant Calendar Access"}
+                {loading ? 'Redirecting…' : 'Grant Calendar Access'}
               </Button>
             </CardContent>
           </Card>
@@ -62,9 +66,55 @@ export default function NovelEventsSettingsPage() {
               Adjust the look-ahead window and novelty threshold used when detecting events.
             </Typography>
             <PreferencesForm disabled={!scopeGranted} />
+
+            <Button
+              variant="outlined"
+              sx={{ mt: 3 }}
+              disabled={!scopeGranted || loading}
+              onClick={async () => {
+                try {
+                  const res = await fetch('/api/novel-events/run', {
+                    method: 'POST',
+                  });
+                  if (res.ok) {
+                    setToast({
+                      open: true,
+                      message: 'Novel events email sent!',
+                      severity: 'success',
+                    });
+                  } else {
+                    const data = await res.json();
+                    setToast({
+                      open: true,
+                      message: data.error ?? 'Error running detection',
+                      severity: 'error',
+                    });
+                  }
+                } catch {
+                  setToast({ open: true, message: 'Request failed', severity: 'error' });
+                }
+              }}
+            >
+              Calculate Now & Send Test Email
+            </Button>
           </CardContent>
         </Card>
+
+        <Snackbar
+          open={toast.open}
+          autoHideDuration={4000}
+          onClose={() => setToast({ ...toast, open: false })}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert
+            severity={toast.severity}
+            onClose={() => setToast({ ...toast, open: false })}
+            sx={{ width: '100%' }}
+          >
+            {toast.message}
+          </Alert>
+        </Snackbar>
       </Stack>
     </PageLayout>
   );
-} 
+}

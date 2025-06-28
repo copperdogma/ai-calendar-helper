@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import { buildIdentificationMessages } from './prompts/identificationPrompt';
 import { buildStartLinesMessages } from './prompts/startLinesPrompt';
@@ -119,7 +121,6 @@ export const MODEL_CONFIGS: Record<AIModel, ModelConfig> = {
 export interface OpenAIClient {
   chat: {
     completions: {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       create: (params: any) => Promise<any>;
     };
   };

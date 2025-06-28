@@ -70,11 +70,9 @@ export class EventPattern {
       if (eventTitle.length <= 5 || patternTitle.length <= 5) {
         return eventTitle === patternTitle;
       }
-      return (
-        eventTitle.includes(patternTitle) || patternTitle.includes(eventTitle)
-      );
+      return eventTitle.includes(patternTitle) || patternTitle.includes(eventTitle);
     }
 
     return eventTitle === patternTitle;
   }
-} 
+}

@@ -45,17 +45,17 @@ AI Calendar Helper
 | 013      | Add conflict detection for existing events | Medium   | Cancelled | /docs/stories/story-013-conflict-detection.md |
 | 014      | Implement comprehensive error handling     | Medium   | Done      | /docs/stories/story-014-error-handling.md     |
 | 015      | Create empty state & usage examples        | Low      | Cancelled | /docs/stories/story-015-empty-state.md        |
-| 016      | Add mobile responsive design               | Medium   | Done     | /docs/stories/story-016-mobile-responsive.md  |
+| 016      | Add mobile responsive design               | Medium   | Done      | /docs/stories/story-016-mobile-responsive.md  |
 | 017      | Implement keyboard shortcuts               | Low      | Done      | /docs/stories/story-017-keyboard-shortcuts.md |
 
 ### Phase 4: Novel Events Extraction (Priority: Medium)
 
 | Story ID | Title                                    | Priority | Status | Link                                           |
 | -------- | ---------------------------------------- | -------- | ------ | ---------------------------------------------- |
-| 019      | Design novel events filtering logic      | High      | To Do | /docs/stories/story-019-novel-events-filter.md |
-| 020      | Create background job system             | High      | To Do | /docs/stories/story-020-background-jobs.md     |
-| 021      | Build email template & delivery service  | High      | To Do | /docs/stories/story-021-email-service.md       |
-| 022      | Create configuration UI for novel events | High      | To Do | /docs/stories/story-022-config-ui.md           |
+| 019      | Design novel events filtering logic      | High     | To Do  | /docs/stories/story-019-novel-events-filter.md |
+| 020      | Create background job system             | High     | To Do  | /docs/stories/story-020-background-jobs.md     |
+| 021      | Build email template & delivery service  | High     | To Do  | /docs/stories/story-021-email-service.md       |
+| 022      | Create configuration UI for novel events | High     | To Do  | /docs/stories/story-022-config-ui.md           |
 
 ### Phase 5: UI/UX & Polish (Priority: Low-Medium)
 
@@ -98,8 +98,8 @@ AI Calendar Helper
 
 | Story ID | Title                                                 | Priority | Status | Link                                            |
 | -------- | ----------------------------------------------------- | -------- | ------ | ----------------------------------------------- |
-| 039      | Email notification on new user sign-up                | Medium   | Done  | /docs/stories/story-039-email-on-signup.md      |
-| 040      | Daily usage report email with top 20 users by service | Medium   | Done  | /docs/stories/story-040-daily-usage-report.md   |
+| 039      | Email notification on new user sign-up                | Medium   | Done   | /docs/stories/story-039-email-on-signup.md      |
+| 040      | Daily usage report email with top 20 users by service | Medium   | Done   | /docs/stories/story-040-daily-usage-report.md   |
 | 043      | Advanced Usage Statistics & Event Analytics           | Medium   | Done   | /docs/stories/story-043-advanced-usage-stats.md |
 
 ## Priority Definitions

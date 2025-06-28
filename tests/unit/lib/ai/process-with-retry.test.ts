@@ -44,7 +44,6 @@ describe('AIProcessingService.processWithRetry / isRetryableError', () => {
   });
 
   it('isRetryableError returns false when status is undefined', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     const res: boolean = (svc as any).isRetryableError({});
     expect(res).toBe(false);
   });

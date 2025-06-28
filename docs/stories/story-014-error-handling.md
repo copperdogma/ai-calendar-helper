@@ -25,17 +25,17 @@ Implement a robust error-handling strategy across the entire application so that
 
 ## Acceptance Criteria Verification
 
-| # | Criterion | Evidence |
-|---|-----------|----------|
-| 1 | User-facing error pages appear without app crash | `app/global-error.tsx`, component-level `ErrorBoundary` |
-| 2 | Exceptions reach Sentry | Sentry import & `captureException` in boundaries and helpers |
-| 3 | Consistent JSON error responses from API | `handleApiError` used in API routes (e.g., `app/api/*/route.ts`) |
-| 4 | Production hides stack traces | `getDisplayErrorMessage`, `shouldShowErrorDetails` helpers |
-| 5 | Tests pass | Unit tests listed above; Playwright `ui/error-handling.spec.ts` |
+| #   | Criterion                                        | Evidence                                                         |
+| --- | ------------------------------------------------ | ---------------------------------------------------------------- |
+| 1   | User-facing error pages appear without app crash | `app/global-error.tsx`, component-level `ErrorBoundary`          |
+| 2   | Exceptions reach Sentry                          | Sentry import & `captureException` in boundaries and helpers     |
+| 3   | Consistent JSON error responses from API         | `handleApiError` used in API routes (e.g., `app/api/*/route.ts`) |
+| 4   | Production hides stack traces                    | `getDisplayErrorMessage`, `shouldShowErrorDetails` helpers       |
+| 5   | Tests pass                                       | Unit tests listed above; Playwright `ui/error-handling.spec.ts`  |
 
 All criteria are met and tests pass → **Story complete**.
 
 ## Follow-ups
 
 • Add more granular Sentry tags/context as new features land.
-• Periodically review ignored errors list. 
+• Periodically review ignored errors list.

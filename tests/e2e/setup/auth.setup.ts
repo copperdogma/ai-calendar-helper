@@ -51,6 +51,27 @@ async function ensureTestUserExists(page: Page): Promise<boolean> {
 async function setupAuthViaUiLogin(page: Page): Promise<boolean> {
   console.log('🔑 Setting up authentication via UI Login Form...');
 
+  // --- Inject calendar scope into every /api/auth/session response so UI treats it as granted ---
+  const CAL_SCOPE = 'https://www.googleapis.com/auth/calendar.readonly';
+  await page.context().route('**/api/auth/session**', async route => {
+    const response = await route.fetch();
+    let json: any;
+    try {
+      json = await response.json();
+    } catch {
+      // Non-JSON response – just continue
+      return route.continue();
+    }
+
+    json.accountScope = json.accountScope ? `${json.accountScope} ${CAL_SCOPE}` : CAL_SCOPE;
+
+    await route.fulfill({
+      status: response.status(),
+      headers: response.headers(),
+      body: JSON.stringify(json),
+    });
+  });
+
   try {
     // First ensure the test user exists
     const userExists = await ensureTestUserExists(page);

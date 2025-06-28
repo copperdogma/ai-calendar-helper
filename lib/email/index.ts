@@ -62,3 +62,100 @@ export async function sendDailyUsageReport(reportText: string): Promise<void> {
     text: reportText,
   });
 }
+
+/**
+ * Send a plain-text email listing novel events to the user.
+ */
+export async function sendNovelEventsReport(params: {
+  to: string;
+  events: Array<{
+    summary?: string | null;
+    start?: string | null;
+    noveltyScore: number;
+    calendarId?: string;
+  }>;
+  windowStart?: Date;
+  windowEnd?: Date;
+  calendarNames?: Record<string, string>;
+}): Promise<void> {
+  const { to, events, windowStart, windowEnd, calendarNames = {} } = params;
+  const transporter = getTransport();
+
+  const daysWindow =
+    windowStart && windowEnd
+      ? Math.round((windowEnd.getTime() - windowStart.getTime()) / 864e5)
+      : 14;
+
+  const lines: string[] = [
+    `Novel events in next ${daysWindow} days:`,
+    '',
+    `Generated: ${new Date().toLocaleString('en-CA', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' })}`,
+    '',
+  ];
+
+  if (events.length === 0) {
+    lines.push('No novel events found in the current look-ahead window.');
+  } else {
+    events.forEach((ev, idx) => {
+      const { textLine } = renderEvent(ev, idx, calendarNames);
+      lines.push(textLine);
+    });
+  }
+
+  // Build HTML body mirroring the text version but with bold titles
+  const htmlParts: string[] = [];
+  htmlParts.push(`<p><strong>Novel events in next ${daysWindow} days:</strong></p>`);
+  htmlParts.push(
+    `<p>Generated: ${new Date().toLocaleString('en-CA', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' })}</p>`
+  );
+
+  if (events.length === 0) {
+    htmlParts.push('<p>No novel events found in the current look-ahead window.</p>');
+  } else {
+    events.forEach((ev, idx) => {
+      const { htmlLine } = renderEvent(ev, idx, calendarNames);
+      htmlParts.push(htmlLine);
+    });
+  }
+
+  await transporter.sendMail({
+    from: process.env.EMAIL_SMTP_USER,
+    to,
+    subject: `AI Calendar Helper – Novel Events Report (${events.length} event${events.length === 1 ? '' : 's'})`,
+    text: lines.join('\n'),
+    html: htmlParts.join('\n'),
+  });
+
+  if (process.env.NODE_ENV !== 'production') {
+    console.debug('[DEBUG] Novel events email', { to, lines });
+  }
+
+  /**
+   * Helper to render one event into text and HTML forms (with bold title).
+   */
+  function renderEvent(
+    ev: {
+      summary?: string | null;
+      start?: string | null;
+      noveltyScore: number;
+      calendarId?: string;
+    },
+    idx: number,
+    calNames: Record<string, string>
+  ): { textLine: string; htmlLine: string } {
+    const d = ev.start ? new Date(ev.start) : null;
+    const datePrefix = d
+      ? d.toLocaleDateString('en-CA', { weekday: 'short', month: 'short', day: '2-digit' }) +
+        ' ' +
+        d.toLocaleTimeString('en-GB', { hour12: false, hour: '2-digit', minute: '2-digit' })
+      : 'Unknown';
+    const calName = calNames[ev.calendarId ?? ''] ?? ev.calendarId ?? 'Unknown Cal';
+    const title = ev.summary ?? 'Untitled event';
+    const novelPct = (ev.noveltyScore * 100).toFixed(0);
+
+    return {
+      textLine: `${idx + 1}. ${datePrefix} ${title} [${calName}] (novelty ${novelPct}%)`,
+      htmlLine: `<p>${idx + 1}. ${datePrefix} <strong>${title}</strong> [${calName}] (novelty ${novelPct}%)</p>`,
+    };
+  }
+}

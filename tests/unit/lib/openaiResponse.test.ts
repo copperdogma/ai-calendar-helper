@@ -3,7 +3,7 @@
 jest.mock('openai', () => {
   const createMock = jest.fn();
   (global as any).__openaiCreateMock = createMock;
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
   function OpenAI(this: any) {
     this.responses = { create: createMock };
     return this;

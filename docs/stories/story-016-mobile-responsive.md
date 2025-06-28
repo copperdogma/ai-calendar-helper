@@ -21,12 +21,12 @@ Ensure the AI Calendar Helper web app delivers a first-class experience on commo
 
 ## Acceptance Criteria Verification
 
-| # | Criterion | Evidence |
-|---|-----------|----------|
-| 1 | Layout adapts ≤ 600 px without horizontal scroll | Tested on device simulators; no overflow issues |
-| 2 | Navigation works from hamburger menu | `DesktopNavigation.tsx` responsive drawer code |
-| 3 | Forms and dialogs usable on small screens | Login, register, parser pages verified |
-| 4 | Automated checks run with mobile viewport | Playwright screenshot helpers & CI run logs |
-| 5 | Performance on mobile acceptable (<3 s FCP) | Lighthouse mobile perf score ≥ 90 locally |
+| #   | Criterion                                        | Evidence                                        |
+| --- | ------------------------------------------------ | ----------------------------------------------- |
+| 1   | Layout adapts ≤ 600 px without horizontal scroll | Tested on device simulators; no overflow issues |
+| 2   | Navigation works from hamburger menu             | `DesktopNavigation.tsx` responsive drawer code  |
+| 3   | Forms and dialogs usable on small screens        | Login, register, parser pages verified          |
+| 4   | Automated checks run with mobile viewport        | Playwright screenshot helpers & CI run logs     |
+| 5   | Performance on mobile acceptable (<3 s FCP)      | Lighthouse mobile perf score ≥ 90 locally       |
 
-All criteria met → story complete. 
+All criteria met → story complete.

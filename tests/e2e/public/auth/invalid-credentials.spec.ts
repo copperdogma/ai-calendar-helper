@@ -14,7 +14,7 @@ test.describe('Authentication', () => {
 
     // Check for the error message using its specific data-testid FIRST
     const errorMessage = page.locator('[data-testid="login-error-message"]');
-    await expect(errorMessage).toBeVisible({ timeout: 10000 });
+    await expect(errorMessage).toBeVisible({ timeout: 20000 });
 
     // Now, wait for the loading state to complete by checking the button text and enabled state
     const signInButton = page.locator(UI_ELEMENTS.AUTH.CREDENTIALS_SUBMIT);

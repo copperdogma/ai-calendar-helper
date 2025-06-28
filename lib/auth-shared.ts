@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import type { DefaultSession, NextAuthConfig, Session } from 'next-auth';
 import type { JWT } from '@auth/core/jwt';
 import Google from 'next-auth/providers/google';

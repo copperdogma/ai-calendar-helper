@@ -5,6 +5,8 @@
 // is added.
 // import { Calendar } from "@googleapis/calendar";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 // Using minimal type to decouple from runtime dependency during unit testing.
 type Calendar = any;
 
@@ -40,6 +42,10 @@ export interface GoogleCalendarClient {
     nextPageToken?: string | null;
     nextSyncToken?: string | null;
   }>;
+
+  listCalendars(): Promise<{
+    items?: Array<{ id?: string | null; summary?: string | null; summaryOverride?: string | null }>;
+  }>;
 }
 
 /**
@@ -53,9 +59,14 @@ export class GoogleApiCalendarClient implements GoogleCalendarClient {
     this.calendar = calendar;
   }
 
-  async listEvents(params: Parameters<GoogleCalendarClient["listEvents"]>[0]) {
+  async listEvents(params: Parameters<GoogleCalendarClient['listEvents']>[0]) {
     const response = await this.calendar.events.list(params);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+
+    return response.data as any;
+  }
+
+  async listCalendars() {
+    const response = await this.calendar.calendarList.list();
     return response.data as any;
   }
 }
@@ -64,7 +75,7 @@ export class CalendarService {
   private client: GoogleCalendarClient;
   private calendarId: string;
 
-  constructor(client: GoogleCalendarClient, calendarId = "primary") {
+  constructor(client: GoogleCalendarClient, calendarId = 'primary') {
     this.client = client;
     this.calendarId = calendarId;
   }
@@ -100,9 +111,9 @@ export class CalendarService {
         timeMax: syncToken ? undefined : isoEnd,
       });
 
-      response.items?.forEach((item) => {
+      response.items?.forEach(item => {
         events.push({
-          id: item.id ?? "",
+          id: item.id ?? '',
           summary: item.summary ?? null,
           start: item.start?.dateTime ?? item.start?.date ?? null,
           end: item.end?.dateTime ?? item.end?.date ?? null,
@@ -119,4 +130,4 @@ export class CalendarService {
 
     return { events, nextSyncToken };
   }
-} 
+}

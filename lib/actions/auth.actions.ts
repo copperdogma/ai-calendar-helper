@@ -474,6 +474,24 @@ async function _executeRegistrationCore(
     '_executeRegistrationCore: Prisma user successfully created.'
   );
 
+  // Create default user settings with auto blacklist for Holidays & Birthdays calendars
+  const { prisma } = await import('@/lib/prisma');
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (prisma as any).userSettings.create({
+      data: {
+        userId: prismaUser.id,
+        blacklist: ['holidays', 'birthdays'],
+      },
+    });
+    log.debug(
+      { ...logContextWithEmail, userId: prismaUser.id },
+      'Default userSettings with auto blacklist created.'
+    );
+  } catch (err) {
+    log.error({ ...logContextWithEmail, err }, 'Failed to create default userSettings');
+  }
+
   // Send admin notification (non-blocking)
   try {
     const { sendSignupNotification } = await import('@/lib/email');

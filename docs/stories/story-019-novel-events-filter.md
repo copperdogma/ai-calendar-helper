@@ -14,7 +14,7 @@
 
 ## Overview
 
-Implement logic to detect **novel (unusual) events** in a user's calendar by analysing historical patterns.  The core algorithm will be ported from the Swift tool [Novel Events Extractor](https://github.com/copperdogma/novel-events-extractor) and adapted to our **TypeScript/Node** stack with Google Calendar data.
+Implement logic to detect **novel (unusual) events** in a user's calendar by analysing historical patterns. The core algorithm will be ported from the Swift tool [Novel Events Extractor](https://github.com/copperdogma/novel-events-extractor) and adapted to our **TypeScript/Node** stack with Google Calendar data.
 
 Key concepts copied/modified from the reference implementation:
 
@@ -53,10 +53,10 @@ Key concepts copied/modified from the reference implementation:
 
 ## Risks & Mitigations (initial)
 
-| Risk | Mitigation |
-| ---- | ---------- |
-| Large calendars cause slow analysis | Stream pagination, cache pattern model per user |
-| Google API quota limits | Batch requests, incremental sync |
+| Risk                                            | Mitigation                                       |
+| ----------------------------------------------- | ------------------------------------------------ |
+| Large calendars cause slow analysis             | Stream pagination, cache pattern model per user  |
+| Google API quota limits                         | Batch requests, incremental sync                 |
 | False positives/negatives from simplistic rules | Iterate threshold, add additional features later |
 
 ## Best Practices (Google Calendar & Novelty Detection)
@@ -72,30 +72,36 @@ Key concepts copied/modified from the reference implementation:
 ## Implementation Strategy
 
 1. **Data Fetch Layer** (`lib/google/calendarService.ts`)
+
    - `fetchEvents({ userId, start, end }): Promise<GoogleEvent[]>`
    - Maintains syncToken per user in `calendar_sync_state` table; performs incremental sync.
 
 2. **Domain Models** (`lib/novelEvents`)
+
    - `EventPattern` (TS equivalent) and `NovelEvent` interfaces.
    - `PatternDetector` class mirroring Swift logic (frequency counts, similarity rules).
    - `NoveltyAnalyzer` class (threshold, returns NovelEvent[]).
 
 3. **Facade Function** (`services/novelEventsService.ts`)
+
    - `detectNovelEvents(userId, lookAheadDays = 14): Promise<NovelEvent[]>`
    - Steps: fetch historical, build patterns, fetch upcoming, analyze.
 
 4. **Config Storage**
-   - User preferences (`calendar_blacklist`, `calendar_whitelist`, `novelty_threshold`) stored in `user_settings` table (JSON column).
+
+   - User preferences (`calendar_blacklist`, `calendar_whitelist`, `novelty_threshold`) stored in `user_settings` table (JSON column). Pattern models are cached automatically in Redis; no user toggle.
 
 5. **Unit Tests**
+
    - Cover pattern similarity matrix, threshold detection, blacklist/whitelist logic.
 
 6. **Future Integration Points**
+
    - Expose `GET /api/novel-events` route (Story 022 UI & Story 021 email).
    - Background cron job (Story 020) to call service daily.
 
 7. **Settings UI** (Dashboard → "Novel Events" tab)
-   - React page with form fields: look-ahead days, novelty threshold, blacklist/whitelist multiselect.
+   - React page with form fields: look-ahead days (number), novelty threshold (slider/number), blacklist/whitelist multiselect (pre-populated).
    - Button "Calculate Now & Send Test Email" triggers API route to run detection immediately.
    - Uses existing design system components.
 
@@ -127,6 +133,7 @@ Questions to be confirmed once preliminary plan is ready (blacklist UI, threshol
   b) Users who prefer to skip calendar features – they simply ignore the prompt and can still use text/image parsing.
 
 ### Task Checklist additions
+
 - [ ] Update `lib/auth-shared.ts` to add calendar scope.
 - [ ] Create helper util `hasCalendarScope(account)`.
-- [ ] In Novel Events page, query session + account to determine scope and render UI state (❌/✅ + grant button). 
+- [ ] In Novel Events page, query session + account to determine scope and render UI state (❌/✅ + grant button).
