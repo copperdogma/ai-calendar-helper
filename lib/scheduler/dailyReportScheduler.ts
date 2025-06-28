@@ -4,6 +4,9 @@ import { getTopUsersFromEvents } from '@/lib/services/usage-event.service';
 import { sendDailyUsageReport } from '@/lib/email';
 import { getDailyUsageMetrics, DailyUsageMetrics } from '@/lib/services/usage-event.service';
 
+// Store reference to current scheduled task to prevent duplicates
+let currentScheduledTask: ReturnType<typeof cron.schedule> | null = null;
+
 function parseSchedule(): { cronExpr: string; timezone?: string } {
   const raw = process.env.DAILY_REPORT_TIME || '07:00 UTC';
   const [timePart, tz = 'UTC'] = raw.split(' ');
@@ -46,10 +49,20 @@ function buildReportText(
 }
 
 export function scheduleDailyReport() {
+  // Cancel existing scheduled task if one exists
+  if (currentScheduledTask) {
+    console.log('[SCHEDULER] Stopping existing daily report cron job');
+    currentScheduledTask.stop();
+    currentScheduledTask = null;
+  }
+
   const { cronExpr, timezone } = parseSchedule();
-  cron.schedule(
+  console.log(`[SCHEDULER] Scheduling daily report cron job: ${cronExpr} (${timezone})`);
+
+  currentScheduledTask = cron.schedule(
     cronExpr,
     async () => {
+      console.log('[SCHEDULER] Running daily report job');
       const [rows, metrics] = await Promise.all([
         getTopUsers({ service: 'CALENDAR_PARSER' }),
         getDailyUsageMetrics(),
@@ -62,9 +75,18 @@ export function scheduleDailyReport() {
 
       const text = buildReportText(topUsers, metrics);
       await sendDailyUsageReport(text);
+      console.log('[SCHEDULER] Daily report job completed');
     },
     { timezone }
   );
+}
+
+// Export function to get current scheduled task info (useful for debugging)
+export function getScheduledTaskInfo() {
+  return {
+    isScheduled: currentScheduledTask !== null,
+    task: currentScheduledTask,
+  };
 }
 
 // immediately schedule upon import

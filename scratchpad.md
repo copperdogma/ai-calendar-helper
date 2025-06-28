@@ -1,7 +1,7 @@
 ## Future ToDo Items
 
-- I keep getting four status emails every morning. I suspect there are multiple cron jobs running. I think I should expect two emails: one from prod, one from dev. Can we manually check the cron jobs to confirm? And can we change the code to check if a cron job is already running before scheduling a new one?
-- need schedulding for the novelty detection job.
+- ~~I keep getting four status emails every morning. I suspect there are multiple cron jobs running. I think I should expect two emails: one from prod, one from dev. Can we manually check the cron jobs to confirm? And can we change the code to check if a cron job is already running before scheduling a new one?~~ ✅ **FIXED**: Implemented singleton pattern in `lib/scheduler/dailyReportScheduler.ts` to prevent multiple cron jobs from being scheduled on server restarts. PM2 restart count reduced from 5786+ to normal single increments.
+- need schedulding for the novelty detection job, both UI and backend code.
 
 ### Current Story
 
