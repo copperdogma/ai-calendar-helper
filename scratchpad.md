@@ -547,12 +547,22 @@ Add a new tab/page in dashboard for **Novel Events Settings**:
 
 ### Files Modified
 
-1. `lib/email/index.ts` - Added deduplication function
-2. `tests/unit/lib/email/deduplication.test.ts` - New comprehensive test suite
+1. `lib/email/index.ts` - Enhanced deduplication function (title-only grouping)
+2. `tests/unit/lib/email/deduplication.test.ts` - Comprehensive test suite (5 test cases)
 3. `lib/env.ts` - Fixed unused parameter warning
 4. `tests/unit/lib/scheduler/userJobScheduler.test.ts` - Fixed type issues
 5. Minor fixes to other test files
 
+### Final Fix Applied ✅
+
+**ISSUE RESOLVED**: Changed deduplication logic from title+time to **title-only** grouping.
+
+**Root Cause**: Events with same title but different times (e.g., "Dave Coppens' 50th Birthday!" at 01:00 vs 02:00) were treated as separate events.
+
+**Solution**: Modified `deduplicateEvents()` to use `const key = title;` instead of `const key = \`${title}|${startTime}\`;`
+
+**Verification**: All 7 email tests passing, including new test case for same-title-different-time scenario.
+
 ### Ready for Production ✅
 
-This fix is fully tested, validated, and ready for deployment. The novel events email will now properly combine duplicate events across calendars into single entries with combined calendar names.
+This fix is fully tested, validated, and ready for deployment. Novel events emails will now properly combine duplicate events across calendars based on title alone, regardless of timing differences.

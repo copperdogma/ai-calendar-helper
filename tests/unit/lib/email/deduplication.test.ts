@@ -199,4 +199,36 @@ describe('Novel Events Email Deduplication', () => {
     const eventLines = emailData.text.split('\n').filter((line: string) => line.match(/^\d+\./));
     expect(eventLines).toHaveLength(1);
   });
+
+  it('should deduplicate events with same title but different times', async () => {
+    const events = [
+      {
+        summary: "Dave Coppens' 50th Birthday!",
+        start: '2025-07-13T01:00:00Z',
+        noveltyScore: 1.0,
+        calendarId: 'primary',
+      },
+      {
+        summary: "Dave Coppens' 50th Birthday!",
+        start: '2025-07-13T02:00:00Z', // Different time
+        noveltyScore: 1.0,
+        calendarId: 'family@example.com',
+      },
+    ];
+
+    await sendNovelEventsReport({
+      to: 'user@example.com',
+      events,
+      calendarNames,
+    });
+
+    const emailData = mockSendMail.mock.calls[0][0];
+
+    // Should combine into one event with multiple calendars, despite different times
+    expect(emailData.text).toContain("Dave Coppens' 50th Birthday! [primary, Family]");
+
+    // Should only have one event line
+    const eventLines = emailData.text.split('\n').filter((line: string) => line.match(/^\d+\./));
+    expect(eventLines).toHaveLength(1);
+  });
 });

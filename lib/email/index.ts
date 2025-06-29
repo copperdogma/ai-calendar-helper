@@ -135,7 +135,7 @@ export async function sendNovelEventsReport(params: {
 
   /**
    * Deduplicate events that appear across multiple calendars.
-   * Groups events by title and start time, combining calendar names.
+   * Groups events by title only, combining calendar names.
    */
   function deduplicateEvents(
     events: Array<{
@@ -161,11 +161,10 @@ export async function sendNovelEventsReport(params: {
       }
     >();
 
-    // Group events by title + start time
+    // Group events by title only
     events.forEach(event => {
       const title = (event.summary ?? 'Untitled event').trim();
-      const startTime = event.start ?? 'Unknown';
-      const key = `${title}|${startTime}`;
+      const key = title;
 
       const calendarName = calNames[event.calendarId ?? ''] ?? event.calendarId ?? 'Unknown Cal';
 
