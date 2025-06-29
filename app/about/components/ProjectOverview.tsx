@@ -1,6 +1,6 @@
 'use client';
 
-import { Paper, Typography } from '@mui/material';
+import { Paper, Typography, Box, Chip } from '@mui/material';
 
 /**
  * Project Overview section of the About page
@@ -14,16 +14,34 @@ export default function ProjectOverview() {
         borderRadius: 2,
       }}
     >
-      <Typography variant="h5" component="h2" gutterBottom>
-        Project Overview
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+        <Typography variant="h5" component="h2">
+          Project Overview
+        </Typography>
+        <Chip label="100% AI-Written" color="primary" variant="outlined" size="small" />
+      </Box>
+
       <Typography variant="body1" paragraph>
-        This is a starter template designed to help developers quickly bootstrap new projects with a
-        modern tech stack. It provides essential features and best practices out of the box,
-        allowing you to focus on building your application rather than setting up infrastructure.
+        AI Calendar Helper is a powerful personal productivity tool designed to streamline your
+        calendar management through artificial intelligence. The application offers two main
+        features: Calendar Parser for converting unstructured information into organized calendar
+        events, and Calendar Summarizer for intelligent analysis of your upcoming unique activities.
       </Typography>
+
       <Typography variant="body1" paragraph>
-        Feel free to modify or remove this page as needed for your project.
+        Whether you're processing meeting notes, email invitations, or handwritten schedules, AI
+        Calendar Helper transforms natural language text and images into properly formatted calendar
+        events with minimal effort. The intelligent parsing system understands context, dates,
+        times, locations, and other event details to create accurate calendar entries. Additionally,
+        the Calendar Summarizer analyzes your calendar patterns to identify novel events and
+        delivers personalized email summaries on your preferred schedule.
+      </Typography>
+
+      <Typography variant="body1" paragraph>
+        This entire project, including its architecture, implementation, and user interface, has
+        been developed entirely by AI systems working collaboratively with human oversight. It
+        represents a showcase of modern AI capabilities in software development and natural language
+        processing.
       </Typography>
     </Paper>
   );

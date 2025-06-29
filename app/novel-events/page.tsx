@@ -6,13 +6,23 @@ import { useSession, signIn } from 'next-auth/react';
 import { CALENDAR_SCOPE, hasCalendarScope } from '@/lib/auth/googleScope';
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Alert, Card, CardContent, CardHeader, Stack, Typography, Snackbar } from '@mui/material';
+import {
+  Alert,
+  Card,
+  CardContent,
+  CardHeader,
+  Stack,
+  Typography,
+  Snackbar,
+  CircularProgress,
+} from '@mui/material';
 import PreferencesForm from '@/components/novel-events/PreferencesForm';
 import PageLayout from '@/components/layouts/PageLayout';
 
 export default function NovelEventsSettingsPage() {
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
+  const [testLoading, setTestLoading] = useState(false);
   const [toast, setToast] = useState<{
     open: boolean;
     message: string;
@@ -32,6 +42,33 @@ export default function NovelEventsSettingsPage() {
       scope: `openid email profile ${CALENDAR_SCOPE}`,
       callbackUrl: '/novel-events',
     });
+  };
+
+  const handleTestEmail = async () => {
+    setTestLoading(true);
+    try {
+      const res = await fetch('/api/novel-events/run', {
+        method: 'POST',
+      });
+      if (res.ok) {
+        setToast({
+          open: true,
+          message: 'Novel events email sent!',
+          severity: 'success',
+        });
+      } else {
+        const data = await res.json();
+        setToast({
+          open: true,
+          message: data.error ?? 'Error running detection',
+          severity: 'error',
+        });
+      }
+    } catch {
+      setToast({ open: true, message: 'Request failed', severity: 'error' });
+    } finally {
+      setTestLoading(false);
+    }
   };
 
   return (
@@ -69,33 +106,12 @@ export default function NovelEventsSettingsPage() {
 
             <Button
               variant="outlined"
-              sx={{ mt: 3 }}
-              disabled={!scopeGranted || loading}
-              onClick={async () => {
-                try {
-                  const res = await fetch('/api/novel-events/run', {
-                    method: 'POST',
-                  });
-                  if (res.ok) {
-                    setToast({
-                      open: true,
-                      message: 'Novel events email sent!',
-                      severity: 'success',
-                    });
-                  } else {
-                    const data = await res.json();
-                    setToast({
-                      open: true,
-                      message: data.error ?? 'Error running detection',
-                      severity: 'error',
-                    });
-                  }
-                } catch {
-                  setToast({ open: true, message: 'Request failed', severity: 'error' });
-                }
-              }}
+              sx={{ mt: 3, minWidth: 250 }}
+              disabled={!scopeGranted || loading || testLoading}
+              onClick={handleTestEmail}
+              startIcon={testLoading ? <CircularProgress size={20} /> : null}
             >
-              Calculate Now & Send Test Email
+              {testLoading ? 'Calculating & Sending...' : 'Calculate Now & Send Test Email'}
             </Button>
           </CardContent>
         </Card>

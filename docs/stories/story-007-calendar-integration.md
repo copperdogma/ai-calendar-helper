@@ -1,6 +1,19 @@
 # Story: Add Calendar Integration Buttons
 
-**Status**: In Progress
+**Status**: Done
+
+## Implementation Summary
+
+✅ **COMPLETED** - All acceptance criteria met:
+
+- Three "Add to Calendar" buttons (Google, Outlook, Apple) in `EventPreviewCard`
+- `generateAddToCalendarLinks` utility in `lib/utils/calendarLinks.ts`
+- No OAuth required - uses provider deep links and ICS download
+- Accessible `aria-label`s and MUI `Tooltip`s implemented
+- Responsive layout with ≥44px touch-friendly buttons
+- Comprehensive unit test coverage for utility functions
+- Custom calendar icons (Google, Outlook, Apple)
+- ICS file generation for Apple Calendar support
 
 ---
 

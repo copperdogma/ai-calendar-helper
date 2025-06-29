@@ -1,6 +1,19 @@
 # Story: Design Novel Events Filtering Logic (019)
 
-**Status**: Planning – 2025-06-25. Gathering requirements and designing implementation.
+**Status**: Done
+
+## Implementation Summary
+
+✅ **COMPLETED** - All acceptance criteria met:
+
+- Complete `NovelEventsService` with pattern detection algorithm
+- Google Calendar integration with OAuth scope handling
+- User settings persistence in `UserSettings` database model
+- Full UI implementation at `/novel-events` with preferences form
+- API endpoints `/api/novel-events/run` and `/api/novel-events/settings`
+- Calendar blacklist/whitelist functionality
+- Background job integration (Story 020)
+- Comprehensive test coverage including E2E tests
 
 ---
 

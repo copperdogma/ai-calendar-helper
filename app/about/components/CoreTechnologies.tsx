@@ -23,26 +23,32 @@ export default function CoreTechnologies() {
         <List disablePadding>
           <ListItem disableGutters>
             <ListItemText
-              primary="Next.js 15+"
-              secondary="React framework with App Router, Server Components, and optimized performance"
+              primary="OpenAI GPT-4"
+              secondary="Advanced AI models for natural language processing and intelligent event extraction from text and images"
             />
           </ListItem>
           <ListItem disableGutters>
             <ListItemText
-              primary="React 19"
-              secondary="Latest React with improved performance and hooks"
+              primary="Next.js 15 + React 19"
+              secondary="Modern React framework with App Router, Server Components, and TypeScript for type-safe development"
             />
           </ListItem>
           <ListItem disableGutters>
             <ListItemText
-              primary="TypeScript"
-              secondary="Type-safe development experience with full type checking"
+              primary="Google Calendar API"
+              secondary="Seamless integration with Google Calendar for direct event creation and calendar data access"
             />
           </ListItem>
           <ListItem disableGutters>
             <ListItemText
-              primary="Material UI"
-              secondary="Comprehensive component library with customizable theming"
+              primary="NextAuth.js + PostgreSQL"
+              secondary="Secure authentication with OAuth providers and reliable data persistence with Prisma ORM"
+            />
+          </ListItem>
+          <ListItem disableGutters>
+            <ListItemText
+              primary="Material UI + Custom Theming"
+              secondary="Comprehensive component library with dark/light mode support and responsive design"
             />
           </ListItem>
         </List>

@@ -64,7 +64,7 @@ AI Calendar Helper
 | 023      | Implement main dashboard layout         | Medium   | Done      | /docs/stories/story-023-dashboard-layout.md  |
 | 024      | Add JSON export & API integration       | Low      | Cancelled | /docs/stories/story-024-json-export.md       |
 | 025      | Create user settings & preferences      | Low      | Cancelled | /docs/stories/story-025-advanced-settings.md |
-| 033      | Update About page with project overview | Medium   | To Do     | /docs/stories/story-033-update-about-page.md |
+| 033      | Update About page with project overview | Medium   | Done      | /docs/stories/story-033-update-about-page.md |
 
 ### Phase 6: Testing & Deployment (Priority: Medium)
 
