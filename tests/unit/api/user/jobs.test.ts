@@ -4,7 +4,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jest } from '@jest/globals';
 import { createRequest } from 'node-mocks-http';
-import { JobType, SchedulePreset } from '@prisma/client';
+// Define test constants for enum values since they may not be available in test environment
+const JobType = {
+  NOVEL_EVENTS: 'NOVEL_EVENTS' as const,
+};
+
+const SchedulePreset = {
+  DAILY: 'DAILY' as const,
+  WEEKLY: 'WEEKLY' as const,
+  MONTHLY: 'MONTHLY' as const,
+};
 import type pino from 'pino';
 
 // Mock the auth module
@@ -89,7 +98,7 @@ describe('User Jobs API Route Handlers', () => {
       url: mockHttpRequest.url,
       method: mockHttpRequest.method,
       headers: new Headers(options.headers || {}),
-      json: jest.fn().mockResolvedValue(options.body || {}),
+      json: jest.fn().mockResolvedValue(options.body || ({} as any)),
       nextUrl: {
         pathname: '/api/user/jobs',
         search: options.query ? `?${new URLSearchParams(options.query).toString()}` : '',
@@ -99,7 +108,7 @@ describe('User Jobs API Route Handlers', () => {
   };
 
   describe('GET /api/user/jobs', () => {
-    const testGetHandler = async (req: NextRequest): Promise<NextResponse> => {
+    const testGetHandler = async (_req: NextRequest): Promise<NextResponse> => {
       try {
         const { auth } = await import('@/lib/auth');
         const session = await auth();

@@ -145,7 +145,7 @@ export function validateEnv(): z.SafeParseReturnType<Env, Env> {
 let _env: Env | null = null;
 
 export const env = new Proxy({} as Env, {
-  get(target, prop) {
+  get(_target, prop) {
     // During build phase, return undefined for all properties to avoid validation
     if (
       process.env.NEXT_PHASE === 'phase-production-build' ||

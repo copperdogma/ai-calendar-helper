@@ -1,5 +1,6 @@
 import { UserJobScheduler } from '@/lib/scheduler/userJobScheduler';
 import { UserJobService } from '@/lib/services/userJob.service';
+import type { UserJobWithUser } from '@/lib/services/userJob.service';
 import * as NovelEventsService from '@/lib/novelEvents/NovelEventsService';
 import * as OAuthClient from '@/lib/google/getOAuthClient';
 import cron from 'node-cron';
@@ -25,6 +26,37 @@ const mockDetectNovelEvents = NovelEventsService.detectNovelEvents as jest.Mocke
 const mockGetUserOAuthClient = OAuthClient.getUserOAuthClient as jest.MockedFunction<
   typeof OAuthClient.getUserOAuthClient
 >;
+
+// Helper function to create complete mock job objects
+function createMockJob(overrides: Partial<UserJobWithUser> = {}): UserJobWithUser {
+  return {
+    id: 'job1',
+    createdAt: new Date('2025-01-01T00:00:00Z'),
+    updatedAt: new Date('2025-01-01T00:00:00Z'),
+    userId: 'user1',
+    jobType: 'NOVEL_EVENTS' as const,
+    schedule: 'DAILY' as const,
+    scheduleTime: '09:00',
+    scheduleDayOfWeek: null,
+    scheduleDayOfMonth: null,
+    enabled: true,
+    lastRun: null,
+    nextRun: new Date('2025-01-11T09:00:00Z'),
+    user: {
+      id: 'user1',
+      email: 'user1@example.com',
+      name: 'Test User',
+      createdAt: new Date('2025-01-01T00:00:00Z'),
+      updatedAt: new Date('2025-01-01T00:00:00Z'),
+      emailVerified: null,
+      image: null,
+      hashedPassword: null,
+      role: 'USER' as const,
+      lastSignedInAt: null,
+    },
+    ...overrides,
+  };
+}
 
 describe('UserJobScheduler', () => {
   let userJobScheduler: UserJobScheduler;
@@ -94,7 +126,7 @@ describe('UserJobScheduler', () => {
       expect(mockCron.schedule).toHaveBeenCalledTimes(1);
 
       // Create another instance (simulating restart)
-      const newScheduler = new (UserJobScheduler as any)();
+      const _newScheduler = new (UserJobScheduler as any)();
 
       expect(mockScheduledTask.stop).toHaveBeenCalled();
       expect(mockCron.schedule).toHaveBeenCalledTimes(2);
@@ -104,24 +136,19 @@ describe('UserJobScheduler', () => {
   describe('Job Discovery and Execution', () => {
     it('should discover and execute due jobs', async () => {
       const mockJobs = [
-        {
+        createMockJob({
           id: 'job1',
           userId: 'user1',
-          jobType: 'NOVEL_EVENTS',
-          schedule: 'DAILY',
-          enabled: true,
           nextRun: new Date('2025-01-11T09:00:00Z'),
           user: { id: 'user1', email: 'user1@example.com' },
-        },
-        {
+        }),
+        createMockJob({
           id: 'job2',
           userId: 'user2',
-          jobType: 'NOVEL_EVENTS',
           schedule: 'WEEKLY',
-          enabled: true,
           nextRun: new Date('2025-01-11T08:00:00Z'),
           user: { id: 'user2', email: 'user2@example.com' },
-        },
+        }),
       ];
 
       mockUserJobServiceInstance.getJobsDueToRun.mockResolvedValue(mockJobs);
@@ -139,15 +166,9 @@ describe('UserJobScheduler', () => {
     });
 
     it('should update last run time for successful jobs', async () => {
-      const mockJob = {
-        id: 'job1',
-        userId: 'user1',
-        jobType: 'NOVEL_EVENTS',
-        schedule: 'DAILY',
-        enabled: true,
+      const mockJob = createMockJob({
         nextRun: new Date('2025-01-11T09:00:00Z'),
-        user: { id: 'user1', email: 'user1@example.com' },
-      };
+      });
 
       mockUserJobServiceInstance.getJobsDueToRun.mockResolvedValue([mockJob]);
       mockDetectNovelEvents.mockResolvedValue([]);
@@ -163,15 +184,9 @@ describe('UserJobScheduler', () => {
     });
 
     it('should log failures for failed jobs', async () => {
-      const mockJob = {
-        id: 'job1',
-        userId: 'user1',
-        jobType: 'NOVEL_EVENTS',
-        schedule: 'DAILY',
-        enabled: true,
+      const mockJob = createMockJob({
         nextRun: new Date('2025-01-11T09:00:00Z'),
-        user: { id: 'user1', email: 'user1@example.com' },
-      };
+      });
 
       const mockError = new Error('OAuth failed');
 
@@ -205,15 +220,9 @@ describe('UserJobScheduler', () => {
   describe('Job Cache Management', () => {
     it('should cache job configurations and refresh every 5 minutes', async () => {
       const mockJobs = [
-        {
-          id: 'job1',
-          userId: 'user1',
-          jobType: 'NOVEL_EVENTS',
-          schedule: 'DAILY',
-          enabled: true,
+        createMockJob({
           nextRun: new Date('2025-01-11T09:00:00Z'),
-          user: { id: 'user1', email: 'user1@example.com' },
-        },
+        }),
       ];
 
       mockUserJobServiceInstance.getJobsDueToRun.mockResolvedValue(mockJobs);
@@ -287,24 +296,19 @@ describe('UserJobScheduler', () => {
 
     it('should continue processing other jobs if one fails', async () => {
       const mockJobs = [
-        {
+        createMockJob({
           id: 'job1',
           userId: 'user1',
-          jobType: 'NOVEL_EVENTS',
-          schedule: 'DAILY',
-          enabled: true,
           nextRun: new Date('2025-01-11T09:00:00Z'),
           user: { id: 'user1', email: 'user1@example.com' },
-        },
-        {
+        }),
+        createMockJob({
           id: 'job2',
           userId: 'user2',
-          jobType: 'NOVEL_EVENTS',
           schedule: 'WEEKLY',
-          enabled: true,
           nextRun: new Date('2025-01-11T08:00:00Z'),
           user: { id: 'user2', email: 'user2@example.com' },
-        },
+        }),
       ];
 
       mockUserJobServiceInstance.getJobsDueToRun.mockResolvedValue(mockJobs);
