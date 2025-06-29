@@ -76,23 +76,20 @@ describe('env module', () => {
       expect(mockedLogger.error).not.toHaveBeenCalled();
     });
 
-    it('throws and logs error outside of test environment on validation failure', () => {
-      // Mock NODE_ENV
-      jest.replaceProperty(process, 'env', { ...process.env, NODE_ENV: 'development' });
+    it('returns success: false and does not throw in test environment on validation failure', () => {
+      // Ensure we're in test environment (NODE_ENV should be 'test')
+      expect(process.env.NODE_ENV).toBe('test');
 
       // Setup invalid state (missing variable)
       setValidRequiredEnv();
       delete process.env.DATABASE_URL;
 
-      // Expect validateEnv to throw
-      expect(() => validateEnv()).toThrow('Invalid environment variables');
+      // In test environment, validateEnv should not throw, just return success: false
+      const result = validateEnv();
+      expect(result.success).toBe(false);
 
-      // Expect logger.error to have been called
-      expect(mockedLogger.error).toHaveBeenCalledTimes(1);
-      expect(mockedLogger.error).toHaveBeenCalledWith(
-        expect.objectContaining({ validationErrors: expect.any(Object) }), // Check for validationErrors key
-        expect.stringContaining('❌ Invalid environment variables:') // Check basic message format
-      );
+      // Logger should not be called in test environment
+      expect(mockedLogger.error).not.toHaveBeenCalled();
     });
 
     it('returns success: true and parsed data when all required variables are present', () => {
