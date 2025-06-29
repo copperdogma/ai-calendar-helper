@@ -106,11 +106,24 @@ function formatZodError(error: z.ZodError) {
 
 // Validate environment variables
 export function validateEnv(): z.SafeParseReturnType<Env, Env> {
+  // Skip validation during build phase or when process.env is not fully available
+  if (
+    process.env.NEXT_PHASE === 'phase-production-build' ||
+    typeof process === 'undefined' ||
+    typeof process.env === 'undefined'
+  ) {
+    return { success: false, error: new z.ZodError([]) } as z.SafeParseReturnType<Env, Env>;
+  }
+
   const result = envSchema.safeParse(process.env);
 
   if (!result.success) {
-    // Only log and throw if NOT in the test environment
-    if (process.env.NODE_ENV !== 'test') {
+    // Only log and throw if NOT in the test environment AND we're actually running (not building)
+    if (
+      process.env.NODE_ENV !== 'test' &&
+      typeof window === 'undefined' &&
+      process.versions?.node
+    ) {
       const formattedError = formatZodError(result.error);
       logger.error(
         {
@@ -128,16 +141,32 @@ export function validateEnv(): z.SafeParseReturnType<Env, Env> {
   return result;
 }
 
-// Export environment variables
-export const env = (() => {
-  // Directly use the result from validateEnv to keep logic consistent
-  const validationResult = validateEnv();
-  if (!validationResult.success) {
-    // Return an empty object in case of failure, matching previous behavior
-    return {} as Env;
-  }
-  return validationResult.data;
-})();
+// Lazy environment validation - only validate when accessed
+let _env: Env | null = null;
+
+export const env = new Proxy({} as Env, {
+  get(target, prop) {
+    // During build phase, return undefined for all properties to avoid validation
+    if (
+      process.env.NEXT_PHASE === 'phase-production-build' ||
+      typeof process === 'undefined' ||
+      typeof process.env === 'undefined'
+    ) {
+      return undefined;
+    }
+
+    // Initialize env on first access
+    if (_env === null) {
+      const validationResult = validateEnv();
+      if (!validationResult.success) {
+        _env = {} as Env;
+      } else {
+        _env = validationResult.data;
+      }
+    }
+    return _env[prop as keyof Env];
+  },
+});
 
 // Optional environment variables with default values
 export const ENV = {

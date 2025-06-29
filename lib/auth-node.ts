@@ -19,8 +19,7 @@ import {
 } from './auth/auth-jwt-helpers';
 import type { Account, Profile, User as NextAuthUser, Session } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
-import { sendSignupNotification } from '@/lib/email';
-import '@/lib/bootstrap';
+// Email import moved to dynamic import to avoid build-time resolution
 
 // ====================================
 // Interfaces (Should be minimal or none)
@@ -212,6 +211,8 @@ export const authConfigNode: NextAuthConfig = {
   events: {
     async createUser(message) {
       try {
+        // Dynamic import to avoid build-time nodemailer resolution
+        const { sendSignupNotification } = await import('@/lib/email');
         await sendSignupNotification({ email: message.user.email ?? '', name: message.user.name });
       } catch (err) {
         logger.error({ err }, 'Failed to send signup notification');

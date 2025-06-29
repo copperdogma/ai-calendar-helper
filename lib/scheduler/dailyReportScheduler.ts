@@ -1,7 +1,7 @@
 import cron from 'node-cron';
 import { getTopUsers } from '@/lib/services/usage.service';
 import { getTopUsersFromEvents } from '@/lib/services/usage-event.service';
-import { sendDailyUsageReport } from '@/lib/email';
+// Email import moved to dynamic import to avoid build-time resolution
 import { getDailyUsageMetrics, DailyUsageMetrics } from '@/lib/services/usage-event.service';
 
 // Store reference to current scheduled task to prevent duplicates
@@ -74,6 +74,9 @@ export function scheduleDailyReport() {
       }
 
       const text = buildReportText(topUsers, metrics);
+
+      // Dynamic import to avoid build-time nodemailer resolution
+      const { sendDailyUsageReport } = await import('@/lib/email');
       await sendDailyUsageReport(text);
       console.log('[SCHEDULER] Daily report job completed');
     },

@@ -4,7 +4,7 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { GoogleApiCalendarClient } from '@/lib/google/calendarService';
 import { detectNovelEvents } from '@/lib/novelEvents/NovelEventsService';
-import { sendNovelEventsReport } from '@/lib/email';
+// Email import moved to dynamic import to avoid build-time resolution
 import { getUserOAuthClient } from '@/lib/google/getOAuthClient';
 
 // This route runs novelty detection immediately and emails the results to the current user.
@@ -62,6 +62,9 @@ export async function POST(_req: NextRequest) {
       }
     });
   } catch {}
+
+  // Dynamic import to avoid build-time nodemailer resolution
+  const { sendNovelEventsReport } = await import('@/lib/email');
 
   await sendNovelEventsReport({
     to: session.user.email,

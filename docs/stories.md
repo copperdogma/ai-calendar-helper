@@ -52,10 +52,10 @@ AI Calendar Helper
 
 | Story ID | Title                                    | Priority | Status | Link                                           |
 | -------- | ---------------------------------------- | -------- | ------ | ---------------------------------------------- |
-| 019      | Design novel events filtering logic      | High     | To Do  | /docs/stories/story-019-novel-events-filter.md |
-| 020      | Create background job system             | High     | To Do  | /docs/stories/story-020-background-jobs.md     |
-| 021      | Build email template & delivery service  | High     | To Do  | /docs/stories/story-021-email-service.md       |
-| 022      | Create configuration UI for novel events | High     | To Do  | /docs/stories/story-022-config-ui.md           |
+| 019      | Design novel events filtering logic      | High     | Done   | /docs/stories/story-019-novel-events-filter.md |
+| 020      | Create background job system             | High     | Done   | /docs/stories/story-020-background-jobs.md     |
+| 021      | Build email template & delivery service  | High     | Done   | /docs/stories/story-021-email-service.md       |
+| 022      | Create configuration UI for novel events | High     | Done   | /docs/stories/story-022-config-ui.md           |
 
 ### Phase 5: UI/UX & Polish (Priority: Low-Medium)
 

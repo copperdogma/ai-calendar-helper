@@ -15,6 +15,7 @@ COPY package*.json ./
 # Skip husky git hooks during install
 ENV HUSKY=0
 ENV NEXTAUTH_SECRET="placeholder-during-build"
+ENV NEXT_PHASE="phase-production-build"
 
 # Install ALL dependencies (including dev and optional) so native bindings are available
 RUN npm ci

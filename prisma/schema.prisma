@@ -26,6 +26,9 @@ model User {
   sessions       Session[]
   serviceUsage   ServiceUsage[]
   usageEvents    UsageEvent[]
+  jobSchedules   UserJobSchedule[]
+  jobFailures    JobFailure[]
+  retriedFailures JobFailure[] @relation("JobFailureRetriedBy")
 
   @@index([role])
   @@index([createdAt])
@@ -77,6 +80,16 @@ enum UserRole {
 enum Service {
   CALENDAR_PARSER
   NOVEL_EVENTS_EXTRACTOR
+}
+
+enum JobType {
+  NOVEL_EVENTS
+}
+
+enum SchedulePreset {
+  DAILY
+  WEEKLY
+  MONTHLY
 }
 
 model ServiceUsage {
@@ -168,4 +181,40 @@ model UserSettings {
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model UserJobSchedule {
+  id                String         @id @default(uuid())
+  userId            String
+  jobType           JobType
+  schedule          SchedulePreset
+  enabled           Boolean        @default(true)
+  scheduleTime      String?        // HH:mm format, e.g., "09:00"
+  scheduleDayOfWeek Int?           // 0-6 (0=Sunday) for weekly schedules
+  scheduleDayOfMonth Int?          // 1-31 for monthly schedules
+  lastRun           DateTime?
+  nextRun           DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobType])
+  @@index([nextRun])
+  @@index([enabled])
+}
+
+model JobFailure {
+  id           String    @id @default(uuid())
+  userId       String
+  jobType      JobType
+  errorMessage String
+  errorDetails Json?
+  failedAt     DateTime  @default(now())
+  retriedAt    DateTime?
+  retriedBy    String?
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  retriedByUser User?    @relation("JobFailureRetriedBy", fields: [retriedBy], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([failedAt])
 }

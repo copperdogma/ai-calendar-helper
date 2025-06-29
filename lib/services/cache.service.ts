@@ -1,6 +1,6 @@
 import { getOptionalRedisClient } from '@/lib/redis';
 import { logger } from '@/lib/logger';
-import { gzipSync, gunzipSync } from 'zlib';
+import { compressString, decompressString } from '@/lib/utils/compression';
 
 const log = logger.child({ service: 'CacheService' });
 
@@ -304,23 +304,23 @@ class CacheServiceImpl {
 
     // Compress large values if compression is enabled
     if (compress && serialized.length > this.compressionThreshold) {
-      try {
-        const compressed = gzipSync(Buffer.from(serialized, 'utf8'));
-        const compressedString = `gzip:${compressed.toString('base64')}`;
+      const compressionResult = compressString(serialized);
 
+      if (compressionResult.success) {
         log.debug(
           {
             originalSize: serialized.length,
-            compressedSize: compressedString.length,
+            compressedSize: compressionResult.compressed.length,
             compressionRatio:
-              ((1 - compressedString.length / serialized.length) * 100).toFixed(1) + '%',
+              ((1 - compressionResult.compressed.length / serialized.length) * 100).toFixed(1) +
+              '%',
           },
           'Value compressed for storage'
         );
 
-        return compressedString;
-      } catch (error) {
-        log.error({ error, size: serialized.length }, 'Compression failed, storing uncompressed');
+        return compressionResult.compressed;
+      } else {
+        log.debug({ size: serialized.length }, 'Compression not available, storing uncompressed');
         return serialized;
       }
     }
@@ -341,13 +341,10 @@ class CacheServiceImpl {
    */
   private deserializeValue<T>(serialized: string): T {
     try {
-      // Check if the value is compressed
-      if (serialized.startsWith('gzip:')) {
-        const compressedData = serialized.slice(5); // Remove 'gzip:' prefix
-        const compressedBuffer = Buffer.from(compressedData, 'base64');
-        const decompressedBuffer = gunzipSync(compressedBuffer);
-        const decompressedString = decompressedBuffer.toString('utf8');
+      const decompressedString = decompressString(serialized);
 
+      // Log decompression if it occurred
+      if (serialized.startsWith('gzip:') && decompressedString !== serialized) {
         log.debug(
           {
             compressedSize: serialized.length,
@@ -355,12 +352,9 @@ class CacheServiceImpl {
           },
           'Value decompressed from storage'
         );
-
-        return JSON.parse(decompressedString) as T;
       }
 
-      // Not compressed, parse as regular JSON
-      return JSON.parse(serialized) as T;
+      return JSON.parse(decompressedString) as T;
     } catch (error) {
       log.error(
         { error, serialized: serialized.substring(0, 100) },
