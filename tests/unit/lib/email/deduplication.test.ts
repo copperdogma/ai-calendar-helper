@@ -1,31 +1,36 @@
 import { sendNovelEventsReport } from '../../../../lib/email';
-import nodemailer from 'nodemailer';
 
-// Mock nodemailer
-jest.mock(
-  'nodemailer',
-  () => ({
-    createTransport: jest.fn(),
-  }),
-  { virtual: true }
-);
+// Mock the global eval function to intercept dynamic imports
+const originalEval = global.eval;
 
-type MockTransporter = {
-  sendMail: jest.Mock;
-};
+const mockSendMail = jest.fn().mockResolvedValue({});
+const mockCreateTransport = jest.fn().mockReturnValue({
+  sendMail: mockSendMail,
+});
 
 describe('Novel Events Email Deduplication', () => {
-  const mockSendMail = jest.fn().mockResolvedValue({});
-  const mockCreateTransport = nodemailer.createTransport as jest.Mock;
-
   beforeEach(() => {
     mockSendMail.mockClear();
-    mockCreateTransport.mockReturnValue({
-      sendMail: mockSendMail,
-    } as unknown as MockTransporter);
+    mockCreateTransport.mockClear();
+
+    // Mock eval to return a mock nodemailer module
+    global.eval = jest.fn().mockImplementation((code: string) => {
+      if (code.includes("import('nodemailer')")) {
+        return Promise.resolve({
+          default: {
+            createTransport: mockCreateTransport,
+          },
+        });
+      }
+      return originalEval(code);
+    });
 
     process.env.EMAIL_SMTP_USER = 'test@example.com';
     process.env.EMAIL_SMTP_PASS = 'test-password';
+  });
+
+  afterEach(() => {
+    global.eval = originalEval;
   });
 
   const calendarNames = {

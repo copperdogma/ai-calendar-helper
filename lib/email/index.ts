@@ -1,11 +1,44 @@
-import nodemailer, { Transporter } from 'nodemailer';
+/**
+ * Dynamic import types for nodemailer to avoid webpack bundling issues.
+ * We use eval-based imports to prevent webpack from trying to bundle Node.js modules.
+ */
+type MailOptions = {
+  from?: string;
+  to: string;
+  subject: string;
+  text?: string;
+  html?: string;
+};
+
+type TransportConfig = {
+  host: string;
+  port: number;
+  secure: boolean;
+  auth: {
+    user: string;
+    pass: string;
+  };
+};
+
+type NodemailerModule = {
+  default: {
+    createTransport: (config: TransportConfig) => {
+      sendMail: (options: MailOptions) => Promise<unknown>;
+    };
+  };
+};
+
+type EmailTransporter = {
+  sendMail: (options: MailOptions) => Promise<unknown>;
+};
 
 /**
  * Lazily-initialised singleton Nodemailer transporter based on environment variables.
+ * Uses dynamic import to avoid webpack bundling Node.js dependencies.
  */
-let cachedTransport: Transporter | null = null;
+let cachedTransport: EmailTransporter | null = null;
 
-function getTransport(): Transporter {
+async function getTransport(): Promise<EmailTransporter> {
   if (cachedTransport) return cachedTransport;
 
   const { EMAIL_SMTP_USER, EMAIL_SMTP_PASS } = process.env;
@@ -13,17 +46,26 @@ function getTransport(): Transporter {
     throw new Error('EMAIL_SMTP_USER and EMAIL_SMTP_PASS must be set');
   }
 
-  cachedTransport = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false, // use STARTTLS
-    auth: {
-      user: EMAIL_SMTP_USER,
-      pass: EMAIL_SMTP_PASS,
-    },
-  });
+  try {
+    // Use eval to hide nodemailer from webpack static analysis
+    const nodemailer = (await eval("import('nodemailer')")) as NodemailerModule;
 
-  return cachedTransport;
+    cachedTransport = nodemailer.default.createTransport({
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false, // use STARTTLS
+      auth: {
+        user: EMAIL_SMTP_USER,
+        pass: EMAIL_SMTP_PASS,
+      },
+    });
+
+    return cachedTransport;
+  } catch (error) {
+    throw new Error(
+      `Failed to initialize email transport: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
+  }
 }
 
 /**
@@ -34,15 +76,15 @@ export async function sendSignupNotification(params: {
   name?: string | null;
 }): Promise<void> {
   const { email, name } = params;
-  const transporter = getTransport();
+  const transporter = await getTransport();
 
   const textLines = ['New user signed up!', `Email: ${email}`];
   if (name) textLines.push(`Name: ${name}`);
   textLines.push(`Timestamp: ${new Date().toISOString()}`);
 
   await transporter.sendMail({
-    from: process.env.EMAIL_SMTP_USER,
-    to: process.env.NOTIFICATIONS_EMAIL_TO,
+    from: process.env.EMAIL_SMTP_USER!,
+    to: process.env.NOTIFICATIONS_EMAIL_TO!,
     subject: `AI Calendar Helper – New user signup: ${email}`,
     text: textLines.join('\n'),
   });
@@ -53,11 +95,11 @@ export async function sendSignupNotification(params: {
  * @param reportText Pre-formatted plain-text body (e.g., table of usage lines).
  */
 export async function sendDailyUsageReport(reportText: string): Promise<void> {
-  const transporter = getTransport();
+  const transporter = await getTransport();
 
   await transporter.sendMail({
-    from: process.env.EMAIL_SMTP_USER,
-    to: process.env.NOTIFICATIONS_EMAIL_TO,
+    from: process.env.EMAIL_SMTP_USER!,
+    to: process.env.NOTIFICATIONS_EMAIL_TO!,
     subject: `AI Calendar Helper – Daily usage report – ${new Date().toLocaleDateString('en-CA')}`,
     text: reportText,
   });
@@ -79,7 +121,7 @@ export async function sendNovelEventsReport(params: {
   calendarNames?: Record<string, string>;
 }): Promise<void> {
   const { to, events, windowStart, windowEnd, calendarNames = {} } = params;
-  const transporter = getTransport();
+  const transporter = await getTransport();
 
   const daysWindow =
     windowStart && windowEnd
@@ -122,7 +164,7 @@ export async function sendNovelEventsReport(params: {
   }
 
   await transporter.sendMail({
-    from: process.env.EMAIL_SMTP_USER,
+    from: process.env.EMAIL_SMTP_USER!,
     to,
     subject: `AI Calendar Helper – Novel Events Report (${deduplicatedEvents.length} event${deduplicatedEvents.length === 1 ? '' : 's'})`,
     text: lines.join('\n'),

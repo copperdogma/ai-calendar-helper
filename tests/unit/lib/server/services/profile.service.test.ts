@@ -114,4 +114,210 @@ describe('ProfileService', () => {
       process.env.NEXT_PUBLIC_IS_E2E_TEST_ENV = originalEnv;
     });
   });
+
+  describe('deleteAccount', () => {
+    const mockUserId = 'user-123';
+    const mockUser: any = {
+      id: mockUserId,
+      name: 'Test User',
+      email: 'test@example.com',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    beforeEach(() => {
+      // Reset call history but don't clear implementations
+      // This prevents interference with transaction mocks set in individual tests
+      prismaMock.user.findUnique.mockClear();
+      prismaMock.user.create.mockClear();
+      prismaMock.user.update.mockClear();
+      prismaMock.user.delete.mockClear();
+      prismaMock.$transaction.mockClear();
+
+      // Reset logger mocks
+      const { logger } = require('@/lib/logger');
+      logger.info.mockClear();
+      logger.warn.mockClear();
+      logger.error.mockClear();
+      logger.debug.mockClear();
+    });
+
+    it('should successfully delete a user account with all data', async () => {
+      // Setup mocks for successful deletion
+      prismaMock.user.findUnique.mockResolvedValue(mockUser);
+      // @ts-expect-error - JobFailure model mocking
+      prismaMock.jobFailure.updateMany.mockResolvedValue({ count: 2 });
+      // @ts-expect-error - JobFailure model mocking
+      prismaMock.jobFailure.deleteMany.mockResolvedValue({ count: 3 });
+      prismaMock.user.delete.mockResolvedValue(mockUser);
+
+      // Mock successful transaction
+      prismaMock.$transaction.mockImplementation(async (fn: any) => {
+        return await fn(prismaMock);
+      });
+
+      const result = await profileService.deleteAccount(mockUserId);
+
+      expect(result.status).toBe('success');
+      expect(result.message).toBe('Account deleted successfully');
+      expect(result.data).toEqual({ userId: mockUserId, deletedAt: expect.any(Date) });
+
+      // Verify transaction was used
+      expect(prismaMock.$transaction).toHaveBeenCalled();
+
+      // Verify JobFailure cleanup
+      // @ts-expect-error - JobFailure model mocking
+      expect(prismaMock.jobFailure.updateMany).toHaveBeenCalledWith({
+        where: { retriedBy: mockUserId },
+        data: { retriedBy: null },
+      });
+      // @ts-expect-error - JobFailure model mocking
+      expect(prismaMock.jobFailure.deleteMany).toHaveBeenCalledWith({
+        where: { userId: mockUserId },
+      });
+
+      // Verify user deletion
+      expect(prismaMock.user.delete).toHaveBeenCalledWith({
+        where: { id: mockUserId },
+      });
+    });
+
+    it('should return error when user does not exist', async () => {
+      prismaMock.user.findUnique.mockResolvedValue(null);
+
+      const result = await profileService.deleteAccount('non-existent-user');
+
+      expect(result.status).toBe('error');
+      expect(result.error?.code).toBe('USER_NOT_FOUND');
+      expect(result.error?.message).toBe('User not found');
+      expect(prismaMock.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('should return error when userId is invalid', async () => {
+      const result = await profileService.deleteAccount('');
+
+      expect(result.status).toBe('error');
+      expect(result.error?.code).toBe('INVALID_USER_ID');
+      expect(result.error?.message).toBe('Invalid user ID provided');
+      expect(prismaMock.user.findUnique).not.toHaveBeenCalled();
+    });
+
+    it('should handle transaction failure and rollback', async () => {
+      prismaMock.user.findUnique.mockResolvedValue(mockUser);
+      const transactionError = new Error('Transaction failed');
+
+      // Mock user.delete to fail, which will cause transaction to fail
+      prismaMock.user.delete.mockRejectedValue(transactionError);
+
+      // Mock successful transaction execution (it will call the failing user.delete)
+      prismaMock.$transaction.mockImplementation(async (fn: any) => {
+        return await fn(prismaMock);
+      });
+
+      const result = await profileService.deleteAccount(mockUserId);
+
+      expect(result.status).toBe('error');
+      expect(result.error?.code).toBe('DELETION_FAILED');
+      expect(result.error?.message).toBe('Failed to delete account');
+      expect(result.error?.details?.originalError).toBe(transactionError);
+    });
+
+    it('should handle specific Prisma errors during deletion', async () => {
+      prismaMock.user.findUnique.mockResolvedValue(mockUser);
+      const prismaError = new Error('Record not found');
+      (prismaError as any).code = 'P2025';
+
+      // Mock user.delete to fail with Prisma error
+      prismaMock.user.delete.mockRejectedValue(prismaError);
+
+      // Mock successful transaction execution (it will call the failing user.delete)
+      prismaMock.$transaction.mockImplementation(async (fn: any) => {
+        return await fn(prismaMock);
+      });
+
+      const result = await profileService.deleteAccount(mockUserId);
+
+      expect(result.status).toBe('error');
+      expect(result.error?.code).toBe('USER_NOT_FOUND');
+      expect(result.error?.message).toBe('User not found');
+    });
+
+    it('should handle JobFailure cleanup errors gracefully', async () => {
+      prismaMock.user.findUnique.mockResolvedValue(mockUser);
+      const jobFailureError = new Error('JobFailure update failed');
+
+      // @ts-expect-error - JobFailure model mocking
+      // Mock JobFailure updateMany to fail
+      prismaMock.jobFailure.updateMany.mockRejectedValue(jobFailureError);
+
+      // Mock successful transaction execution (it will call the failing jobFailure.updateMany)
+      prismaMock.$transaction.mockImplementation(async (fn: any) => {
+        return await fn(prismaMock);
+      });
+
+      const result = await profileService.deleteAccount(mockUserId);
+
+      expect(result.status).toBe('error');
+      expect(result.error?.code).toBe('DELETION_FAILED');
+      expect(result.error?.message).toBe('Failed to delete account');
+    });
+
+    it('should return mock success response in E2E test environment', async () => {
+      prismaMock.user.findUnique.mockResolvedValue(mockUser);
+      const error = new Error('Database connection error');
+      prismaMock.$transaction.mockRejectedValue(error);
+
+      // Set E2E test flag to true
+      const originalEnv = process.env.NEXT_PUBLIC_IS_E2E_TEST_ENV;
+      process.env.NEXT_PUBLIC_IS_E2E_TEST_ENV = 'true';
+
+      const result = await profileService.deleteAccount(mockUserId);
+
+      expect(result.status).toBe('success');
+      expect(result.message).toContain('E2E test mock');
+      expect(result.data).toEqual({ userId: mockUserId, deletedAt: expect.any(Date) });
+
+      // Restore environment
+      process.env.NEXT_PUBLIC_IS_E2E_TEST_ENV = originalEnv;
+    });
+
+    it('should log audit trail for successful deletion', async () => {
+      const { logger } = require('@/lib/logger');
+      prismaMock.user.findUnique.mockResolvedValue(mockUser);
+      // @ts-expect-error - JobFailure model mocking
+      prismaMock.jobFailure.updateMany.mockResolvedValue({ count: 1 });
+      // @ts-expect-error - JobFailure model mocking
+      prismaMock.jobFailure.deleteMany.mockResolvedValue({ count: 2 });
+      prismaMock.user.delete.mockResolvedValue(mockUser);
+
+      // Mock successful transaction
+      prismaMock.$transaction.mockImplementation(async (fn: any) => {
+        return await fn(prismaMock);
+      });
+
+      await profileService.deleteAccount(mockUserId);
+
+      expect(logger.info).toHaveBeenCalledWith(
+        expect.objectContaining({ userId: mockUserId }),
+        expect.stringContaining('Account deletion completed successfully')
+      );
+    });
+
+    it('should log errors for failed deletion attempts', async () => {
+      const { logger } = require('@/lib/logger');
+      prismaMock.user.findUnique.mockResolvedValue(mockUser);
+      const error = new Error('Deletion failed');
+      prismaMock.$transaction.mockRejectedValue(error);
+
+      await profileService.deleteAccount(mockUserId);
+
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: mockUserId,
+          errorMessage: 'Deletion failed',
+        }),
+        expect.stringContaining('Account deletion failed')
+      );
+    });
+  });
 });

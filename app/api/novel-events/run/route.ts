@@ -4,7 +4,7 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { GoogleApiCalendarClient } from '@/lib/google/calendarService';
 import { detectNovelEvents } from '@/lib/novelEvents/NovelEventsService';
-// Email import moved to dynamic import to avoid build-time resolution
+import { sendNovelEventsReport } from '@/lib/email';
 import { getUserOAuthClient } from '@/lib/google/getOAuthClient';
 
 // This route runs novelty detection immediately and emails the results to the current user.
@@ -16,9 +16,7 @@ export async function POST(_req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // TODO: Replace with real Google API client in production.
-  // For now, use a mock CalendarService from dependency injection tests or throw.
-  // This avoids runtime dependency in dev environments lacking credentials.
+  // Verify Google Calendar API is configured
   if (!('GOOGLE_CLIENT_ID' in process.env)) {
     return NextResponse.json({ error: 'Google Calendar API not configured' }, { status: 500 });
   }
@@ -30,8 +28,7 @@ export async function POST(_req: NextRequest) {
     return NextResponse.json({ error: (err as Error).message }, { status: 500 });
   }
 
-  // Dynamically build the specifier so bundlers don't attempt to resolve at build-time
-
+  // Use dynamic import to avoid webpack bundling googleapis at build time
   let googleApi: any;
   try {
     googleApi = await eval("import('googleapis')");
@@ -63,8 +60,7 @@ export async function POST(_req: NextRequest) {
     });
   } catch {}
 
-  // Dynamic import to avoid build-time nodemailer resolution
-  const { sendNovelEventsReport } = await import('@/lib/email');
+  // Send novel events report email to user
 
   await sendNovelEventsReport({
     to: session.user.email,

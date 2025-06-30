@@ -13,7 +13,9 @@ jest.mock('@/lib/prisma', () => ({
   prisma: {
     // Add any specific prisma methods you need to mock here
     userJobSchedule: {},
-    user: {},
+    user: {
+      findUnique: jest.fn(),
+    },
   },
 }));
 jest.mock('node-cron');
@@ -82,9 +84,44 @@ describe('UserJobScheduler', () => {
     } as any;
     mockUserJobService.mockImplementation(() => mockUserJobServiceInstance);
 
+    // Mock prisma user queries
+    const { prisma } = require('@/lib/prisma');
+    prisma.user.findUnique.mockImplementation((params: any) => {
+      const userId = params.where.id;
+      return Promise.resolve({
+        id: userId,
+        email: `${userId}@example.com`,
+      });
+    });
+
     // Mock external dependencies
     mockDetectNovelEvents.mockResolvedValue([]);
     mockGetUserOAuthClient.mockResolvedValue({} as any);
+
+    // Mock Google APIs dynamic import
+    global.eval = jest.fn().mockImplementation((code: string) => {
+      if (code === "import('googleapis')") {
+        return Promise.resolve({
+          google: {
+            calendar: jest.fn().mockReturnValue({
+              // Mock calendar instance
+            }),
+          },
+        });
+      }
+      return Promise.resolve({});
+    });
+
+    // Mock dynamic imports
+    jest.doMock('@/lib/google/calendarService', () => ({
+      GoogleApiCalendarClient: jest.fn().mockImplementation(() => ({
+        listCalendars: jest.fn().mockResolvedValue({ items: [] }),
+      })),
+    }));
+
+    jest.doMock('@/lib/email', () => ({
+      sendNovelEventsReport: jest.fn().mockResolvedValue(undefined),
+    }));
 
     userJobScheduler = UserJobScheduler.getInstance();
   });

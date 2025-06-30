@@ -107,6 +107,14 @@ const setDefaultPrismaMocks = () => {
 
   prismaMock.user.delete.mockResolvedValue(fullMockUser);
 
+  // JobFailure mocks for account deletion
+  // @ts-expect-error Mock implementation for JobFailure operations
+  prismaMock.jobFailure.updateMany.mockResolvedValue({ count: 0 });
+  // @ts-expect-error Mock implementation for JobFailure operations
+  prismaMock.jobFailure.deleteMany.mockResolvedValue({ count: 0 });
+  // @ts-expect-error Mock implementation for JobFailure operations
+  prismaMock.jobFailure.findMany.mockResolvedValue([]);
+
   // Transaction mock
   // @ts-expect-error Type is too complex to match exactly, but it works for tests
   prismaMock.$transaction.mockImplementation(fn => {
