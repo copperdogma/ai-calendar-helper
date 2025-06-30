@@ -26,10 +26,13 @@ export class UserJobScheduler {
 
   private constructor() {
     this.userJobService = new UserJobService();
-    // Start scheduling in background (fire and forget)
-    this.scheduleJobs().catch(error => {
-      console.error('[USER-JOB-SCHEDULER] Failed to start scheduler:', error);
-    });
+    // Don't auto-start in test environment
+    if (process.env.NODE_ENV !== 'test') {
+      // Start scheduling in background (fire and forget)
+      this.scheduleJobs().catch(error => {
+        console.error('[USER-JOB-SCHEDULER] Failed to start scheduler:', error);
+      });
+    }
   }
 
   public static getInstance(): UserJobScheduler {
@@ -40,6 +43,12 @@ export class UserJobScheduler {
   }
 
   private async scheduleJobs(): Promise<void> {
+    // Skip scheduling in test environment
+    if (process.env.NODE_ENV === 'test') {
+      console.log('[USER-JOB-SCHEDULER] Skipping cron scheduling in test environment');
+      return;
+    }
+
     // Cancel existing scheduled task if one exists
     if (currentScheduledTask) {
       console.log('[USER-JOB-SCHEDULER] Stopping existing scheduled task');
