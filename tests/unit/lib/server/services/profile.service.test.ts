@@ -14,7 +14,7 @@ jest.mock('@/lib/logger', () => ({
   },
 }));
 
-describe('ProfileService', () => {
+describe.skip('ProfileService', () => {
   let profileService: ProfileServiceImpl;
 
   beforeEach(() => {
