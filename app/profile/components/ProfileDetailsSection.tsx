@@ -3,7 +3,10 @@
 import { useState, useEffect, useActionState, useRef, useCallback } from 'react';
 import { Box, Divider, Stack } from '@mui/material';
 import { User } from 'next-auth';
+import { signOut } from 'next-auth/react';
 import SignOutButton from './SignOutButton';
+import DeleteAccountButton from './DeleteAccountButton';
+import DeleteAccountDialog from './DeleteAccountDialog';
 // import { useSession } from 'next-auth/react'; // No longer needed for update
 import { useUserStore } from '@/lib/store/userStore'; // Import Zustand store
 import NameEditSection from './NameEditSection';
@@ -96,6 +99,9 @@ export default function ProfileDetailsSection({ user }: ProfileDetailsSectionPro
     setUserDetails,
   } = useUserStore();
 
+  // Account deletion state
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
   // Use the custom hook
   const {
     isEditingName,
@@ -105,6 +111,29 @@ export default function ProfileDetailsSection({ user }: ProfileDetailsSectionPro
     effectiveUserName,
     // formAction - Not directly needed by NameEditSection if handleFormSubmit is used
   } = useProfileDetails(currentNameFromStore, setUserDetails);
+
+  // Account deletion handlers
+  const handleDeleteAccountClick = () => {
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteDialogClose = () => {
+    setIsDeleteDialogOpen(false);
+  };
+
+  const handleAccountDeleted = async () => {
+    try {
+      // Show success message
+      toast.success('Account deleted successfully');
+
+      // Sign out user and redirect to home
+      await signOut({ callbackUrl: '/' });
+    } catch (error) {
+      logger.error('Error during post-deletion cleanup', { error });
+      // Still try to sign out even if there's an error
+      await signOut({ callbackUrl: '/' });
+    }
+  };
 
   // Combine store and initial prop values for display
   const displayUserId = userIdFromStore || user.id;
@@ -130,7 +159,16 @@ export default function ProfileDetailsSection({ user }: ProfileDetailsSectionPro
         <ProfileField label="User ID" value={displayUserId} />
         <Divider />
         <SignOutButton />
+        <Divider />
+        <DeleteAccountButton onClick={handleDeleteAccountClick} />
       </Stack>
+
+      {/* Account Deletion Dialog */}
+      <DeleteAccountDialog
+        open={isDeleteDialogOpen}
+        onClose={handleDeleteDialogClose}
+        onAccountDeleted={handleAccountDeleted}
+      />
     </Box>
   );
 }

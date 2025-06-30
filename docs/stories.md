@@ -59,12 +59,13 @@ AI Calendar Helper
 
 ### Phase 5: UI/UX & Polish (Priority: Low-Medium)
 
-| Story ID | Title                                   | Priority | Status    | Link                                         |
-| -------- | --------------------------------------- | -------- | --------- | -------------------------------------------- |
-| 023      | Implement main dashboard layout         | Medium   | Done      | /docs/stories/story-023-dashboard-layout.md  |
-| 024      | Add JSON export & API integration       | Low      | Cancelled | /docs/stories/story-024-json-export.md       |
-| 025      | Create user settings & preferences      | Low      | Cancelled | /docs/stories/story-025-advanced-settings.md |
-| 033      | Update About page with project overview | Medium   | Done      | /docs/stories/story-033-update-about-page.md |
+| Story ID | Title                                    | Priority | Status    | Link                                         |
+| -------- | ---------------------------------------- | -------- | --------- | -------------------------------------------- |
+| 023      | Implement main dashboard layout          | Medium   | Done      | /docs/stories/story-023-dashboard-layout.md  |
+| 024      | Add JSON export & API integration        | Low      | Cancelled | /docs/stories/story-024-json-export.md       |
+| 025      | Create user settings & preferences       | Low      | Cancelled | /docs/stories/story-025-advanced-settings.md |
+| 033      | Update About page with project overview  | Medium   | Done      | /docs/stories/story-033-update-about-page.md |
+| 046      | Implement account deletion functionality | High     | Planning  | /docs/stories/story-046-account-deletion.md  |
 
 ### Phase 6: Testing & Deployment (Priority: Medium)
 

@@ -37,6 +37,15 @@ export type NameUpdateState = ServiceResponse<
   }
 >;
 
+// Account deletion response type
+export type AccountDeletionState = ServiceResponse<
+  { userId: string; deletedAt: Date } | null,
+  {
+    originalError?: unknown;
+    userId?: string;
+  }
+>;
+
 // --- Helper Functions ---
 
 async function _getAuthenticatedUserId(currentLogger: pino.Logger): Promise<string | null> {
@@ -143,6 +152,74 @@ async function _performNameUpdate(
   }
 }
 
+/**
+ * Performs the actual deletion of the user's account using the ProfileService
+ */
+async function _performAccountDeletion(
+  userId: string,
+  logCtx: Record<string, unknown>
+): Promise<AccountDeletionState> {
+  logger.info(logCtx, 'Attempting to delete user account via profile service');
+
+  try {
+    if (!profileService) {
+      logger.error({ ...logCtx }, 'Profile service is unavailable');
+      return {
+        status: 'error',
+        message: 'Profile service is unavailable',
+        error: {
+          message: 'Profile service is unavailable',
+          code: 'SERVICE_UNAVAILABLE',
+        },
+      };
+    }
+
+    const result = await profileService.deleteAccount(userId);
+
+    // Handle the ServiceResponse format from the service
+    if (result.status === 'error') {
+      logger.error(
+        { ...logCtx, error: result.error },
+        'Profile service failed to delete user account'
+      );
+      return {
+        status: 'error',
+        message: result.message || 'An error occurred while deleting your account',
+        error: {
+          message: result.message || 'An error occurred while deleting your account',
+          code: result.error?.code || 'DELETION_FAILED',
+          details: {
+            originalError: result.error?.details?.originalError,
+          },
+        },
+      };
+    }
+
+    // If the result is successful, revalidate paths and return the deletion data
+    revalidatePath('/profile');
+    revalidatePath('/');
+
+    return {
+      status: 'success',
+      message: 'Account deleted successfully',
+      data: result.data || null,
+    };
+  } catch (error) {
+    logger.error({ ...logCtx, error }, 'Error while deleting user account');
+    return {
+      status: 'error',
+      message: 'An unexpected error occurred while deleting your account',
+      error: {
+        message: 'An unexpected error occurred while deleting your account',
+        code: 'UNEXPECTED_ERROR',
+        details: {
+          originalError: error,
+        },
+      },
+    };
+  }
+}
+
 // --- Server Action ---
 
 export async function updateUserName(
@@ -179,4 +256,38 @@ export async function updateUserName(
 
   currentLogger.info({ userId, name }, 'Proceeding to _performNameUpdate'); // Diagnostic log
   return _performNameUpdate(userId, name, { userId, name });
+}
+
+export async function deleteAccount(formData: FormData): Promise<AccountDeletionState> {
+  const currentLogger = logger.child({ action: 'deleteAccount' });
+  currentLogger.info('Server Action: deleteAccount invoked');
+
+  const userId = await _getAuthenticatedUserId(currentLogger);
+  if (!userId) {
+    return {
+      status: 'error',
+      message: 'User not authenticated.',
+      error: {
+        message: 'User not authenticated.',
+        code: 'UNAUTHENTICATED',
+      },
+    };
+  }
+
+  // Validate the confirmation text
+  const confirmationText = formData.get('confirmationText') as string;
+  if (confirmationText !== 'DELETE') {
+    currentLogger.warn({ userId }, 'Account deletion attempted with invalid confirmation text');
+    return {
+      status: 'error',
+      message: 'Invalid confirmation. Please type "DELETE" to confirm.',
+      error: {
+        message: 'Invalid confirmation. Please type "DELETE" to confirm.',
+        code: 'INVALID_CONFIRMATION',
+      },
+    };
+  }
+
+  currentLogger.info({ userId }, 'Proceeding to _performAccountDeletion');
+  return _performAccountDeletion(userId, { userId });
 }

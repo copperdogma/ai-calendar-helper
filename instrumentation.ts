@@ -1,5 +1,8 @@
 import * as Sentry from '@sentry/nextjs';
 
+// Store reference to scheduler process
+// let _schedulerProcess: NodeJS.Timeout | null = null;
+
 // instrumentation.ts
 export async function register() {
   // Initialize Sentry if in production
@@ -22,27 +25,19 @@ export async function register() {
     const { initializeRedis } = await import('@/lib/redis');
     initializeRedis();
 
-    // TODO: Re-enable bootstrap after resolving nodemailer build conflicts
-    // Temporarily disabled to fix deployment build issues
-    console.log('[BOOTSTRAP] Schedulers temporarily disabled for deployment build fix');
+    // Bootstrap app services (but only in Node.js runtime to avoid webpack issues)
+    try {
+      console.log('[BOOTSTRAP] Starting in-process scheduler initialization...');
 
-    // Only initialize server-side code in Node.js runtime and not during build
-    // if (typeof window === 'undefined' &&
-    //     typeof process !== 'undefined' &&
-    //     process.versions?.node &&
-    //     process.env.NODE_ENV !== undefined &&
-    //     process.env.NEXT_PHASE !== 'phase-production-build') {
-    //   try {
-    //     console.log('[BOOTSTRAP] Initializing schedulers...');
-    //     // Dynamic import to avoid loading server-only code in browser/edge contexts
-    //     await import('./lib/bootstrap');
-    //     // Bootstrap auto-executes on import
-    //   } catch (error) {
-    //     console.error('[BOOTSTRAP] Failed to initialize server bootstrap:', error);
-    //   }
-    // } else {
-    //   console.log('[BOOTSTRAP] Skipping scheduler initialization during build phase');
-    // }
+      // Use conditional dynamic import to avoid webpack static analysis
+      if (typeof process !== 'undefined' && process.versions?.node) {
+        const { initializeSchedulers } = await import('@/lib/bootstrap');
+        await initializeSchedulers();
+        console.log('[BOOTSTRAP] ✅ Schedulers initialized successfully');
+      }
+    } catch (error) {
+      console.error('[BOOTSTRAP] Error initializing schedulers:', error);
+    }
   } else if (runtime === 'edge') {
     // This block runs only in the Edge runtime.
     console.log('⚠️ Edge runtime detected. Some features may be limited.');

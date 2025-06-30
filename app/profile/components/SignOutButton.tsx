@@ -7,6 +7,7 @@ import { clientLogger } from '@/lib/client-logger';
 
 /**
  * Sign out button component for profile page.
+ * Uses primary color (blue) to distinguish from destructive actions (red).
  */
 export default function SignOutButton() {
   const handleSignOut = async () => {
@@ -21,7 +22,7 @@ export default function SignOutButton() {
     <Box sx={{ pt: 2 }}>
       <Button
         variant="contained"
-        color="error"
+        color="primary"
         onClick={handleSignOut}
         startIcon={<LogoutOutlined />}
         size="large"

@@ -1,11 +1,11 @@
-import cron from 'node-cron';
+// Import moved to dynamic eval to avoid webpack conflicts
 import { getTopUsers } from '@/lib/services/usage.service';
 import { getTopUsersFromEvents } from '@/lib/services/usage-event.service';
 // Email import moved to dynamic import to avoid build-time resolution
 import { getDailyUsageMetrics, DailyUsageMetrics } from '@/lib/services/usage-event.service';
 
 // Store reference to current scheduled task to prevent duplicates
-let currentScheduledTask: ReturnType<typeof cron.schedule> | null = null;
+let currentScheduledTask: { stop: () => void } | null = null;
 
 function parseSchedule(): { cronExpr: string; timezone?: string } {
   const raw = process.env.DAILY_REPORT_TIME || '07:00 UTC';
@@ -48,7 +48,7 @@ function buildReportText(
   return lines.join('\n');
 }
 
-export function scheduleDailyReport() {
+export async function scheduleDailyReport() {
   // Cancel existing scheduled task if one exists
   if (currentScheduledTask) {
     console.log('[SCHEDULER] Stopping existing daily report cron job');
@@ -58,6 +58,10 @@ export function scheduleDailyReport() {
 
   const { cronExpr, timezone } = parseSchedule();
   console.log(`[SCHEDULER] Scheduling daily report cron job: ${cronExpr} (${timezone})`);
+
+  // Use eval to hide node-cron import from webpack static analysis
+  const cronModule = await eval("import('node-cron')");
+  const cron = cronModule.default;
 
   currentScheduledTask = cron.schedule(
     cronExpr,
@@ -75,8 +79,9 @@ export function scheduleDailyReport() {
 
       const text = buildReportText(topUsers, metrics);
 
-      // Dynamic import to avoid build-time nodemailer resolution
-      const { sendDailyUsageReport } = await import('@/lib/email');
+      // Use eval to completely hide email import from webpack static analysis
+      const emailModule = await eval("import('@/lib/email')");
+      const { sendDailyUsageReport } = emailModule;
       await sendDailyUsageReport(text);
       console.log('[SCHEDULER] Daily report job completed');
     },
@@ -92,5 +97,7 @@ export function getScheduledTaskInfo() {
   };
 }
 
-// immediately schedule upon import
-scheduleDailyReport();
+// immediately schedule upon import (fire and forget)
+scheduleDailyReport().catch(error => {
+  console.error('[SCHEDULER] Failed to start daily report scheduler:', error);
+});
