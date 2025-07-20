@@ -98,7 +98,7 @@ describe('User Jobs API Route Handlers', () => {
       url: mockHttpRequest.url,
       method: mockHttpRequest.method,
       headers: new Headers(options.headers || {}),
-      json: jest.fn().mockResolvedValue(options.body || ({} as any)),
+      json: jest.fn().mockResolvedValue(options.body ?? {}),
       nextUrl: {
         pathname: '/api/user/jobs',
         search: options.query ? `?${new URLSearchParams(options.query).toString()}` : '',
@@ -376,7 +376,7 @@ describe('User Jobs API Route Handlers', () => {
           throw new ApiError(401, 'You must be logged in to access this resource.', 'UNAUTHORIZED');
         }
 
-        if (!Object.values(JobType).includes(jobType as JobType)) {
+        if (!Object.values(JobType).includes(jobType as 'NOVEL_EVENTS')) {
           const { ApiError } = await import('@/lib/errors/ApiError');
           throw new ApiError(400, 'Invalid jobType', 'INVALID_JOB_TYPE');
         }
@@ -393,7 +393,7 @@ describe('User Jobs API Route Handlers', () => {
         const userJobService = new UserJobService();
         const job = await userJobService.updateJobSchedule(
           session.user.id,
-          jobType as JobType,
+          jobType as 'NOVEL_EVENTS',
           schedule
         );
 
@@ -483,7 +483,7 @@ describe('User Jobs API Route Handlers', () => {
   });
 
   describe('DELETE /api/user/jobs/[jobType]', () => {
-    const testDeleteHandler = async (req: NextRequest, jobType: string): Promise<NextResponse> => {
+    const testDeleteHandler = async (_req: NextRequest, jobType: string): Promise<NextResponse> => {
       try {
         const { auth } = await import('@/lib/auth');
         const session = await auth();
@@ -493,14 +493,14 @@ describe('User Jobs API Route Handlers', () => {
           throw new ApiError(401, 'You must be logged in to access this resource.', 'UNAUTHORIZED');
         }
 
-        if (!Object.values(JobType).includes(jobType as JobType)) {
+        if (!Object.values(JobType).includes(jobType as 'NOVEL_EVENTS')) {
           const { ApiError } = await import('@/lib/errors/ApiError');
           throw new ApiError(400, 'Invalid jobType', 'INVALID_JOB_TYPE');
         }
 
         const { UserJobService } = await import('@/lib/services/userJob.service');
         const userJobService = new UserJobService();
-        await userJobService.disableJob(session.user.id, jobType as JobType);
+        await userJobService.disableJob(session.user.id, jobType as 'NOVEL_EVENTS');
 
         return NextResponse.json({ message: 'Job disabled successfully' });
       } catch (error) {

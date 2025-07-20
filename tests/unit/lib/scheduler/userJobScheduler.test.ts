@@ -157,7 +157,8 @@ describe.skip('UserJobScheduler', () => {
 
     it('should handle multiple instance creation gracefully', () => {
       // Create another instance (simulating restart)
-      const _newScheduler = new (UserJobScheduler as any)();
+      // Create another instance (simulating restart)
+      new (UserJobScheduler as any)();
 
       // Should not attempt to schedule in test environment
       expect(mockCron.schedule).not.toHaveBeenCalled();
@@ -171,14 +172,36 @@ describe.skip('UserJobScheduler', () => {
           id: 'job1',
           userId: 'user1',
           nextRun: new Date('2025-01-11T09:00:00Z'),
-          user: { id: 'user1', email: 'user1@example.com' },
+          user: {
+            id: 'user1',
+            email: 'user1@example.com',
+            name: 'Test User 1',
+            emailVerified: null,
+            image: null,
+            hashedPassword: null,
+            role: 'USER' as const,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            lastSignedInAt: null,
+          },
         }),
         createMockJob({
           id: 'job2',
           userId: 'user2',
           schedule: 'WEEKLY',
           nextRun: new Date('2025-01-11T08:00:00Z'),
-          user: { id: 'user2', email: 'user2@example.com' },
+          user: {
+            id: 'user2',
+            email: 'user2@example.com',
+            name: 'Test User 2',
+            emailVerified: null,
+            image: null,
+            hashedPassword: null,
+            role: 'USER' as const,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            lastSignedInAt: null,
+          },
         }),
       ];
 
@@ -331,14 +354,36 @@ describe.skip('UserJobScheduler', () => {
           id: 'job1',
           userId: 'user1',
           nextRun: new Date('2025-01-11T09:00:00Z'),
-          user: { id: 'user1', email: 'user1@example.com' },
+          user: {
+            id: 'user1',
+            email: 'user1@example.com',
+            name: 'Test User 1',
+            emailVerified: null,
+            image: null,
+            hashedPassword: null,
+            role: 'USER' as const,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            lastSignedInAt: null,
+          },
         }),
         createMockJob({
           id: 'job2',
           userId: 'user2',
           schedule: 'WEEKLY',
           nextRun: new Date('2025-01-11T08:00:00Z'),
-          user: { id: 'user2', email: 'user2@example.com' },
+          user: {
+            id: 'user2',
+            email: 'user2@example.com',
+            name: 'Test User 2',
+            emailVerified: null,
+            image: null,
+            hashedPassword: null,
+            role: 'USER' as const,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            lastSignedInAt: null,
+          },
         }),
       ];
 

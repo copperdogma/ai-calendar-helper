@@ -145,9 +145,7 @@ describe.skip('ProfileService', () => {
     it('should successfully delete a user account with all data', async () => {
       // Setup mocks for successful deletion
       prismaMock.user.findUnique.mockResolvedValue(mockUser);
-      // @ts-expect-error - JobFailure model mocking
       prismaMock.jobFailure.updateMany.mockResolvedValue({ count: 2 });
-      // @ts-expect-error - JobFailure model mocking
       prismaMock.jobFailure.deleteMany.mockResolvedValue({ count: 3 });
       prismaMock.user.delete.mockResolvedValue(mockUser);
 
@@ -166,12 +164,12 @@ describe.skip('ProfileService', () => {
       expect(prismaMock.$transaction).toHaveBeenCalled();
 
       // Verify JobFailure cleanup
-      // @ts-expect-error - JobFailure model mocking
+
       expect(prismaMock.jobFailure.updateMany).toHaveBeenCalledWith({
         where: { retriedBy: mockUserId },
         data: { retriedBy: null },
       });
-      // @ts-expect-error - JobFailure model mocking
+
       expect(prismaMock.jobFailure.deleteMany).toHaveBeenCalledWith({
         where: { userId: mockUserId },
       });
@@ -246,7 +244,6 @@ describe.skip('ProfileService', () => {
       prismaMock.user.findUnique.mockResolvedValue(mockUser);
       const jobFailureError = new Error('JobFailure update failed');
 
-      // @ts-expect-error - JobFailure model mocking
       // Mock JobFailure updateMany to fail
       prismaMock.jobFailure.updateMany.mockRejectedValue(jobFailureError);
 
@@ -284,9 +281,9 @@ describe.skip('ProfileService', () => {
     it('should log audit trail for successful deletion', async () => {
       const { logger } = require('@/lib/logger');
       prismaMock.user.findUnique.mockResolvedValue(mockUser);
-      // @ts-expect-error - JobFailure model mocking
+
       prismaMock.jobFailure.updateMany.mockResolvedValue({ count: 1 });
-      // @ts-expect-error - JobFailure model mocking
+
       prismaMock.jobFailure.deleteMany.mockResolvedValue({ count: 2 });
       prismaMock.user.delete.mockResolvedValue(mockUser);
 
